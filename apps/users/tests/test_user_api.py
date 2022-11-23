@@ -1,5 +1,7 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.utils.http import urlsafe_base64_decode
 from django.urls import reverse
 
 from rest_framework.test import APIClient
@@ -7,12 +9,24 @@ from rest_framework import status
 
 from rest_framework_simplejwt.exceptions import TokenError
 
+from apps.users.utils import get_reset_password_url
 
 CREATE_USER_URL = reverse("users:user_account-list")  # create user API url
 ME_URL = reverse("users:user_account-get-me-data")  # get user API url
+RESET_PASSWORD_URL = reverse("users:reset_password")  # get user reset password API url
 
-TOKEN_URL = reverse("users:user_token_obtain")  # user token url
-TOKEN_REFRESH_URL = reverse("users:user_token_refresh")  # user token refresh url
+TOKEN_URL = reverse("users:user_token_obtain")  # user token API url
+TOKEN_REFRESH_URL = reverse("users:user_token_refresh")  # user token refresh API url
+
+
+def get_change_password_url(token, encoded_pk):
+    """
+    Gets the change password url with params
+    """
+    return reverse(
+        "users:reset_password-confirm",
+        kwargs={"token": token, "encoded_pk": encoded_pk},
+    )
 
 
 def create_user(**kwargs):
@@ -167,7 +181,7 @@ class PublicUsersAPITests(TestCase):
         Tests if can refresh the JWT
         """
         payload = {
-            "email": "test@.com",
+            "email": "test@test.com",
             "password": "testpassword",  # Mock user create data
             "first_name": "Test",
         }
@@ -209,6 +223,147 @@ class PublicUsersAPITests(TestCase):
         self.assertNotIn("last_name", res.data)
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_user_forgotten_password_successful(self):
+        """
+        Tests if can send email to change forgotten password
+        """
+        payload = {
+            "email": "test@test.com",
+            "password": "Test123",  # Mock user data
+            "first_name": "Test",
+        }
+        create_user(**payload)
+
+        res = self.client.post(RESET_PASSWORD_URL, {"email": payload["email"]})
+
+        self.assertEqual(res.status_code, status.HTTP_202_ACCEPTED)
+
+    def test_user_forgotten_passsword_invalid_email(self):
+        """
+        Tests if invalid email returns 404
+        """
+
+        res = self.client.post(RESET_PASSWORD_URL, {"email": "invalidEmail@test.com"})
+
+        self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_get_reset_password_url_successful(self):
+        """
+        Tests if generated reset password url is valid
+        """
+        payload = {
+            "email": "test@test.com",
+            "password": "Test123",  # Mock user data
+            "first_name": "Test",
+        }
+        user = create_user(**payload)
+
+        reset_url_params = get_reset_password_url(payload["email"]).split("/")
+
+        token = reset_url_params[-2]
+        encoded_pk = reset_url_params[-3]
+
+        self.assertTrue(PasswordResetTokenGenerator().check_token(user, token))
+        self.assertEqual(urlsafe_base64_decode(encoded_pk).decode(), str(user.id))
+
+    def test_change_password_api_succesful(self):
+        """
+        Tests if public user can change the password successfuly
+        """
+        payload = {
+            "email": "test@test.com",
+            "password": "Test123",  # Mock user data
+            "first_name": "Test",
+        }
+        user = create_user(**payload)
+
+        reset_url_params = get_reset_password_url(payload["email"]).split("/")
+
+        token = reset_url_params[-2]
+        encoded_pk = reset_url_params[-3]
+
+        CHANGE_PASSWORD_URL = get_change_password_url(token, encoded_pk)
+
+        res = self.client.patch(CHANGE_PASSWORD_URL, {"password": "NewPassword"})
+
+        user.refresh_from_db()
+        self.assertTrue(user.check_password("NewPassword"))
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_change_password_api_invalid_token_reject(self):
+        """
+        Tests if public user can change the password successfuly
+        """
+        payload = {
+            "email": "test@test.com",
+            "password": "Test123",  # Mock user data
+            "first_name": "Test",
+        }
+        user = create_user(**payload)
+
+        reset_url_params = get_reset_password_url(payload["email"]).split("/")
+
+        token = "invalidToken123"
+        encoded_pk = reset_url_params[-3]
+
+        CHANGE_PASSWORD_URL = get_change_password_url(token, encoded_pk)
+
+        res = self.client.patch(CHANGE_PASSWORD_URL, {"password": "NewPassword"})
+
+        user.refresh_from_db()
+        self.assertFalse(user.check_password("NewPassword"))
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_change_password_api_invalid_pk_reject(self):
+        """
+        Tests if public user can change the password successfuly
+        """
+        payload = {
+            "email": "test@test.com",
+            "password": "Test123",  # Mock user data
+            "first_name": "Test",
+        }
+        user = create_user(**payload)
+
+        reset_url_params = get_reset_password_url(payload["email"]).split("/")
+
+        token = reset_url_params[-2]
+        encoded_pk = "NDEyMTQzNjEyNDUyNDM="
+
+        CHANGE_PASSWORD_URL = get_change_password_url(token, encoded_pk)
+
+        res = self.client.patch(CHANGE_PASSWORD_URL, {"password": "NewPassword"})
+
+        user.refresh_from_db()
+        self.assertFalse(user.check_password("NewPassword"))
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_change_password_api_invalid_data_reject(self):
+        """
+        Tests if public user cannot change the password with invalid data
+        """
+        payload = {
+            "email": "test@test.com",
+            "password": "Test123",  # Mock user data
+            "first_name": "Test",
+        }
+        user = create_user(**payload)
+
+        token = "invalidToken123"
+        encoded_pk = "NDEyMTQzNjEyNDUyNDM="
+
+        CHANGE_PASSWORD_URL = get_change_password_url(token, encoded_pk)
+
+        res = self.client.patch(CHANGE_PASSWORD_URL, {"password": "NewPassword"})
+
+        user.refresh_from_db()
+        self.assertFalse(user.check_password("NewPassword"))
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
 
 class PrivateUsersAPITests(TestCase):
