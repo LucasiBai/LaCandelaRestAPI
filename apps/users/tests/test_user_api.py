@@ -11,7 +11,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 
 from apps.users.utils import get_reset_password_url
 
-CREATE_USER_URL = reverse("users:user_account-list")  # create user API url
+USER_LIST_URL = reverse("users:user_account-list")  # user list API url
 ME_URL = reverse("users:user_account-get-me-data")  # get user API url
 RESET_PASSWORD_URL = reverse("users:reset_password")  # get user reset password API url
 
@@ -58,7 +58,7 @@ class PublicUsersAPITests(TestCase):
             "last_name": "Testi",
         }
 
-        res = self.client.post(CREATE_USER_URL, payload)
+        res = self.client.post(USER_LIST_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
@@ -77,7 +77,7 @@ class PublicUsersAPITests(TestCase):
         }
         create_user(**payload)
 
-        res = self.client.post(CREATE_USER_URL, payload)
+        res = self.client.post(USER_LIST_URL, payload)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_user_invalid_email(self):
@@ -90,7 +90,7 @@ class PublicUsersAPITests(TestCase):
             "first_name": "Test",
         }
 
-        res = self.client.post(CREATE_USER_URL, payload)
+        res = self.client.post(USER_LIST_URL, payload)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
         user_exists = get_user_model().objects.filter(email=payload["email"]).exists()
@@ -106,11 +106,19 @@ class PublicUsersAPITests(TestCase):
             "first_name": "Test",
         }
 
-        res = self.client.post(CREATE_USER_URL, payload)
+        res = self.client.post(USER_LIST_URL, payload)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
         user_exists = get_user_model().objects.filter(email=payload["email"]).exists()
         self.assertFalse(user_exists)
+
+    def test_unauthorized_user_view_user_data_list_reject(self):
+        """
+        Tests if unauthorized user can't see user list
+        """
+        res = self.client.get(USER_LIST_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_create_token_for_user(self):
         """
@@ -428,3 +436,142 @@ class PrivateUsersAPITests(TestCase):
         self.assertTrue(self.user.check_password(payload["password"]))
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_normal_user_view_user_data_list_reject(self):
+        """
+        Tests if normal user can't see user list
+        """
+        res = self.client.get(
+            USER_LIST_URL, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_normal_user_view_another_user_data_reject(self):
+        """
+        Tests if normal user can't see another user data
+        """
+        new_user_payload = {"email": "newuser@test.com", "password": "newuserpassword"}
+        user = get_user_model().objects.create_user(**new_user_payload)
+
+        USER_DETAIL_URL = reverse("users:user_account-detail", kwargs={"pk": user.id})
+
+        res = self.client.get(
+            USER_DETAIL_URL, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_normal_user_patch_another_user_data_reject(self):
+        """
+        Tests if normal user can't patch another user data
+        """
+        new_data_payload = {"email": "newemail@test.com"}
+        new_user_payload = {"email": "newuser@test.com", "password": "newuserpassword"}
+
+        user = get_user_model().objects.create_user(**new_user_payload)
+
+        USER_DETAIL_URL = reverse("users:user_account-detail", kwargs={"pk": user.id})
+
+        res = self.client.patch(
+            USER_DETAIL_URL,
+            new_data_payload,
+            HTTP_AUTHORIZATION=f"Bearer {self.user_token}",
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_normal_user_delete_another_user_data_reject(self):
+        """
+        Tests if normal user can't delete another user data
+        """
+        new_user_payload = {"email": "newuser@test.com", "password": "newuserpassword"}
+
+        user = get_user_model().objects.create_user(**new_user_payload)
+
+        USER_DETAIL_URL = reverse("users:user_account-detail", kwargs={"pk": user.id})
+
+        res = self.client.delete(
+            USER_DETAIL_URL,
+            HTTP_AUTHORIZATION=f"Bearer {self.user_token}",
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class PrivateSuperusersAPITests(TestCase):
+    """
+    Tests private users api
+    """
+
+    def setUp(self):
+        self.client = APIClient()
+
+        self.user_data = {"email": "test@test.com", "password": "test123"}
+
+        self.superuser = get_user_model().objects.create_superuser(**self.user_data)
+        self.client.force_authenticate(user=self.superuser)
+
+        res_token = self.client.post(TOKEN_URL, self.user_data)  # get user token
+        self.superuser_token = res_token.data["token"]
+
+    def test_superuser_view_user_data_list_successful(self):
+        """
+        Tests if superuser can see user list
+        """
+        res = self.client.get(
+            USER_LIST_URL, HTTP_AUTHORIZATION=f"Bearer {self.superuser_token}"
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_superuser_view_another_user_data_succesful(self):
+        """
+        Tests if superuser can see another user data
+        """
+        new_user_payload = {"email": "newuser@test.com", "password": "newuserpassword"}
+        user = get_user_model().objects.create_user(**new_user_payload)
+
+        USER_DETAIL_URL = reverse("users:user_account-detail", kwargs={"pk": user.id})
+
+        res = self.client.get(
+            USER_DETAIL_URL, HTTP_AUTHORIZATION=f"Bearer {self.superuser_token}"
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_superuser_patch_another_user_data_successful(self):
+        """
+        Tests if superuser can patch another user data
+        """
+        new_data_payload = {"email": "newemail@test.com"}
+        new_user_payload = {"email": "newuser@test.com", "password": "newuserpassword"}
+
+        user = get_user_model().objects.create_user(**new_user_payload)
+
+        USER_DETAIL_URL = reverse("users:user_account-detail", kwargs={"pk": user.id})
+
+        res = self.client.patch(
+            USER_DETAIL_URL,
+            new_data_payload,
+            HTTP_AUTHORIZATION=f"Bearer {self.superuser_token}",
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_superuser_delete_another_user_data_reject(self):
+        """
+        Tests if superuser can delete another user data
+        """
+        new_user_payload = {"email": "newuser@test.com", "password": "newuserpassword"}
+
+        user = get_user_model().objects.create_user(**new_user_payload)
+
+        USER_DETAIL_URL = reverse("users:user_account-detail", kwargs={"pk": user.id})
+
+        res = self.client.delete(
+            USER_DETAIL_URL,
+            HTTP_AUTHORIZATION=f"Bearer {self.superuser_token}",
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)

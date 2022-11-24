@@ -2,11 +2,11 @@ from django.contrib.auth import get_user_model
 
 from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
 
-
+from apps.users.permissions import IsOwnData
 from apps.users.serializers import UserAccountSerializer
 
 
@@ -21,6 +21,14 @@ class UserAccountViewset(ModelViewSet):
     def get_permissions(self):
         if self.action == "create":
             permission_classes = [AllowAny]
+        elif self.action == "destroy" or self.action == "list":
+            permission_classes = [IsAuthenticated, IsAdminUser]
+        elif self.request.user.is_superuser and (
+            self.action == "partial_update" or self.action == "retrieve"
+        ):
+            permission_classes = [IsAuthenticated, IsAdminUser]
+        elif self.action == "partial_update" or self.action == "retrieve":
+            permission_classes = [IsAuthenticated, IsOwnData]
         else:
             permission_classes = [IsAuthenticated]
 

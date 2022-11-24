@@ -31,6 +31,8 @@ class UserAccountSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "password": {"write_only": True, "min_length": 5},
             "id": {"read_only": True},
+            "is_staff": {"read_only": True},
+            "is_active": {"read_only": True},
         }
 
     def create(self, validated_data):
