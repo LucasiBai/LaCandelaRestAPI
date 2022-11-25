@@ -4,6 +4,8 @@ from django.contrib.auth.models import (
     BaseUserManager,
     PermissionsMixin,
 )
+from django.contrib.postgres.fields import ArrayField
+from django.utils.translation import gettext as _
 
 from simple_history.models import HistoricalRecords
 
@@ -53,11 +55,71 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name"]
 
+    class Meta:
+        verbose_name = _("User")
+        verbose_name_plural = _("Users")
+
     def get_full_name(self):
-        return f"{self.first_name} {self.last_name}"
+        return f"{self.first_name}, {self.last_name}"
 
     def get_short_name(self):
         return self.first_name
 
     def __str__(self):
         return self.email
+
+
+class Category(models.Model):
+    """
+    Category model
+    """
+
+    title = models.CharField(max_length=255, unique=True)
+
+    class Meta:
+        verbose_name = _("Category")
+        verbose_name_plural = _("Categories")
+
+    def __str__(self):
+        return self.title
+
+
+class Comment(models.Model):
+    """
+    Comment model
+    """
+
+    user = models.ForeignKey("UserAccount", on_delete=models.CASCADE)
+    product = models.ForeignKey("Product", on_delete=models.CASCADE)
+    subject = models.CharField(max_length=255)
+    content = models.TextField()
+    rate = models.FloatField()
+    created_at = models.DateField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("Comment")
+        verbose_name_plural = _("Comments")
+
+    def __str__(self):
+        return self.subject
+
+
+class Product(models.Model):
+    """
+    Product model
+    """
+
+    title = models.CharField(max_length=255, unique=True)
+    description = models.TextField()
+    price = models.PositiveBigIntegerField()
+    images = ArrayField(models.CharField(max_length=255))
+    stock = models.PositiveIntegerField()
+    category = models.ForeignKey("Category", on_delete=models.CASCADE)
+    selled = models.PositiveBigIntegerField()
+
+    class Meta:
+        verbose_name = _("Product")
+        verbose_name_plural = _("Products")
+
+    def __str__(self):
+        return self.title

@@ -1,8 +1,16 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
+from django.db.utils import IntegrityError
 
 
-class ModelTest(TestCase):
+from db.models import Category, Product, Comment
+
+
+class UserModelTest(TestCase):
+    """
+    Tests custom user model
+    """
+
     def test_create_user_with_email_successful(self):
         """
         Tests if it is possible to create a user with email address
@@ -65,3 +73,128 @@ class ModelTest(TestCase):
 
         with self.assertRaises(ValueError):
             user = get_user_model().objects.create_superuser(email=None, password=pwd)
+
+
+class CategoryModelTest(TestCase):
+    """
+    Tests Category model
+    """
+
+    def test_create_category_succesful(self):
+        """
+        Tests if can create a Category
+        """
+        category = Category.objects.create(title="TestCategory")
+
+        self.assertEqual("TestCategory", category.title)
+
+        self.assertEqual("TestCategory", str(category))
+
+    def test_create_existing_category_reject(self):
+        """
+        Tests if can't create an existing category
+        """
+        Category.objects.create(title="TestCategory")
+
+        with self.assertRaises(IntegrityError):
+            Category.objects.create(title="TestCategory")
+
+
+class ProductModelTest(TestCase):
+    """
+    Tests Product model
+    """
+
+    def setUp(self):
+        self.category = Category.objects.create(title="TestCategory")
+
+        self.product_payload = {
+            "title": "Test title",
+            "description": "Test description",
+            "price": 1111,
+            "images": [
+                "testimgurl/1.com",
+                "testimgurl/2.com",
+                "testimgurl/3.com",
+            ],
+            "stock": 11,
+            "category": self.category,
+            "selled": 11,
+        }
+
+    def test_create_product_succcesful(self):
+        """
+        Tests if its posible create product
+        """
+
+        product = Product.objects.create(**self.product_payload)
+
+        self.assertEqual(product.title, self.product_payload["title"])
+        self.assertEqual(product.price, self.product_payload["price"])
+        self.assertEqual(product.description, self.product_payload["description"])
+        self.assertEqual(product.images[0], self.product_payload["images"][0])
+        self.assertEqual(product.category, self.category)
+
+        self.assertEqual(self.product_payload["title"], str(product))
+
+    def test_create_existing_product_reject(self):
+        """
+        Tests if can't create an existing product
+        """
+
+        Product.objects.create(**self.product_payload)
+
+        with self.assertRaises(IntegrityError):
+            Product.objects.create(**self.product_payload)
+
+
+class CommentModelTest(TestCase):
+    """
+    Tests Comment model
+    """
+
+    def setUp(self):
+        category = Category.objects.create(title="TestCategory")
+
+        product_payload = {
+            "title": "Test title",
+            "description": "Test description",
+            "price": 1111,
+            "images": [
+                "testimgurl/1.com",
+                "testimgurl/2.com",
+                "testimgurl/3.com",
+            ],
+            "stock": 11,
+            "category": category,
+            "selled": 11,
+        }
+
+        self.product = Product.objects.create(**product_payload)  # create product
+
+        self.user = get_user_model().objects.create_user(
+            email="test@test.com", password="testPass"  # create user
+        )
+
+    def test_create_comment_successful(self):
+        """
+        Tests if can create a comment
+        """
+
+        payload = {
+            "user": self.user,
+            "product": self.product,
+            "subject": "Test comment subject",
+            "content": "Test comment content",
+            "rate": 4.3,
+        }
+
+        comment = Comment.objects.create(**payload)
+
+        self.assertEqual(self.user, comment.user)
+        self.assertEqual(self.product, comment.product)
+        self.assertEqual(payload["subject"], comment.subject)
+
+        self.assertEqual(payload["subject"], str(comment))
+
+        self.assertTrue(comment.created_at)
