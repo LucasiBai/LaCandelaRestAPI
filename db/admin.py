@@ -59,9 +59,9 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = ["id", "title", "category", "price", "stock"]
     list_display_links = ["title"]
 
-    search_fields = ["id", "title", "category"]
+    search_fields = ["id", "title", "category__title"]
 
-    list_filter = ["category"]
+    list_filter = ["category__title"]
 
     fieldsets = (
         (_("Product Public Data"), {"fields": ["title", "description", "price"]}),
@@ -99,7 +99,7 @@ class CommentAdmin(admin.ModelAdmin):
     list_display = ["id", "user", "product", "rate", "created_at"]
     list_display_links = ["user", "product"]
 
-    search_fields = ["id", "user", "product", "rate"]
+    search_fields = ["id", "user__email", "product__title", "rate"]
 
     fieldsets = (
         (_("Comment Public Data"), {"fields": ["subject", "content", "rate"]}),
