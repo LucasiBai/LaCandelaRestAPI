@@ -108,7 +108,7 @@ class ProductModelTest(TestCase):
     def setUp(self):
         self.category = Category.objects.create(title="TestCategory")
 
-        self.product_payload = {
+        self.mock_product = {
             "title": "Test title",
             "description": "Test description",
             "price": 1111,
@@ -127,25 +127,25 @@ class ProductModelTest(TestCase):
         Tests if its posible create product
         """
 
-        product = Product.objects.create(**self.product_payload)
+        product = Product.objects.create(**self.mock_product)
 
-        self.assertEqual(product.title, self.product_payload["title"])
-        self.assertEqual(product.price, self.product_payload["price"])
-        self.assertEqual(product.description, self.product_payload["description"])
-        self.assertEqual(product.images[0], self.product_payload["images"][0])
+        self.assertEqual(product.title, self.mock_product["title"])
+        self.assertEqual(product.price, self.mock_product["price"])
+        self.assertEqual(product.description, self.mock_product["description"])
+        self.assertEqual(product.images[0], self.mock_product["images"][0])
         self.assertEqual(product.category, self.category)
 
-        self.assertEqual(self.product_payload["title"], str(product))
+        self.assertEqual(self.mock_product["title"], str(product))
 
     def test_create_existing_product_reject(self):
         """
         Tests if can't create an existing product
         """
 
-        Product.objects.create(**self.product_payload)
+        Product.objects.create(**self.mock_product)
 
         with self.assertRaises(IntegrityError):
-            Product.objects.create(**self.product_payload)
+            Product.objects.create(**self.mock_product)
 
 
 class CommentModelTest(TestCase):
@@ -156,7 +156,7 @@ class CommentModelTest(TestCase):
     def setUp(self):
         category = Category.objects.create(title="TestCategory")
 
-        product_payload = {
+        mock_product = {
             "title": "Test title",
             "description": "Test description",
             "price": 1111,
@@ -170,7 +170,7 @@ class CommentModelTest(TestCase):
             "selled": 11,
         }
 
-        self.product = Product.objects.create(**product_payload)  # create product
+        self.product = Product.objects.create(**mock_product)  # create product
 
         self.user = get_user_model().objects.create_user(
             email="test@test.com", password="testPass"  # create user
@@ -181,7 +181,7 @@ class CommentModelTest(TestCase):
         Tests if can create a comment
         """
 
-        payload = {
+        mock_comment = {
             "user": self.user,
             "product": self.product,
             "subject": "Test comment subject",
@@ -189,12 +189,12 @@ class CommentModelTest(TestCase):
             "rate": 4.3,
         }
 
-        comment = Comment.objects.create(**payload)
+        comment = Comment.objects.create(**mock_comment)
 
         self.assertEqual(self.user, comment.user)
         self.assertEqual(self.product, comment.product)
-        self.assertEqual(payload["subject"], comment.subject)
+        self.assertEqual(mock_comment["subject"], comment.subject)
 
-        self.assertEqual(payload["subject"], str(comment))
+        self.assertEqual(mock_comment["subject"], str(comment))
 
         self.assertTrue(comment.created_at)

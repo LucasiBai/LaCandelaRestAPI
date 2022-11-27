@@ -24,7 +24,7 @@ PROJECT_APPS = [
     "apps.users",
 ]
 
-ECOMMERCE_APPS = []
+ECOMMERCE_APPS = ["apps.products"]
 
 THIRD_PARTY_APPS = [
     "corsheaders",
