@@ -8,7 +8,7 @@ from rest_framework import status
 from db.models import Product, Category
 
 
-PRODUCTS_LIST_URL = reverse("products:products-list")  # products list api url
+PRODUCTS_LIST_URL = reverse("products:product-list")  # products list api url
 
 TOKEN_URL = reverse("users:user_token_obtain")  # user token API url
 
@@ -17,7 +17,7 @@ def get_products_detail_url(products_list):
     """
     Gets the product detail url of the first product in list
     """
-    return reverse("products:products-detail", kwargs={"pk": products_list[0].id})
+    return reverse("products:product-detail", kwargs={"pk": products_list[0].id})
 
 
 class PublicProductsAPITests(TestCase):
@@ -71,14 +71,11 @@ class PublicProductsAPITests(TestCase):
                 "testimgurl/3.com",
             ],
             "stock": 11,
-            "category": self.category,
+            "category": self.category.id,
             "selled": 11,
         }
 
         res = self.client.post(PRODUCTS_LIST_URL, payload)
-        Product.refresh_from_db()
-
-        self.assertNotContains(Product.objects.all(), payload)
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
@@ -109,9 +106,9 @@ class PublicProductsAPITests(TestCase):
 
         res = self.client.patch(product_url, payload)
 
-        Product.refresh_from_db()
+        self.product.refresh_from_db()
 
-        self.assertEqual(products_list[0].title, self.mock_product["title"])
+        self.assertEqual(self.product.title, self.mock_product["title"])
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
@@ -190,16 +187,13 @@ class PrivateUserProductsAPITests(TestCase):
                 "testimgurl/3.com",
             ],
             "stock": 11,
-            "category": self.category,
+            "category": self.category.id,
             "selled": 11,
         }
 
         res = self.client.post(
             PRODUCTS_LIST_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
         )
-        Product.refresh_from_db()
-
-        self.assertNotContains(Product.objects.all(), payload)
 
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -232,9 +226,9 @@ class PrivateUserProductsAPITests(TestCase):
             product_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
         )
 
-        Product.refresh_from_db()
+        self.product.refresh_from_db()
 
-        self.assertEqual(products_list[0].title, self.mock_product["title"])
+        self.assertEqual(self.product.title, self.mock_product["title"])
 
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -315,16 +309,13 @@ class PrivateSuperuserProductsAPITests(TestCase):
                 "testimgurl/3.com",
             ],
             "stock": 11,
-            "category": self.category,
+            "category": self.category.id,
             "selled": 11,
         }
 
         res = self.client.post(
             PRODUCTS_LIST_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
         )
-        Product.refresh_from_db()
-
-        self.assertContains(Product.objects.all(), payload)
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
@@ -332,7 +323,7 @@ class PrivateSuperuserProductsAPITests(TestCase):
         """
         Tests if superuser can't create an existing product
         """
-        payload = {
+        mock_product = {
             "title": "Test title 2",
             "description": "Test description",
             "price": 1111,
@@ -346,7 +337,9 @@ class PrivateSuperuserProductsAPITests(TestCase):
             "selled": 11,
         }
 
-        Product.objects.create(**payload)
+        Product.objects.create(**mock_product)
+
+        payload = {**mock_product, "category": self.category.id}
 
         res = self.client.post(
             PRODUCTS_LIST_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
@@ -382,9 +375,9 @@ class PrivateSuperuserProductsAPITests(TestCase):
         res = self.client.patch(
             product_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
         )
-        Product.refresh_from_db()
+        self.product.refresh_from_db()
 
-        self.assertEqual(products_list[0].title, payload["title"])
+        self.assertEqual(self.product.title, payload["title"])
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
