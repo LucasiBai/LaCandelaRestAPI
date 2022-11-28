@@ -21,6 +21,7 @@ DJANGO_APPS = [
 
 PROJECT_APPS = [
     "db",
+    "apps.api_root",
     "apps.users",
 ]
 

@@ -5,10 +5,10 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework import status
 
-from db.models import Product, Category
+from db.models import Product, Category, Comment
 
 
-PRODUCTS_LIST_URL = reverse("products:product-list")  # products list api url
+PRODUCTS_LIST_URL = reverse("api:product-list")  # products list api url
 
 TOKEN_URL = reverse("users:user_token_obtain")  # user token API url
 
@@ -17,7 +17,7 @@ def get_products_detail_url(products_list):
     """
     Gets the product detail url of the first product in list
     """
-    return reverse("products:product-detail", kwargs={"pk": products_list[0].id})
+    return reverse("api:product-detail", kwargs={"pk": products_list[0].id})
 
 
 class PublicProductsAPITests(TestCase):
@@ -91,6 +91,81 @@ class PublicProductsAPITests(TestCase):
         self.assertContains(res, products_list[0])
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_product_detail_has_automatic_rate_successful(self):
+        """
+        Tests if products has automatic rate
+        """
+        products_list = Product.objects.all()
+        product_url = get_products_detail_url(products_list)
+
+        res = self.client.get(product_url)
+
+        self.assertEqual(res.data["rate"], 5.00)
+
+    def test_product_detail_has_comment_rate_successful(self):
+        """
+        Tests if product detail has the rate of user comment
+        """
+        user = get_user_model().objects.create_user(
+            email="testuser@test.com", password="testPassword"
+        )
+
+        mock_comment = {
+            "user": user,
+            "product": self.product,
+            "subject": "Test comment subject",
+            "content": "Test comment content",
+            "rate": 4.3,
+        }
+
+        Comment.objects.create(**mock_comment)
+
+        products_list = Product.objects.all()
+        product_url = get_products_detail_url(products_list)
+
+        res = self.client.get(product_url)
+
+        self.assertEqual(res.data["rate"], mock_comment["rate"])
+
+    def test_product_detail_has_comment_rate_avg_successful(self):
+        """
+        Tests if product detail has the rate average of users comments
+        """
+        user = get_user_model().objects.create_user(
+            email="testuser@test.com", password="testPassword"
+        )
+
+        first_mock_comment = {
+            "user": user,
+            "product": self.product,
+            "subject": "Test comment subject",
+            "content": "Test comment content",
+            "rate": 4.3,
+        }
+
+        second_mock_comment = {**first_mock_comment, "rate": 2.4}
+
+        Comment.objects.create(**first_mock_comment)
+        Comment.objects.create(**second_mock_comment)
+
+        products_list = Product.objects.all()
+        product_url = get_products_detail_url(products_list)
+
+        res = self.client.get(product_url)
+
+        self.assertEqual(res.data["rate"], 3.35)
+
+    def test_product_detail_category_title_successful(self):
+        """
+        Tests if product detail 'category' has category title
+        """
+        products_list = Product.objects.all()
+        product_url = get_products_detail_url(products_list)
+
+        res = self.client.get(product_url)
+
+        self.assertEqual(self.category.title, res.data["category"])
 
     def test_products_detail_update_public_reject(self):
         """
@@ -316,6 +391,7 @@ class PrivateSuperuserProductsAPITests(TestCase):
         res = self.client.post(
             PRODUCTS_LIST_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
         )
+        self.assertIn("rate", res.data)
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
@@ -377,7 +453,8 @@ class PrivateSuperuserProductsAPITests(TestCase):
         )
         self.product.refresh_from_db()
 
-        self.assertEqual(self.product.title, payload["title"])
+        self.assertEqual(res.data["title"], payload["title"])
+        self.assertEqual(res.data["description"], payload["description"])
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
