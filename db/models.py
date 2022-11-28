@@ -5,7 +5,7 @@ from django.contrib.auth.models import (
     PermissionsMixin,
 )
 from django.contrib.postgres.fields import ArrayField
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
 from simple_history.models import HistoricalRecords
 
