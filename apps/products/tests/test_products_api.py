@@ -20,6 +20,13 @@ def get_products_detail_url(products_list):
     return reverse("api:product-detail", kwargs={"pk": products_list[0].id})
 
 
+def get_filter_url(filter_name, value):
+    """
+    Gets the filter url
+    """
+    return reverse("api:product-list") + f"?{filter_name}={value}"
+
+
 class PublicProductsAPITests(TestCase):
     """
     Tests products api with public client
@@ -197,6 +204,160 @@ class PublicProductsAPITests(TestCase):
         res = self.client.delete(product_url)
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_products_min_price_filter_successful(self):
+        """
+        Tests if api has a min price filter endpoint
+        """
+        new_mock_product = {
+            **self.mock_product,
+            "title": "Test New Product",
+            "price": 1112,
+        }
+
+        new_product = Product.objects.create(**new_mock_product)
+
+        min_price_filter_url = get_filter_url("min_price", "1112")
+
+        res = self.client.get(min_price_filter_url)
+
+        self.assertContains(res, new_product)
+        self.assertNotContains(res, self.product)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_products_max_price_filter_successful(self):
+        """
+        Tests if api has a max price filter endpoint
+        """
+        new_mock_product = {
+            **self.mock_product,
+            "title": "Test New Product",
+            "price": 1112,
+        }
+
+        new_product = Product.objects.create(**new_mock_product)
+
+        max_price_filter_url = get_filter_url("max_price", "1111")
+
+        res = self.client.get(max_price_filter_url)
+
+        self.assertContains(res, self.product)
+        self.assertNotContains(res, new_product)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_products_title_filter_successful(self):
+        """
+        Tests if api has a title filter endpoint
+        """
+        new_mock_product = {
+            **self.mock_product,
+            "title": "Test New Product",
+            "price": 1112,
+        }
+
+        new_product = Product.objects.create(**new_mock_product)
+
+        title_filter_url = get_filter_url("title", "New")
+
+        res = self.client.get(title_filter_url)
+
+        self.assertContains(res, new_product)
+        self.assertNotContains(res, self.product)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_products_category_filter_successful(self):
+        """
+        Tests if api has a category filter endpoint
+        """
+        category = Category.objects.create(
+            title="New Test Category"  # create new category
+        )
+
+        new_mock_product = {
+            **self.mock_product,
+            "title": "Test New Product",
+            "category": category,
+        }
+
+        new_product = Product.objects.create(**new_mock_product)
+
+        category_filter_url = get_filter_url("category", category.title)
+
+        res = self.client.get(category_filter_url)
+
+        self.assertContains(res, new_product)
+        self.assertNotContains(res, self.product)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    # def test_products_min_rate_filter_successful(self):
+    #     """
+    #     Tests if api has a min rate filter endpoint
+    #     """
+    #     new_mock_product = {
+    #         **self.mock_product,
+    #         "title": "Test New Product",  # creating new product
+    #     }
+    #     new_product = Product.objects.create(**new_mock_product)
+
+    #     user = get_user_model().objects.create_user(
+    #         email="testuser@test.com",
+    #         password="testPassword",  # new user to create comment
+    #     )
+
+    #     mock_comment = {
+    #         "user": user,
+    #         "product": self.product,
+    #         "subject": "Test comment subject",  # new comment
+    #         "content": "Test comment content",
+    #         "rate": 4.3,
+    #     }
+    #     Comment.objects.create(**mock_comment)
+
+    #     min_rate_filter_url = get_filter_url("min_rate", "5")
+
+    #     res = self.client.get(min_rate_filter_url)
+
+    #     self.assertContains(res, new_product)
+    #     self.assertNotContains(res, self.product)
+
+    #     self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    # def test_products_max_rate_filter_successful(self):
+    #     """
+    #     Tests if api has a max rate filter endpoint
+    #     """
+    #     new_mock_product = {
+    #         **self.mock_product,
+    #         "title": "Test New Product",  # creating new product
+    #     }
+    #     new_product = Product.objects.create(**new_mock_product)
+
+    #     user = get_user_model().objects.create_user(
+    #         email="testuser@test.com",
+    #         password="testPassword",  # new user to create comment
+    #     )
+
+    #     mock_comment = {
+    #         "user": user,
+    #         "product": self.product,
+    #         "subject": "Test comment subject",  # new comment
+    #         "content": "Test comment content",
+    #         "rate": 4.3,
+    #     }
+    #     Comment.objects.create(**mock_comment)
+
+    #     max_rate_filter_url = get_filter_url("max_rate", "4.3")
+
+    #     res = self.client.get(max_rate_filter_url)
+
+    #     self.assertContains(res, self.product)
+    #     self.assertNotContains(res, new_product)
+
+    #     self.assertEqual(res.status_code, status.HTTP_200_OK)
 
 
 class PrivateUserProductsAPITests(TestCase):
