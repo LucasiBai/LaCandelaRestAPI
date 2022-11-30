@@ -111,7 +111,7 @@ class Product(models.Model):
 
     title = models.CharField(max_length=255, unique=True)
     description = models.TextField()
-    price = models.PositiveBigIntegerField()
+    price = models.DecimalField(max_digits=9, decimal_places=2)
     images = ArrayField(models.CharField(max_length=255))
     stock = models.PositiveIntegerField()
     category = models.ForeignKey("Category", on_delete=models.CASCADE)

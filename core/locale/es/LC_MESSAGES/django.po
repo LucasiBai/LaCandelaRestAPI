@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-28 14:49-0300\n"
+"POT-Creation-Date: 2022-11-30 09:57-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,22 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: .\apps\products\filters.py:13
+msgid "Title"
+msgstr "Título"
+
+#: .\apps\products\filters.py:17 .\db\models.py:80
+msgid "Category"
+msgstr "Categoría"
+
+#: .\apps\products\filters.py:21
+msgid "Min Price"
+msgstr "Precio Mínimo"
+
+#: .\apps\products\filters.py:24
+msgid "Max Price"
+msgstr "Precio Máximo"
 
 #: .\db\admin.py:23
 msgid "Personal Info"
@@ -61,10 +77,6 @@ msgstr "Usuario"
 #: .\db\models.py:60
 msgid "Users"
 msgstr "Usuarios"
-
-#: .\db\models.py:80
-msgid "Category"
-msgstr "Categoría"
 
 #: .\db\models.py:81
 msgid "Categories"

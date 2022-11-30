@@ -212,12 +212,33 @@ class PublicProductsAPITests(TestCase):
         new_mock_product = {
             **self.mock_product,
             "title": "Test New Product",
-            "price": 1112,
+            "price": 1120,
         }
 
         new_product = Product.objects.create(**new_mock_product)
 
-        min_price_filter_url = get_filter_url("min_price", "1112")
+        min_price_filter_url = get_filter_url("min_price", "1115")
+
+        res = self.client.get(min_price_filter_url)
+
+        self.assertContains(res, new_product)
+        self.assertNotContains(res, self.product)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_products_min_price_filter_include_equals_successful(self):
+        """
+        Tests if api has a min price filter endpoint includes equals
+        """
+        new_mock_product = {
+            **self.mock_product,
+            "title": "Test New Product",
+            "price": 1115,
+        }
+
+        new_product = Product.objects.create(**new_mock_product)
+
+        min_price_filter_url = get_filter_url("min_price", "1115")
 
         res = self.client.get(min_price_filter_url)
 
@@ -233,7 +254,28 @@ class PublicProductsAPITests(TestCase):
         new_mock_product = {
             **self.mock_product,
             "title": "Test New Product",
-            "price": 1112,
+            "price": 1120,
+        }
+
+        new_product = Product.objects.create(**new_mock_product)
+
+        max_price_filter_url = get_filter_url("max_price", "1115")
+
+        res = self.client.get(max_price_filter_url)
+
+        self.assertContains(res, self.product)
+        self.assertNotContains(res, new_product)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_products_max_price_filter_include_equals_successful(self):
+        """
+        Tests if api has a max price filter endpoint includes equals
+        """
+        new_mock_product = {
+            **self.mock_product,
+            "title": "Test New Product",
+            "price": 1120,
         }
 
         new_product = Product.objects.create(**new_mock_product)
@@ -268,6 +310,27 @@ class PublicProductsAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
+    def test_products_title_filter_no_case_sensitive_successful(self):
+        """
+        Tests if api has a title filter endpoint no case sensitive
+        """
+        new_mock_product = {
+            **self.mock_product,
+            "title": "Test New Product",
+            "price": 1112,
+        }
+
+        new_product = Product.objects.create(**new_mock_product)
+
+        title_filter_url = get_filter_url("title", "new")
+
+        res = self.client.get(title_filter_url)
+
+        self.assertContains(res, new_product)
+        self.assertNotContains(res, self.product)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
     def test_products_category_filter_successful(self):
         """
         Tests if api has a category filter endpoint
@@ -285,6 +348,31 @@ class PublicProductsAPITests(TestCase):
         new_product = Product.objects.create(**new_mock_product)
 
         category_filter_url = get_filter_url("category", category.title)
+
+        res = self.client.get(category_filter_url)
+
+        self.assertContains(res, new_product)
+        self.assertNotContains(res, self.product)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_products_category_filter_no_case_sensitive_successful(self):
+        """
+        Tests if api has a category filter endpoint no case sensitive
+        """
+        category = Category.objects.create(
+            title="New Test Category"  # create new category
+        )
+
+        new_mock_product = {
+            **self.mock_product,
+            "title": "Test New Product",
+            "category": category,
+        }
+
+        new_product = Product.objects.create(**new_mock_product)
+
+        category_filter_url = get_filter_url("category", category.title.lower())
 
         res = self.client.get(category_filter_url)
 
