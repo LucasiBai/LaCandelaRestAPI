@@ -381,71 +381,127 @@ class PublicProductsAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-    # def test_products_min_rate_filter_successful(self):
-    #     """
-    #     Tests if api has a min rate filter endpoint
-    #     """
-    #     new_mock_product = {
-    #         **self.mock_product,
-    #         "title": "Test New Product",  # creating new product
-    #     }
-    #     new_product = Product.objects.create(**new_mock_product)
+    def test_products_offset_filter_succcesful(self):
+        """
+        Tests if products starts with offset param
+        """
+        first_new_mock_product = {
+            **self.mock_product,
+            "title": "Test First New Product",
+            "price": 1112,
+        }
+        first_new_product = Product.objects.create(**first_new_mock_product)
 
-    #     user = get_user_model().objects.create_user(
-    #         email="testuser@test.com",
-    #         password="testPassword",  # new user to create comment
-    #     )
+        second_new_mock_product = {
+            **self.mock_product,
+            "title": "Test Second New Product",
+            "price": 1112,
+        }
+        second_new_product = Product.objects.create(**second_new_mock_product)
 
-    #     mock_comment = {
-    #         "user": user,
-    #         "product": self.product,
-    #         "subject": "Test comment subject",  # new comment
-    #         "content": "Test comment content",
-    #         "rate": 4.3,
-    #     }
-    #     Comment.objects.create(**mock_comment)
+        offset_filter_url = get_filter_url("offset", str(first_new_product.id))
 
-    #     min_rate_filter_url = get_filter_url("min_rate", "5")
+        res = self.client.get(offset_filter_url)
 
-    #     res = self.client.get(min_rate_filter_url)
+        self.assertContains(res, first_new_product)
+        self.assertContains(res, second_new_product)
+        self.assertNotContains(res, self.product)
 
-    #     self.assertContains(res, new_product)
-    #     self.assertNotContains(res, self.product)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-    #     self.assertEqual(res.status_code, status.HTTP_200_OK)
+    def test_products_limit_filter_succcesful(self):
+        """
+        Tests if products starts with offset param
+        """
+        first_new_mock_product = {
+            **self.mock_product,
+            "title": "Test First New Product",
+            "price": 1112,
+        }
+        first_new_product = Product.objects.create(**first_new_mock_product)
 
-    # def test_products_max_rate_filter_successful(self):
-    #     """
-    #     Tests if api has a max rate filter endpoint
-    #     """
-    #     new_mock_product = {
-    #         **self.mock_product,
-    #         "title": "Test New Product",  # creating new product
-    #     }
-    #     new_product = Product.objects.create(**new_mock_product)
+        second_new_mock_product = {
+            **self.mock_product,
+            "title": "Test Second New Product",
+            "price": 1112,
+        }
+        second_new_product = Product.objects.create(**second_new_mock_product)
 
-    #     user = get_user_model().objects.create_user(
-    #         email="testuser@test.com",
-    #         password="testPassword",  # new user to create comment
-    #     )
+        offset_filter_url = get_filter_url("limit", "2")
 
-    #     mock_comment = {
-    #         "user": user,
-    #         "product": self.product,
-    #         "subject": "Test comment subject",  # new comment
-    #         "content": "Test comment content",
-    #         "rate": 4.3,
-    #     }
-    #     Comment.objects.create(**mock_comment)
+        res = self.client.get(offset_filter_url)
 
-    #     max_rate_filter_url = get_filter_url("max_rate", "4.3")
+        self.assertContains(res, self.product)
+        self.assertContains(res, first_new_product)
+        self.assertNotContains(res, second_new_product)
 
-    #     res = self.client.get(max_rate_filter_url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-    #     self.assertContains(res, self.product)
-    #     self.assertNotContains(res, new_product)
+    def test_products_min_rate_filter_successful(self):
+        """
+        Tests if api has a min rate filter endpoint
+        """
+        new_mock_product = {
+            **self.mock_product,
+            "title": "Test New Product",  # creating new product
+        }
+        new_product = Product.objects.create(**new_mock_product)
 
-    #     self.assertEqual(res.status_code, status.HTTP_200_OK)
+        user = get_user_model().objects.create_user(
+            email="testuser@test.com",
+            password="testPassword",  # new user to create comment
+        )
+
+        mock_comment = {
+            "user": user,
+            "product": self.product,
+            "subject": "Test comment subject",  # new comment
+            "content": "Test comment content",
+            "rate": 4.3,
+        }
+        Comment.objects.create(**mock_comment)
+
+        min_rate_filter_url = get_filter_url("min_rate", "5")
+
+        res = self.client.get(min_rate_filter_url)
+
+        self.assertContains(res, new_product)
+        self.assertNotContains(res, self.product)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_products_max_rate_filter_successful(self):
+        """
+        Tests if api has a max rate filter endpoint
+        """
+        new_mock_product = {
+            **self.mock_product,
+            "title": "Test New Product",  # creating new product
+        }
+        new_product = Product.objects.create(**new_mock_product)
+
+        user = get_user_model().objects.create_user(
+            email="testuser@test.com",
+            password="testPassword",  # new user to create comment
+        )
+
+        mock_comment = {
+            "user": user,
+            "product": self.product,
+            "subject": "Test comment subject",  # new comment
+            "content": "Test comment content",
+            "rate": 4.3,
+        }
+        Comment.objects.create(**mock_comment)
+
+        max_rate_filter_url = get_filter_url("max_rate", "4.3")
+
+        res = self.client.get(max_rate_filter_url)
+
+        self.assertContains(res, self.product)
+        self.assertNotContains(res, new_product)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
 
 
 class PrivateUserProductsAPITests(TestCase):
