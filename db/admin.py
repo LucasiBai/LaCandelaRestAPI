@@ -119,7 +119,76 @@ class CommentAdmin(admin.ModelAdmin):
     list_per_page = 10
 
 
+class OrderAdmin(admin.ModelAdmin):
+    """
+    Order admin configuration
+    """
+
+    ordering = ["id"]
+    list_display = ["id", "__str__", "created_at"]
+    list_display_links = ["__str__"]
+
+    search_fields = [
+        "id",
+        "buyer__email",
+        "shipping_info__address",
+        "shipping_info__receiver_dni",
+    ]
+
+    fieldsets = (
+        (_("Order References"), {"fields": ["buyer", "products", "shipping_info"]}),
+    )
+
+    add_fieldsets = (
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": ["buyer", "products", "shipping_info"],
+            },
+        ),
+    )
+
+    list_per_page = 10
+
+
+class ShippingInfoAdmin(admin.ModelAdmin):
+    """
+    Comment admin configuration
+    """
+
+    ordering = ["id"]
+    list_display = ["id", "__str__", "user"]
+    list_display_links = ["__str__"]
+
+    search_fields = ["id", "address", "receiver_dni"]
+
+    fieldsets = (
+        (
+            _("Shipping Private Data"),
+            {"fields": ["address", "receiver", "receiver_dni"]},
+        ),
+        (_("Shipping References"), {"fields": ["user"]}),
+    )
+
+    add_fieldsets = (
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": ["user", "address", "receiver", "receiver_dni"],
+            },
+        ),
+    )
+
+    list_per_page = 10
+
+
 admin.site.register(models.UserAccount, UserAdmin)  # user admin register
 admin.site.register(models.Category, CategoryAdmin)  # category admin register
 admin.site.register(models.Product, ProductAdmin)  # product admin register
 admin.site.register(models.Comment, CommentAdmin)  # comment admin register
+admin.site.register(models.Order, OrderAdmin)  # order admin register
+admin.site.register(
+    models.ShippingInfo, ShippingInfoAdmin  # shipping info admin register
+)

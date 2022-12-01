@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from django.db import models
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -112,7 +114,7 @@ class Product(models.Model):
     title = models.CharField(max_length=255, unique=True)
     description = models.TextField()
     price = models.DecimalField(max_digits=9, decimal_places=2)
-    images = ArrayField(models.CharField(max_length=255))
+    images = ArrayField(models.URLField(max_length=255))
     stock = models.PositiveIntegerField()
     category = models.ForeignKey("Category", on_delete=models.CASCADE)
     selled = models.PositiveBigIntegerField()
@@ -123,3 +125,40 @@ class Product(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class ShippingInfo(models.Model):
+    """
+    ShippingInfo model
+    """
+
+    user = models.ForeignKey("UserAccount", on_delete=models.CASCADE)
+    address = models.CharField(max_length=255)
+    receiver = models.CharField(max_length=255)
+    receiver_dni = models.IntegerField()
+
+    class Meta:
+        verbose_name = _("Shipping Information")
+        verbose_name_plural = _("Shippings Information")
+
+    def __str__(self):
+        return f"{_('Shipping Info of')} {self.user.get_full_name()}"
+
+
+class Order(models.Model):
+    """
+    Order model
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid4(), editable=False)
+    buyer = models.ForeignKey("UserAccount", on_delete=models.CASCADE)
+    products = ArrayField(models.JSONField())
+    shipping_info = models.ForeignKey("ShippingInfo", on_delete=models.CASCADE)
+    created_at = models.DateField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("Order")
+        verbose_name_plural = _("Orders")
+
+    def __str__(self):
+        return f"{_('Order of')} {self.buyer.get_full_name()}"

@@ -25,7 +25,7 @@ PROJECT_APPS = [
     "apps.users",
 ]
 
-ECOMMERCE_APPS = ["apps.products"]
+ECOMMERCE_APPS = ["apps.products", "apps.comments"]
 
 THIRD_PARTY_APPS = [
     "corsheaders",

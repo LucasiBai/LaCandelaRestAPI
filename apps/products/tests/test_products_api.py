@@ -684,9 +684,9 @@ class PrivateSuperuserProductsAPITests(TestCase):
             "description": "Test description",
             "price": 1111,
             "images": [
-                "testimgurl/1.com",
-                "testimgurl/2.com",  # Mock product data
-                "testimgurl/3.com",
+                "http://testimgurl.com/1",
+                "http://testimgurl.com/2",  # Mock product data
+                "http://testimgurl.com/3",
             ],
             "stock": 11,
             "category": self.category.id,
@@ -699,6 +699,31 @@ class PrivateSuperuserProductsAPITests(TestCase):
         self.assertIn("rate", res.data)
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+    def test_products_list_post_invalid_urls_superuser_reject(self):
+        """
+        Tests if superuser can't post with invalid urls into products list
+        """
+        payload = {
+            "title": "Test title 2",
+            "description": "Test description",
+            "price": 1111,
+            "images": [
+                "testinvalidurl/1",
+                "testinvalidurl/2",  # Mock product data
+                "testinvalidurl/3",
+            ],
+            "stock": 11,
+            "category": self.category.id,
+            "selled": 11,
+        }
+
+        res = self.client.post(
+            PRODUCTS_LIST_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+        self.assertIn("images", res.data)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_products_list_post_existing_product_superuser_reject(self):
         """

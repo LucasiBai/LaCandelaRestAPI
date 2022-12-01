@@ -1,8 +1,10 @@
+from uuid import uuid4
+
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
-from db.models import Comment, Category, Product
+from db.models import Comment, Category, Product, ShippingInfo, Order
 
 
 class UserModelAdminTest(TestCase):
@@ -91,7 +93,7 @@ class CategoryModelAdminTest(TestCase):
 
     def test_category_change_page(self):
         """
-        Tests if category added can be updated
+        Tests if category added can be edited
         """
         url = reverse("admin:db_category_change", args=[self.category.id])
         res = self.client.get(url)
@@ -156,7 +158,7 @@ class ProductModelAdminTest(TestCase):
 
     def test_product_change_page(self):
         """
-        Tests if product added is listed
+        Tests if product added can be edited
         """
         url = reverse("admin:db_product_change", args=[self.product.id])
         res = self.client.get(url)
@@ -165,7 +167,7 @@ class ProductModelAdminTest(TestCase):
 
     def test_create_product_page(self):
         """
-        Tests if product added is listed
+        Tests if can create product
         """
         url = reverse("admin:db_product_add")
         res = self.client.get(url)
@@ -231,7 +233,7 @@ class CommentModelAdminTest(TestCase):
 
     def test_comment_change_page(self):
         """
-        Tests if comment added is listed
+        Tests if comment added can be edited
         """
         url = reverse("admin:db_comment_change", args=[self.comment.id])
         res = self.client.get(url)
@@ -240,9 +242,147 @@ class CommentModelAdminTest(TestCase):
 
     def test_create_comment_page(self):
         """
-        Tests if comment added is listed
+        Tests if can create comment
         """
         url = reverse("admin:db_comment_add")
+        res = self.client.get(url)
+
+        self.assertEqual(res.status_code, 200)  # Testing if status code is 200
+
+
+class ShippingInfoModelAdminTest(TestCase):
+    """
+    Tests Shipping info admin
+    """
+
+    def setUp(self):
+        """
+        Set up method
+        """
+        self.client = Client()
+
+        self.super_user = get_user_model().objects.create_superuser(
+            email="testadmin@mitest.com", password="pass1234"  # Creating super user
+        )
+        self.client.force_login(self.super_user)
+
+        self.user = get_user_model().objects.create_user(email="test@test.com")
+
+        mock_shipping_info = {
+            "user": self.user,
+            "address": "Test address",
+            "receiver": "test receiver name",
+            "receiver_dni": 12345678,
+        }
+
+        self.shipping_info = ShippingInfo.objects.create(**mock_shipping_info)
+
+    def test_shipping_info_listed(self):
+        """
+        Tests if shipping info added is listed
+        """
+        url = reverse("admin:db_shippinginfo_changelist")
+        res = self.client.get(url)
+
+        self.assertContains(res, self.shipping_info.id)
+        self.assertContains(res, str(self.shipping_info))
+        self.assertContains(res, self.user.email)
+
+    def test_shipping_info_change_page(self):
+        """
+        Tests if shipping info added is can be edited
+        """
+        url = reverse("admin:db_shippinginfo_change", args=[self.shipping_info.id])
+        res = self.client.get(url)
+
+        self.assertEqual(res.status_code, 200)  # Testing if status code is 200
+
+    def test_create_shipping_info_page(self):
+        """
+        Tests if shipping info added can be created
+        """
+        url = reverse("admin:db_shippinginfo_add")
+        res = self.client.get(url)
+
+        self.assertEqual(res.status_code, 200)  # Testing if status code is 200
+
+
+class OrderModelAdminTest(TestCase):
+    """
+    Tests Order admin
+    """
+
+    def setUp(self):
+        """
+        Set up method
+        """
+        self.client = Client()
+
+        self.super_user = get_user_model().objects.create_superuser(
+            email="testadmin@mitest.com", password="pass1234"  # Creating super user
+        )
+        self.client.force_login(self.super_user)
+
+        self.user = get_user_model().objects.create_user(email="test@test.com")
+
+        category = Category.objects.create(title="Test Admin Category")
+        mock_product = {
+            "title": "Test title",
+            "description": "Test description",
+            "price": 1111,
+            "images": [
+                "testimgurl/1.com",
+                "testimgurl/2.com",
+                "testimgurl/3.com",
+            ],
+            "stock": 11,
+            "category": category,
+            "selled": 11,
+        }
+        self.product = Product.objects.create(**mock_product)
+
+        mock_shipping_info = {
+            "user": self.user,
+            "address": "Test address",
+            "receiver": "test receiver name",
+            "receiver_dni": 12345678,
+        }
+        self.shipping_info = ShippingInfo.objects.create(**mock_shipping_info)
+
+        mock_order = {
+            "id": uuid4(),
+            "buyer": self.user,
+            "products": [
+                {"id": self.product.id, "title": self.product.title, "count": 4}
+            ],
+            "shipping_info": self.shipping_info,
+        }
+        self.order = Order.objects.create(**mock_order)
+
+    def test_order_listed(self):
+        """
+        Tests if order added is listed
+        """
+        url = reverse("admin:db_order_changelist")
+        res = self.client.get(url)
+
+        self.assertContains(res, self.order.id)
+        self.assertContains(res, str(self.order))
+
+    def test_order_change_page(self):
+        """
+        Tests if order added can be edited
+        """
+        url = reverse("admin:db_order_change", args=[self.order.id])
+        res = self.client.get(url)
+
+        self.assertEqual(res.status_code, 200)  # Testing if status code is 200
+
+    def test_create_order_page(self):
+        """
+        Tests if can add order
+        """
+        url = reverse("admin:db_order_add")
         res = self.client.get(url)
 
         self.assertEqual(res.status_code, 200)  # Testing if status code is 200
