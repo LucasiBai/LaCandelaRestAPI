@@ -415,7 +415,7 @@ class PrivateUsersAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    def test_update_user_data_succesful(self):
+    def test_update_user_data_successful(self):
         """
         Tests if authorized user can update profile
         """
@@ -474,6 +474,32 @@ class PrivateUsersAPITests(TestCase):
         USER_DETAIL_URL = reverse("users:user_account-detail", kwargs={"pk": user.id})
 
         res = self.client.patch(
+            USER_DETAIL_URL,
+            new_data_payload,
+            HTTP_AUTHORIZATION=f"Bearer {self.user_token}",
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_normal_user_put_another_user_data_reject(self):
+        """
+        Tests if normal user can't put another user data
+        """
+        new_data_payload = {
+            "email": "newemail@test.com",
+            "password": "passwordUpdated",
+            "first_name": "New Name",
+            "last_name": "New Last Name",
+            "is_active": True,
+            "is_staff": True,
+        }
+        new_user_payload = {"email": "newuser@test.com", "password": "newuserpassword"}
+
+        user = get_user_model().objects.create_user(**new_user_payload)
+
+        USER_DETAIL_URL = reverse("users:user_account-detail", kwargs={"pk": user.id})
+
+        res = self.client.put(
             USER_DETAIL_URL,
             new_data_payload,
             HTTP_AUTHORIZATION=f"Bearer {self.user_token}",

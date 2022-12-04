@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-30 09:57-0300\n"
+"POT-Creation-Date: 2022-12-02 11:26-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,21 +18,37 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: .\apps\products\filters.py:13
+#: .\apps\products\filters.py:15
 msgid "Title"
 msgstr "Título"
 
-#: .\apps\products\filters.py:17 .\db\models.py:80
+#: .\apps\products\filters.py:19 .\db\models.py:82
 msgid "Category"
 msgstr "Categoría"
 
-#: .\apps\products\filters.py:21
+#: .\apps\products\filters.py:23
 msgid "Min Price"
 msgstr "Precio Mínimo"
 
-#: .\apps\products\filters.py:24
+#: .\apps\products\filters.py:26
 msgid "Max Price"
 msgstr "Precio Máximo"
+
+#: .\apps\products\filters.py:29
+msgid "Min Rate"
+msgstr "Ratio Mínimo"
+
+#: .\apps\products\filters.py:30
+msgid "Max Rate"
+msgstr "Ratio Máximo"
+
+#: .\apps\products\filters.py:32
+msgid "Offset"
+msgstr "Intervalo"
+
+#: .\apps\products\filters.py:34
+msgid "Limit"
+msgstr "Límite"
 
 #: .\db\admin.py:23
 msgid "Personal Info"
@@ -70,33 +86,66 @@ msgstr "Datos Públicos del Comentario"
 msgid "Comment References"
 msgstr "Referencias del Comentario"
 
-#: .\db\models.py:59
+#: .\db\admin.py:139
+#, fuzzy
+#| msgid "Comment References"
+msgid "Order References"
+msgstr "Referencias de la Orden"
+
+#: .\db\admin.py:168
+msgid "Shipping Private Data"
+msgstr "Información Sensible del Envío"
+
+#: .\db\admin.py:171
+#, fuzzy
+#| msgid "Comment References"
+msgid "Shipping References"
+msgstr "Referencias del Comentario"
+
+#: .\db\models.py:61
 msgid "User"
 msgstr "Usuario"
 
-#: .\db\models.py:60
+#: .\db\models.py:62
 msgid "Users"
 msgstr "Usuarios"
 
-#: .\db\models.py:81
+#: .\db\models.py:83
 msgid "Categories"
 msgstr "Categorías"
 
-#: .\db\models.py:100
+#: .\db\models.py:102
 msgid "Comment"
 msgstr "Comentario"
 
-#: .\db\models.py:101
+#: .\db\models.py:103
 msgid "Comments"
 msgstr "Comentarios"
 
-#: .\db\models.py:121
+#: .\db\models.py:123
 msgid "Product"
 msgstr "Producto"
 
-#: .\db\models.py:122
+#: .\db\models.py:124
 msgid "Products"
 msgstr "Productos"
+
+#: .\db\models.py:141
+msgid "Shipping Information"
+msgstr "Información del Envío"
+
+#: .\db\models.py:142
+msgid "Shippings Information"
+msgstr "Información del Envío"
+
+#: .\db\models.py:160 .\env\Lib\site-packages\django\forms\formsets.py:483
+#: .\env\Lib\site-packages\django\forms\formsets.py:490
+msgid "Order"
+msgstr "Orden"
+
+#: .\db\models.py:161
+msgid "Orders"
+msgstr "Ordenes"
 
 #: .\env\Lib\site-packages\django\contrib\messages\apps.py:15
 msgid "Messages"
@@ -663,11 +712,6 @@ msgid "Please submit at least %(num)d form."
 msgid_plural "Please submit at least %(num)d forms."
 msgstr[0] ""
 msgstr[1] ""
-
-#: .\env\Lib\site-packages\django\forms\formsets.py:483
-#: .\env\Lib\site-packages\django\forms\formsets.py:490
-msgid "Order"
-msgstr ""
 
 #: .\env\Lib\site-packages\django\forms\formsets.py:496
 msgid "Delete"

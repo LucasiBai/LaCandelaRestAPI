@@ -27,7 +27,11 @@ class UserAccountViewset(ModelViewSet):
             self.action == "partial_update" or self.action == "retrieve"
         ):
             permission_classes = [IsAuthenticated, IsAdminUser]
-        elif self.action == "partial_update" or self.action == "retrieve":
+        elif (
+            self.action == "partial_update"
+            or self.action == "update"
+            or self.action == "retrieve"
+        ):
             permission_classes = [IsAuthenticated, IsOwnData]
         else:
             permission_classes = [IsAuthenticated]
