@@ -247,7 +247,7 @@ class PublicUsersAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_202_ACCEPTED)
 
-    def test_user_forgotten_passsword_invalid_email(self):
+    def test_user_forgotten_password_invalid_email(self):
         """
         Tests if invalid email returns 404
         """
@@ -275,7 +275,7 @@ class PublicUsersAPITests(TestCase):
         self.assertTrue(PasswordResetTokenGenerator().check_token(user, token))
         self.assertEqual(urlsafe_base64_decode(encoded_pk).decode(), str(user.id))
 
-    def test_change_password_api_succesful(self):
+    def test_change_password_api_successful(self):
         """
         Tests if public user can change the password successfuly
         """
@@ -372,6 +372,31 @@ class PublicUsersAPITests(TestCase):
         self.assertFalse(user.check_password("NewPassword"))
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_public_user_put_another_user_data_reject(self):
+        """
+        Tests if public user can't put another user data
+        """
+        new_data_payload = {
+            "email": "newemail@test.com",
+            "password": "passwordUpdated",
+            "first_name": "New Name",
+            "last_name": "New Last Name",
+            "is_active": True,
+            "is_staff": True,
+        }
+
+        new_user_payload = {"email": "newuser@test.com", "password": "newuserpassword"}
+        user = get_user_model().objects.create_user(**new_user_payload)
+
+        USER_DETAIL_URL = reverse("users:user_account-detail", kwargs={"pk": user.id})
+
+        res = self.client.put(
+            USER_DETAIL_URL,
+            new_data_payload,
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
 class PrivateUsersAPITests(TestCase):
@@ -551,7 +576,7 @@ class PrivateSuperusersAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-    def test_superuser_view_another_user_data_succesful(self):
+    def test_superuser_view_another_user_data_successful(self):
         """
         Tests if superuser can see another user data
         """
@@ -585,7 +610,36 @@ class PrivateSuperusersAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-    def test_superuser_delete_another_user_data_reject(self):
+    def test_superuser_put_another_user_data_successful(self):
+        """
+        Tests if superuser can put another user data
+        """
+        new_data_payload = {
+            "email": "newemail@test.com",
+            "password": "passwordUpdated",
+            "first_name": "New Name",
+            "last_name": "New Last Name",
+            "is_active": True,
+            "is_staff": True,
+        }
+
+        new_user_payload = {
+            "email": "newuser@test.com",  # New User
+            "password": "newuserpassword",
+        }
+        user = get_user_model().objects.create_user(**new_user_payload)
+
+        USER_DETAIL_URL = reverse("users:user_account-detail", kwargs={"pk": user.id})
+
+        res = self.client.put(
+            USER_DETAIL_URL,
+            new_data_payload,
+            HTTP_AUTHORIZATION=f"Bearer {self.superuser_token}",
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_superuser_delete_another_user_data_successful(self):
         """
         Tests if superuser can delete another user data
         """

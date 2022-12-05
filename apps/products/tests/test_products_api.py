@@ -174,9 +174,9 @@ class PublicProductsAPITests(TestCase):
 
         self.assertEqual(self.category.title, res.data["category"])
 
-    def test_products_detail_update_public_reject(self):
+    def test_products_detail_partial_update_public_reject(self):
         """
-        Tests if public user can't update a product
+        Tests if public user can't partial update a product
         """
         products_list = Product.objects.all()
         product_url = get_products_detail_url(products_list)
@@ -191,6 +191,35 @@ class PublicProductsAPITests(TestCase):
         self.product.refresh_from_db()
 
         self.assertEqual(self.product.title, self.mock_product["title"])
+
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_products_detail_update_public_reject(self):
+        """
+        Tests if public user can't update a product
+        """
+        products_list = Product.objects.all()
+        product_url = get_products_detail_url(products_list)
+
+        payload = {
+            "title": "New Test Title",
+            "description": "New Test description",
+            "price": 1111,
+            "images": [
+                "http://testimgurl.com/1",
+                "http://testimgurl.com/2",  # Mock product update data
+                "http://testimgurl.com/3",
+            ],
+            "stock": 11,
+            "category": self.category.id,
+            "selled": 11,
+        }
+
+        res = self.client.put(product_url, payload)
+        self.product.refresh_from_db()
+
+        self.assertEqual(self.product.title, self.mock_product["title"])
+        self.assertEqual(self.product.description, self.mock_product["description"])
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
@@ -381,7 +410,7 @@ class PublicProductsAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-    def test_products_offset_filter_succcesful(self):
+    def test_products_offset_filter_successful(self):
         """
         Tests if products starts with offset param
         """
@@ -409,7 +438,7 @@ class PublicProductsAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-    def test_products_limit_filter_succcesful(self):
+    def test_products_limit_filter_successful(self):
         """
         Tests if products starts with offset param
         """
@@ -590,9 +619,9 @@ class PrivateUserProductsAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-    def test_products_detail_update_normal_user_reject(self):
+    def test_products_detail_partial_update_normal_user_reject(self):
         """
-        Tests if normal user can't update a product
+        Tests if normal user can't partial update a product
         """
         products_list = Product.objects.all()
         product_url = get_products_detail_url(products_list)
@@ -609,6 +638,37 @@ class PrivateUserProductsAPITests(TestCase):
         self.product.refresh_from_db()
 
         self.assertEqual(self.product.title, self.mock_product["title"])
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_products_detail_update_normal_user_reject(self):
+        """
+        Tests if normal user can't update a product
+        """
+        products_list = Product.objects.all()
+        product_url = get_products_detail_url(products_list)
+
+        payload = {
+            "title": "New Test Title",
+            "description": "New Test description",
+            "price": 1111,
+            "images": [
+                "http://testimgurl.com/1",
+                "http://testimgurl.com/2",  # Mock product update data
+                "http://testimgurl.com/3",
+            ],
+            "stock": 11,
+            "category": self.category.id,
+            "selled": 11,
+        }
+
+        res = self.client.put(
+            product_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+        self.product.refresh_from_db()
+
+        self.assertEqual(self.product.title, self.mock_product["title"])
+        self.assertEqual(self.product.description, self.mock_product["description"])
 
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -766,9 +826,9 @@ class PrivateSuperuserProductsAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-    def test_products_detail_update_superuser_successful(self):
+    def test_products_detail_partial_update_superuser_successful(self):
         """
-        Tests if superuser can update a product
+        Tests if superuser can partial update a product
         """
         products_list = Product.objects.all()
         product_url = get_products_detail_url(products_list)
@@ -785,6 +845,37 @@ class PrivateSuperuserProductsAPITests(TestCase):
 
         self.assertEqual(res.data["title"], payload["title"])
         self.assertEqual(res.data["description"], payload["description"])
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_products_detail_update_superuser_successful(self):
+        """
+        Tests if superuser can update a product
+        """
+        products_list = Product.objects.all()
+        product_url = get_products_detail_url(products_list)
+
+        payload = {
+            "title": "New Test Title",
+            "description": "New Test description",
+            "price": 1111,
+            "images": [
+                "http://testimgurl.com/1",
+                "http://testimgurl.com/2",  # Mock product update data
+                "http://testimgurl.com/3",
+            ],
+            "stock": 11,
+            "category": self.category.id,
+            "selled": 11,
+        }
+
+        res = self.client.put(
+            product_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+        self.product.refresh_from_db()
+
+        self.assertEqual(self.product.title, payload["title"])
+        self.assertEqual(self.product.description, payload["description"])
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 

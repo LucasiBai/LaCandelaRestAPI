@@ -24,7 +24,9 @@ class UserAccountViewset(ModelViewSet):
         elif self.action == "destroy" or self.action == "list":
             permission_classes = [IsAuthenticated, IsAdminUser]
         elif self.request.user.is_superuser and (
-            self.action == "partial_update" or self.action == "retrieve"
+            self.action == "partial_update"
+            or self.action == "update"
+            or self.action == "retrieve"
         ):
             permission_classes = [IsAuthenticated, IsAdminUser]
         elif (
