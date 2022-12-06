@@ -121,7 +121,7 @@ class ProductModelTest(TestCase):
             ],
             "stock": 11,
             "category": self.category,
-            "selled": 11,
+            "sold": 11,
         }
 
     def test_create_product_successful(self):
@@ -201,7 +201,7 @@ class OrderModelTest(TestCase):
             ],
             "stock": 11,
             "category": self.category,
-            "selled": 11,
+            "sold": 11,
         }
         self.product = Product.objects.create(**self.mock_product)
 
@@ -266,7 +266,7 @@ class CommentModelTest(TestCase):
             ],
             "stock": 11,
             "category": category,
-            "selled": 11,
+            "sold": 11,
         }
 
         self.product = Product.objects.create(**mock_product)  # create product

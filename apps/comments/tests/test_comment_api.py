@@ -47,7 +47,7 @@ class PublicCommentAPITest(TestCase):
             ],
             "stock": 11,
             "category": category,
-            "selled": 11,
+            "sold": 11,
         }
         self.product = Product.objects.create(**mock_product)
 
@@ -103,7 +103,7 @@ class PublicCommentAPITest(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_comment_detail_patch_public_successful(self):
+    def test_comment_detail_patch_public_reject(self):
         """
         Tests if public user can't patch comment detail
         """
@@ -119,7 +119,327 @@ class PublicCommentAPITest(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_comment_detail_put_public_successful(self):
+    def test_comment_detail_put_public_reject(self):
         """
         Tests if public user can't put comment detail
         """
+        comment_list = Comment.objects.all()
+        comment_url = get_comment_detail_url(comment_list)
+
+        payload = {
+            "user": self.user.id,
+            "product": self.product.id,
+            "subject": "New subject",
+            "content": "Test comment content",
+            "rate": 4.3,
+        }
+
+        res = self.client.put(comment_url, payload)
+        self.comment.refresh_from_db()
+
+        self.assertNotEqual(self.comment.subject, payload["subject"])
+
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_comment_detail_delete_public_reject(self):
+        """
+        Tests if public user can't delete comment
+        """
+        comment_list = Comment.objects.all()
+        comment_url = get_comment_detail_url(comment_list)
+
+        res = self.client.delete(comment_url)
+
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class PrivateUserCommentAPITest(TestCase):
+    """
+    Tests public comment api requests
+    """
+
+    def setUp(self):
+        self.client = APIClient()  # API Client
+
+        main_user_data = {"email": "testmain@test.com", "password": "12345test"}
+        self.main_user = get_user_model().objects.create_user(**main_user_data)
+        self.client.force_authenticate(user=self.main_user)
+
+        res_token = self.client.post(TOKEN_URL, main_user_data)  # get user token
+        self.user_token = res_token.data["token"]
+
+        category = Category.objects.create(title="TestCategory")
+        mock_product = {
+            "title": "Test title",
+            "description": "Test description",
+            "price": 1111,
+            "images": [
+                "testimgurl.com/1",
+                "testimgurl.com/2",  # Mock product data
+                "testimgurl.com/3",
+            ],
+            "stock": 11,
+            "category": category,
+            "sold": 11,
+        }
+        self.product = Product.objects.create(**mock_product)
+
+        self.user = get_user_model().objects.create_user(email="test@test.com")
+
+        self.mock_comment = {
+            "user": self.user,
+            "product": self.product,
+            "subject": "Test comment subject",
+            "content": "Test comment content",
+            "rate": 4.3,
+        }
+        self.comment = Comment.objects.create(**self.mock_comment)
+
+    def test_comment_list_get_normal_user_successful(self):
+        """
+        Tests if normal user can see comment list
+        """
+        res = self.client.get(
+            COMMENT_LIST_URL, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+
+        self.assertContains(res, self.comment)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_comment_detail_get_normal_user_successful(self):
+        """
+        Tests if normal user can see comment detail
+        """
+        comment_list = Comment.objects.all()
+        comment_url = get_comment_detail_url(comment_list)
+
+        res = self.client.get(
+            comment_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+
+        self.assertContains(res, comment_list[0])
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_comment_list_post_normal_user_with_order_successful(self):
+        """
+        Tests if normal user can create in comment list with order
+        """
+        mock_shipping_info = {
+            "user": self.main_user,
+            "address": "Test address",  # create shipping info
+            "receiver": "test receiver name",
+            "receiver_dni": 12345678,
+        }
+        shipping_info = ShippingInfo.objects.create(**mock_shipping_info)
+
+        mock_order = {
+            "buyer": self.main_user,
+            "products": [
+                {"id": self.product.id, "title": self.product.title, "count": 4}
+            ],
+            "shipping_info": shipping_info,
+        }
+        Order.objects.create(**mock_order)
+
+        payload = {
+            "user": self.main_user,
+            "product": self.product,
+            "subject": "Test comment subject",
+            "content": "Test comment content",
+            "rate": 4.3,
+        }
+
+        res = self.client.post(
+            COMMENT_LIST_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+    def test_comment_list_post_to_other_user_with_order_normal_user_reject(self):
+        """
+        Tests if normal user can't create in comment list with order
+        """
+        mock_shipping_info = {
+            "user": self.user,
+            "address": "Test address",  # create shipping info
+            "receiver": "test receiver name",
+            "receiver_dni": 12345678,
+        }
+        shipping_info = ShippingInfo.objects.create(**mock_shipping_info)
+
+        mock_order = {
+            "buyer": self.user,
+            "products": [
+                {"id": self.product.id, "title": self.product.title, "count": 4}
+            ],
+            "shipping_info": shipping_info,
+        }
+        Order.objects.create(**mock_order)
+
+        payload = {
+            "user": self.user,
+            "product": self.product,
+            "subject": "Test comment subject",
+            "content": "Test comment content",
+            "rate": 4.3,
+        }
+
+        res = self.client.post(
+            COMMENT_LIST_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_comment_list_post_normal_user_without_order_reject(self):
+        """
+        Tests if normal user can't create in comment list without order
+        """
+        payload = {
+            "user": self.main_user,
+            "product": self.product,
+            "subject": "Test comment subject",
+            "content": "Test comment content",
+            "rate": 4.3,
+        }
+
+        res = self.client.post(
+            COMMENT_LIST_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_own_comment_detail_patch_normal_reject(self):
+        """
+        Tests if normal user can't patch his own comment detail
+        """
+        mock_comment = {
+            "user": self.main_user,
+            "product": self.product,  # new comment
+            "subject": "Test comment subject",
+            "content": "Test comment content",
+            "rate": 4.3,
+        }
+        comment = Comment.objects.create(**mock_comment)
+
+        comment_url = get_comment_detail_url([comment])  # get created comment url
+
+        payload = {"subject": "New Subject"}
+
+        res = self.client.patch(
+            comment_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+        comment.refresh_from_db()
+
+        self.assertNotEqual(comment.subject, payload["subject"])
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_from_other_user_comment_detail_patch_normal_reject(self):
+        """
+        Tests if normal user can't patch comment detail from other user
+        """
+        comment_list = Comment.objects.all()
+        comment_url = get_comment_detail_url(comment_list)  # get comment url
+
+        payload = {"subject": "New Subject"}
+
+        res = self.client.patch(
+            comment_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+        self.comment.refresh_from_db()
+
+        self.assertNotEqual(self.comment.subject, payload["subject"])
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_own_comment_detail_put_normal_user_reject(self):
+        """
+        Tests if normal user can't put own comment detail
+        """
+        mock_comment = {
+            "user": self.main_user,
+            "product": self.product,  # new comment
+            "subject": "Test comment subject",
+            "content": "Test comment content",
+            "rate": 4.3,
+        }
+        comment = Comment.objects.create(**mock_comment)
+
+        comment_url = get_comment_detail_url([comment])  # get created comment url
+
+        payload = {
+            "user": self.main_user.id,
+            "product": self.product.id,
+            "subject": "New subject",
+            "content": "Test comment content",
+            "rate": 4.3,
+        }
+
+        res = self.client.put(
+            comment_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+        comment.refresh_from_db()
+
+        self.assertNotEqual(comment.subject, payload["subject"])
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_from_other_user_comment_detail_put_normal_user_reject(self):
+        """
+        Tests if normal user can't put comment detail from other user
+        """
+        comment_list = Comment.objects.all()
+        comment_url = get_comment_detail_url(comment_list)  # get comment url
+
+        payload = {
+            "user": self.user.id,
+            "product": self.product.id,
+            "subject": "New subject",
+            "content": "Test comment content",
+            "rate": 4.3,
+        }
+
+        res = self.client.put(
+            comment_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+        self.comment.refresh_from_db()
+
+        self.assertNotEqual(self.comment.subject, payload["subject"])
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_own_comment_detail_delete_normal_user_successful(self):
+        """
+        Tests if normal user can delete own comment
+        """
+        mock_comment = {
+            "user": self.main_user,
+            "product": self.product,  # new comment
+            "subject": "Test comment subject",
+            "content": "Test comment content",
+            "rate": 4.3,
+        }
+        comment = Comment.objects.create(**mock_comment)
+
+        comment_url = get_comment_detail_url([comment])  # get created comment url
+
+        res = self.client.delete(
+            comment_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_from_other_user_comment_detail_delete_normal_user_reject(self):
+        """
+        Tests if normal user can't delete comment from other user
+        """
+        comment_list = Comment.objects.all()
+        comment_url = get_comment_detail_url(comment_list)  # get comment url
+
+        res = self.client.delete(
+            comment_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)

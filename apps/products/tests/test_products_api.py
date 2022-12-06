@@ -48,7 +48,7 @@ class PublicProductsAPITests(TestCase):
             ],
             "stock": 11,
             "category": self.category,
-            "selled": 11,
+            "sold": 11,
         }
 
         self.product = Product.objects.create(**self.mock_product)
@@ -79,7 +79,7 @@ class PublicProductsAPITests(TestCase):
             ],
             "stock": 11,
             "category": self.category.id,
-            "selled": 11,
+            "sold": 11,
         }
 
         res = self.client.post(PRODUCTS_LIST_URL, payload)
@@ -212,7 +212,7 @@ class PublicProductsAPITests(TestCase):
             ],
             "stock": 11,
             "category": self.category.id,
-            "selled": 11,
+            "sold": 11,
         }
 
         res = self.client.put(product_url, payload)
@@ -556,7 +556,7 @@ class PrivateUserProductsAPITests(TestCase):
             ],
             "stock": 11,
             "category": self.category,
-            "selled": 11,
+            "sold": 11,
         }
 
         self.product = Product.objects.create(**self.mock_product)
@@ -597,7 +597,7 @@ class PrivateUserProductsAPITests(TestCase):
             ],
             "stock": 11,
             "category": self.category.id,
-            "selled": 11,
+            "sold": 11,
         }
 
         res = self.client.post(
@@ -659,7 +659,7 @@ class PrivateUserProductsAPITests(TestCase):
             ],
             "stock": 11,
             "category": self.category.id,
-            "selled": 11,
+            "sold": 11,
         }
 
         res = self.client.put(
@@ -709,7 +709,7 @@ class PrivateSuperuserProductsAPITests(TestCase):
             ],
             "stock": 11,
             "category": self.category,
-            "selled": 11,
+            "sold": 11,
         }
 
         self.product = Product.objects.create(**self.mock_product)
@@ -750,7 +750,7 @@ class PrivateSuperuserProductsAPITests(TestCase):
             ],
             "stock": 11,
             "category": self.category.id,
-            "selled": 11,
+            "sold": 11,
         }
 
         res = self.client.post(
@@ -775,7 +775,7 @@ class PrivateSuperuserProductsAPITests(TestCase):
             ],
             "stock": 11,
             "category": self.category.id,
-            "selled": 11,
+            "sold": 11,
         }
 
         res = self.client.post(
@@ -800,7 +800,7 @@ class PrivateSuperuserProductsAPITests(TestCase):
             ],
             "stock": 11,
             "category": self.category,
-            "selled": 11,
+            "sold": 11,
         }
 
         Product.objects.create(**mock_product)
@@ -866,7 +866,7 @@ class PrivateSuperuserProductsAPITests(TestCase):
             ],
             "stock": 11,
             "category": self.category.id,
-            "selled": 11,
+            "sold": 11,
         }
 
         res = self.client.put(

@@ -117,7 +117,7 @@ class Product(models.Model):
     images = ArrayField(models.URLField(max_length=255))
     stock = models.PositiveIntegerField()
     category = models.ForeignKey("Category", on_delete=models.CASCADE)
-    selled = models.PositiveBigIntegerField()
+    sold = models.PositiveBigIntegerField()
 
     class Meta:
         verbose_name = _("Product")

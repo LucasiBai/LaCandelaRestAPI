@@ -18,7 +18,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "images",
             "stock",
             "category",
-            "selled",
+            "sold",
         ]
         extra_kwargs = {"id": {"read_only": True}}
 
@@ -44,7 +44,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "images": instance.images,
             "stock": instance.stock,
             "category": instance.category.title,
-            "selled": instance.selled,
+            "sold": instance.sold,
             "rate": rate if comments_of_product else 5.00,
         }
 

@@ -66,7 +66,7 @@ class ProductAdmin(admin.ModelAdmin):
     fieldsets = (
         (_("Product Public Data"), {"fields": ["title", "description", "price"]}),
         (_("Product Images"), {"fields": ["images"]}),
-        (_("Product Meta Data"), {"fields": ["stock", "category", "selled"]}),
+        (_("Product Meta Data"), {"fields": ["stock", "category", "sold"]}),
     )
 
     add_fieldsets = (
@@ -81,7 +81,7 @@ class ProductAdmin(admin.ModelAdmin):
                     "images",
                     "stock",
                     "category",
-                    "selled",
+                    "sold",
                 ],
             },
         ),

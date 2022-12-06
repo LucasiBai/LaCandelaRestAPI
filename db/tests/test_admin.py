@@ -139,7 +139,7 @@ class ProductModelAdminTest(TestCase):
             ],
             "stock": 11,
             "category": self.category,
-            "selled": 11,
+            "sold": 11,
         }
 
         self.product = Product.objects.create(**product_payload)
@@ -206,7 +206,7 @@ class CommentModelAdminTest(TestCase):
             ],
             "stock": 11,
             "category": category,
-            "selled": 11,
+            "sold": 11,
         }
 
         self.product = Product.objects.create(**product_payload)
@@ -337,7 +337,7 @@ class OrderModelAdminTest(TestCase):
             ],
             "stock": 11,
             "category": category,
-            "selled": 11,
+            "sold": 11,
         }
         self.product = Product.objects.create(**mock_product)
 
