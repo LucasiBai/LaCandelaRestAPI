@@ -1,5 +1,6 @@
-import django_filters.rest_framework as filters
 from django.utils.translation import gettext_lazy as _
+
+import django_filters.rest_framework as filters
 
 from .serializers import ProductSerializer
 
@@ -58,4 +59,11 @@ class ProductsFilterSet(filters.FilterSet):
 
     class Meta:
         model = ProductSerializer.Meta.model
-        fields = ["title", "category", "min_price", "max_price", "offset", "limit"]
+        fields = [
+            "title",
+            "category",
+            "min_price",
+            "max_price",
+            "offset",
+            "limit",
+        ]

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
-from db.models import Product, Comment
+from db.models import Product
+from .utils import get_rate_of
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -27,14 +28,7 @@ class ProductSerializer(serializers.ModelSerializer):
         Custom representation of instance
         """
 
-        comments_of_product = Comment.objects.filter(product=instance)
-
-        if comments_of_product:
-            rate = round(
-                sum(comment.rate for comment in comments_of_product)
-                / len(comments_of_product),
-                2,
-            )
+        rate = get_rate_of(instance)
 
         data = {
             "id": instance.id,
@@ -45,7 +39,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "stock": instance.stock,
             "category": instance.category.title,
             "sold": instance.sold,
-            "rate": rate if comments_of_product else 5.00,
+            "rate": rate,
         }
 
         return data

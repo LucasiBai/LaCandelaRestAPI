@@ -24,7 +24,7 @@ def get_filter_url(filter_name, value):
     """
     Gets the filter url
     """
-    return reverse("api:comment-list") + f"?{filter_name}={value}"
+    return COMMENT_LIST_URL + f"?{filter_name}={value}"
 
 
 class PublicCommentAPITest(TestCase):
@@ -35,7 +35,7 @@ class PublicCommentAPITest(TestCase):
     def setUp(self):
         self.client = APIClient()  # API Client
 
-        category = Category.objects.create(title="TestCategory")
+        self.category = Category.objects.create(title="TestCategory")
         mock_product = {
             "title": "Test title",
             "description": "Test description",
@@ -46,7 +46,7 @@ class PublicCommentAPITest(TestCase):
                 "testimgurl/3.com",
             ],
             "stock": 11,
-            "category": category,
+            "category": self.category,
             "sold": 11,
         }
         self.product = Product.objects.create(**mock_product)
@@ -69,6 +69,66 @@ class PublicCommentAPITest(TestCase):
         res = self.client.get(COMMENT_LIST_URL)
 
         self.assertContains(res, self.comment)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_comment_list_user_id_filter_successful(self):
+        """
+        Tests if comment list can be filter by user id
+        """
+        new_user = get_user_model().objects.create_user(email="testnewuser@test.com")
+        mock_comment = {
+            "user": new_user,
+            "product": self.product,
+            "subject": "New Test comment subject",  # create new comment
+            "content": "Test comment content",
+            "rate": 4.3,
+        }
+        new_comment = Comment.objects.create(**mock_comment)  # created new comment
+
+        user_filter_url = get_filter_url("user", str(self.user.id))
+
+        res = self.client.get(user_filter_url)
+
+        self.assertContains(res, self.comment)
+        self.assertNotContains(res, new_comment)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_comment_list_product_id_filter_successful(self):
+        """
+        Tests if comment list can be filter by product id
+        """
+        mock_product = {
+            "title": "New Product Test title",
+            "description": "Test description",
+            "price": 1111,
+            "images": [
+                "testimgurl.com/1",
+                "testimgurl.com/2",  # Mock product data
+                "testimgurl.com/3",
+            ],
+            "stock": 11,
+            "category": self.category,
+            "sold": 11,
+        }
+        new_product = Product.objects.create(**mock_product)
+
+        mock_comment = {
+            "user": self.user,
+            "product": new_product,
+            "subject": "New Test comment subject",  # create new comment
+            "content": "Test comment content",
+            "rate": 4.3,
+        }
+        new_comment = Comment.objects.create(**mock_comment)  # created new comment
+
+        product_filter_url = get_filter_url("product", str(self.product.id))
+
+        res = self.client.get(product_filter_url)
+
+        self.assertContains(res, self.comment)
+        self.assertNotContains(res, new_comment)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 

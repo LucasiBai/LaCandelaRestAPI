@@ -5,6 +5,7 @@ from rest_framework import status
 
 from .permissions import IsOwnDataOrSuperuser
 from .serializers import CommentSerializer
+from .filters import CommentFilterset
 
 
 class CommentViewset(ModelViewSet):
@@ -14,6 +15,7 @@ class CommentViewset(ModelViewSet):
 
     queryset = CommentSerializer.Meta.model.objects.all()
     serializer_class = CommentSerializer
+    filterset_class = CommentFilterset
 
     def get_permissions(self):
         """
