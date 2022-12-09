@@ -132,6 +132,160 @@ class PublicCommentAPITest(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
+    def test_comment_list_min_rate_filter_successful(self):
+        """
+        Tests if comment list can be filter by min rate
+        """
+        mock_comment = {
+            "user": self.user,
+            "product": self.product,
+            "subject": "New Test comment subject",  # create new comment
+            "content": "Test comment content",
+            "rate": 4.6,
+        }
+        new_comment = Comment.objects.create(**mock_comment)  # created new comment
+
+        min_rate_filter_url = get_filter_url("min_rate", "4.4")
+
+        res = self.client.get(min_rate_filter_url)
+
+        self.assertNotContains(res, self.comment)
+        self.assertContains(res, new_comment)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_comment_list_min_rate_filter_equal_value_successful(self):
+        """
+        Tests if comment list can be filter by min rate with equal value
+        """
+        mock_comment = {
+            "user": self.user,
+            "product": self.product,
+            "subject": "New Test comment subject",  # create new comment
+            "content": "Test comment content",
+            "rate": 4.6,
+        }
+        new_comment = Comment.objects.create(**mock_comment)  # created new comment
+
+        min_rate_filter_url = get_filter_url("min_rate", "4.6")
+
+        res = self.client.get(min_rate_filter_url)
+
+        self.assertNotContains(res, self.comment)
+        self.assertContains(res, new_comment)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_comment_list_max_rate_filter_successful(self):
+        """
+        Tests if comment list can be filter by max rate
+        """
+        mock_comment = {
+            "user": self.user,
+            "product": self.product,
+            "subject": "New Test comment subject",  # create new comment
+            "content": "Test comment content",
+            "rate": 4.6,
+        }
+        new_comment = Comment.objects.create(**mock_comment)  # created new comment
+
+        max_rate_filter_url = get_filter_url("max_rate", "4.4")
+
+        res = self.client.get(max_rate_filter_url)
+
+        self.assertContains(res, self.comment)
+        self.assertNotContains(res, new_comment)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_comment_list_max_rate_filter_equal_value_successful(self):
+        """
+        Tests if comment list can be filter by max rate with equal value
+        """
+        mock_comment = {
+            "user": self.user,
+            "product": self.product,
+            "subject": "New Test comment subject",  # create new comment
+            "content": "Test comment content",
+            "rate": 4.6,
+        }
+        new_comment = Comment.objects.create(**mock_comment)  # created new comment
+
+        max_rate_filter_url = get_filter_url("max_rate", "4.3")
+
+        res = self.client.get(max_rate_filter_url)
+
+        self.assertContains(res, self.comment)
+        self.assertNotContains(res, new_comment)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_comment_list_offset_filter_successful(self):
+        """
+        Tests if comment list can be filter by offset
+        """
+        first_mock_comment = {
+            "user": self.user,
+            "product": self.product,
+            "subject": "First New Test comment subject",  # create first new comment
+            "content": "Test comment content",
+            "rate": 4.6,
+        }
+        first_new_comment = Comment.objects.create(
+            **first_mock_comment
+        )  # created new comment
+
+        second_mock_comment = {
+            **first_mock_comment,
+            "subject": "Second New Test comment subject",  # create second new comment
+        }
+        second_new_comment = Comment.objects.create(
+            **second_mock_comment
+        )  # created new comment
+
+        offset_filter_url = get_filter_url("offset", str(first_new_comment.id))
+
+        res = self.client.get(offset_filter_url)
+
+        self.assertNotContains(res, self.comment)
+        self.assertContains(res, first_new_comment)
+        self.assertContains(res, second_new_comment)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_comment_list_limit_filter_successful(self):
+        """
+        Tests if comment list can be filter by limit
+        """
+        first_mock_comment = {
+            "user": self.user,
+            "product": self.product,
+            "subject": "First New Test comment subject",  # create first new comment
+            "content": "Test comment content",
+            "rate": 4.6,
+        }
+        first_new_comment = Comment.objects.create(
+            **first_mock_comment
+        )  # created new comment
+
+        second_mock_comment = {
+            **first_mock_comment,
+            "subject": "Second New Test comment subject",  # create second new comment
+        }
+        second_new_comment = Comment.objects.create(
+            **second_mock_comment
+        )  # created new comment
+
+        limit_filter_url = get_filter_url("limit", "2")
+
+        res = self.client.get(limit_filter_url)
+
+        self.assertContains(res, self.comment)
+        self.assertContains(res, first_new_comment)
+        self.assertNotContains(res, second_new_comment)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
     def test_comment_detail_get_public_successful(self):
         """
         Tests if public user can see comment detail
@@ -316,6 +470,76 @@ class PrivateUserCommentAPITest(TestCase):
         )
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+    def test_comment_list_post_normal_user_with_order_rate_out_of_range_reject(self):
+        """
+        Tests if normal user can't create in comment list with order and out of range rate
+        """
+        mock_shipping_info = {
+            "user": self.main_user,
+            "address": "Test address",  # create shipping info
+            "receiver": "test receiver name",
+            "receiver_dni": 12345678,
+        }
+        shipping_info = ShippingInfo.objects.create(**mock_shipping_info)
+
+        mock_order = {
+            "buyer": self.main_user,
+            "products": [
+                {"id": self.product.id, "title": self.product.title, "count": 4}
+            ],
+            "shipping_info": shipping_info,
+        }
+        Order.objects.create(**mock_order)
+
+        payload = {
+            "user": self.main_user.id,
+            "product": self.product.id,
+            "subject": "Test comment subject",
+            "content": "Test comment content",
+            "rate": 5.1,
+        }
+
+        res = self.client.post(
+            COMMENT_LIST_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_comment_list_post_normal_user_with_order_negative_rate_reject(self):
+        """
+        Tests if normal user can't create in comment list with order and negative rate
+        """
+        mock_shipping_info = {
+            "user": self.main_user,
+            "address": "Test address",  # create shipping info
+            "receiver": "test receiver name",
+            "receiver_dni": 12345678,
+        }
+        shipping_info = ShippingInfo.objects.create(**mock_shipping_info)
+
+        mock_order = {
+            "buyer": self.main_user,
+            "products": [
+                {"id": self.product.id, "title": self.product.title, "count": 4}
+            ],
+            "shipping_info": shipping_info,
+        }
+        Order.objects.create(**mock_order)
+
+        payload = {
+            "user": self.main_user.id,
+            "product": self.product.id,
+            "subject": "Test comment subject",
+            "content": "Test comment content",
+            "rate": -0.1,
+        }
+
+        res = self.client.post(
+            COMMENT_LIST_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_comment_list_post_to_other_user_with_order_normal_user_reject(self):
         """
@@ -608,6 +832,76 @@ class PrivateSuperuserCommentAPITest(TestCase):
         )
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+    def test_comment_list_post_superuser_with_order_rate_out_of_range_reject(self):
+        """
+        Tests if superuser can't create in comment list with order and out of range rate
+        """
+        mock_shipping_info = {
+            "user": self.main_user,
+            "address": "Test address",  # create shipping info
+            "receiver": "test receiver name",
+            "receiver_dni": 12345678,
+        }
+        shipping_info = ShippingInfo.objects.create(**mock_shipping_info)
+
+        mock_order = {
+            "buyer": self.main_user,
+            "products": [
+                {"id": self.product.id, "title": self.product.title, "count": 4}
+            ],
+            "shipping_info": shipping_info,
+        }
+        Order.objects.create(**mock_order)
+
+        payload = {
+            "user": self.main_user.id,
+            "product": self.product.id,
+            "subject": "Test comment subject",
+            "content": "Test comment content",
+            "rate": 5.1,
+        }
+
+        res = self.client.post(
+            COMMENT_LIST_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_comment_list_post_superuser_with_order_negative_rate_reject(self):
+        """
+        Tests if superuser can't create in comment list with order and negative rate
+        """
+        mock_shipping_info = {
+            "user": self.main_user,
+            "address": "Test address",  # create shipping info
+            "receiver": "test receiver name",
+            "receiver_dni": 12345678,
+        }
+        shipping_info = ShippingInfo.objects.create(**mock_shipping_info)
+
+        mock_order = {
+            "buyer": self.main_user,
+            "products": [
+                {"id": self.product.id, "title": self.product.title, "count": 4}
+            ],
+            "shipping_info": shipping_info,
+        }
+        Order.objects.create(**mock_order)
+
+        payload = {
+            "user": self.main_user.id,
+            "product": self.product.id,
+            "subject": "Test comment subject",
+            "content": "Test comment content",
+            "rate": -0.1,
+        }
+
+        res = self.client.post(
+            COMMENT_LIST_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_comment_list_post_to_other_user_with_order_superuser_successful(self):
         """

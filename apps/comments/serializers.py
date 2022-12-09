@@ -20,6 +20,9 @@ class CommentSerializer(serializers.ModelSerializer):
         ]
 
     def validate_user(self, value):
+        """
+        Validates if user is the request user
+        """
         current_user = self.context.get("user", None)
         action = self.context.get("action", None)
 
@@ -31,7 +34,19 @@ class CommentSerializer(serializers.ModelSerializer):
 
         return value
 
+    def validate_rate(self, value):
+        """
+        Validates if entered rate can't be negative or greater than 5.0
+        """
+        if value > 5.0 or value < 0:
+            raise serializers.ValidationError("Rate must be between 0.0 and 5.0")
+
+        return value
+
     def validate(self, attrs):
+        """
+        Validates if request user has bought the product
+        """
         action = self.context.get("action", None)
 
         if action:

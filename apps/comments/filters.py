@@ -11,11 +11,32 @@ class CommentFilterset(filters.FilterSet):
     """
 
     user = filters.NumberFilter(
-        field_name="user__pk", method="get_by_id", label=_("User Id")
+        field_name="user__pk", method="get_by_id", label=_("User Id")  # user id filter
     )
     product = filters.NumberFilter(
-        field_name="product__pk", method="get_by_id", label=_("Product Id")
+        field_name="product__pk",
+        method="get_by_id",  # product id filter
+        label=_("Product Id"),
     )
+
+    min_rate = filters.NumberFilter(
+        field_name="rate", lookup_expr="gte", label=_("Min Rate")
+    )
+    max_rate = filters.NumberFilter(
+        field_name="rate", lookup_expr="lte", label=_("Max Rate")  # max rate filter
+    )
+
+    offset = filters.NumberFilter(
+        field_name="id", lookup_expr="gte", label=_("Offset")  # offset filter
+    )
+
+    limit = filters.NumberFilter(method="query_limit", label=_("Limit"))  # limit filter
+
+    def query_limit(self, queryset, name, value):
+        """
+        Limits the returned queryset
+        """
+        return queryset[:value]
 
     def get_by_id(self, queryset, name, value):
         """
@@ -29,4 +50,8 @@ class CommentFilterset(filters.FilterSet):
         fields = [
             "user",
             "product",
+            "min_rate",
+            "max_rate",
+            "offset",
+            "limit",
         ]

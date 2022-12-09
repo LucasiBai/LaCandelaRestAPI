@@ -24,7 +24,7 @@ def get_filter_url(filter_name, value):
     """
     Gets the filter url
     """
-    return reverse("api:product-list") + f"?{filter_name}={value}"
+    return PRODUCTS_LIST_URL + f"?{filter_name}={value}"
 
 
 class PublicProductsAPITests(TestCase):
