@@ -6,7 +6,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
 
-from apps.users.permissions import IsOwnData
+from apps.api_root.permissions import IsOwnData
 from apps.users.serializers import UserAccountSerializer
 
 

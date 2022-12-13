@@ -3,7 +3,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
 
-from .permissions import IsOwnDataOrSuperuser
+from apps.api_root.permissions import IsOwnDataOrSuperuser
 from .serializers import CommentSerializer
 from .filters import CommentFilterset
 
