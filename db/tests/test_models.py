@@ -258,6 +258,25 @@ class OrderModelTest(TestCase):
 
         self.assertEqual(f"Order of {order.buyer.get_full_name()}", str(order))
 
+    def test_create_some_orders_without_id_successful(self):
+        """
+        Tests if model can create an order without id
+        """
+        mock_order = {
+            "buyer": self.user,
+            "products": [
+                {"id": self.product.id, "title": self.product.title, "count": 4}
+            ],
+            "shipping_info": self.shipping_info,
+        }
+
+        first_order = Order.objects.create(**mock_order)
+        second_order = Order.objects.create(**mock_order)
+        thirst_order = Order.objects.create(**mock_order)
+
+        self.assertNotEqual(first_order.id, second_order)
+        self.assertNotEqual(thirst_order.id, second_order)
+
     def test_create_existing_order_reject(self):
         """
         Tests if can't create an existing order

@@ -150,7 +150,7 @@ class Order(models.Model):
     Order model
     """
 
-    id = models.UUIDField(primary_key=True, default=uuid4(), editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     buyer = models.ForeignKey("UserAccount", on_delete=models.CASCADE)
     products = ArrayField(models.JSONField())
     shipping_info = models.ForeignKey("ShippingInfo", on_delete=models.CASCADE)

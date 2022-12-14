@@ -94,11 +94,11 @@ class PublicOrdersAPITests(TestCase):
         Tests if public user can't post order list
         """
         payload = {
-            "buyer": self.user,
+            "buyer": self.user.id,
             "products": [
                 {"id": self.product.id, "title": self.product.title, "count": 4}
             ],
-            "shipping_info": self.shipping_info,
+            "shipping_info": self.shipping_info.id,
         }
 
         res = self.client.post(ORDER_LIST_URL, payload)
@@ -175,7 +175,6 @@ class PrivateUsersOrdersAPITests(TestCase):
         self.main_user = get_user_model().objects.create_user(
             **main_user_data  # create main user
         )
-        self.client.force_authenticate(user=self.main_user)
 
         res_token = self.client.post(TOKEN_URL, main_user_data)  # get user token
         self.user_token = res_token.data["token"]
@@ -261,11 +260,11 @@ class PrivateUsersOrdersAPITests(TestCase):
         )
 
         payload = {
-            "buyer": self.main_user,
+            "buyer": self.main_user.id,
             "products": [
                 {"id": self.product.id, "title": self.product.title, "count": 4}
             ],
-            "shipping_info": shipping_info,
+            "shipping_info": shipping_info.id,
         }
 
         res = self.client.post(
@@ -280,11 +279,11 @@ class PrivateUsersOrdersAPITests(TestCase):
         """
 
         payload = {
-            "buyer": self.user,
+            "buyer": self.user.id,
             "products": [
                 {"id": self.product.id, "title": self.product.title, "count": 4}
             ],
-            "shipping_info": self.shipping_info,
+            "shipping_info": self.shipping_info.id,
         }
 
         res = self.client.post(
@@ -329,11 +328,9 @@ class PrivateUsersOrdersAPITests(TestCase):
         res = self.client.patch(
             order_detail_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
         )
-        self.order.refresh_from_db()
+        order.refresh_from_db()
 
-        self.assertNotEqual(
-            self.order.products[0]["count"], payload["products"][0]["count"]
-        )
+        self.assertNotEqual(order.products[0]["count"], payload["products"][0]["count"])
 
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -375,17 +372,15 @@ class PrivateUsersOrdersAPITests(TestCase):
         res = self.client.put(
             order_detail_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
         )
-        self.order.refresh_from_db()
+        order.refresh_from_db()
 
-        self.assertNotEqual(
-            self.order.products[0]["count"], payload["products"][0]["count"]
-        )
+        self.assertNotEqual(order.products[0]["count"], payload["products"][0]["count"])
 
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_own_order_detail_delete_public_reject(self):
+    def test_own_order_detail_delete_normal_user_reject(self):
         """
-        Tests if public user can't delete own order detail
+        Tests if normal user can't delete own order detail
         """
         mock_shipping_info = {
             "user": self.main_user,
@@ -410,6 +405,320 @@ class PrivateUsersOrdersAPITests(TestCase):
             [order]  # obtain the url of created order
         )
 
-        res = self.client.delete(order_detail_url)
+        res = self.client.delete(
+            order_detail_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
 
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class PrivateSuperusersOrdersAPITests(TestCase):
+    """
+    Tests orders by private superuser
+    """
+
+    def setUp(self):
+        self.client = APIClient()
+
+        main_user_data = {"email": "testmain@test.com", "password": "12345test"}
+        self.main_user = get_user_model().objects.create_superuser(
+            **main_user_data  # create main user
+        )
+
+        res_token = self.client.post(TOKEN_URL, main_user_data)  # get user token
+        self.user_token = res_token.data["token"]
+
+        self.user = get_user_model().objects.create_user(
+            email="testemail@test.com"  # create user for order
+        )
+
+        category = Category.objects.create(
+            title="TestCategory"  # create category for product
+        )
+        self.mock_product = {
+            "title": "Test title",
+            "description": "Test description",
+            "price": 1111,
+            "images": [
+                "testimgurl.com/1",
+                "testimgurl.com/2",
+                "testimgurl.com/3",
+            ],
+            "stock": 11,
+            "category": category,
+            "sold": 11,
+        }
+        self.product = Product.objects.create(
+            **self.mock_product  # create product for order
+        )
+
+        self.mock_shipping_info = {
+            "user": self.user,
+            "address": "Test address",
+            "receiver": "test receiver name",
+            "receiver_dni": 12345678,
+        }
+        self.shipping_info = ShippingInfo.objects.create(
+            **self.mock_shipping_info  # create shipping info for order
+        )
+
+        self.mock_order = {
+            "buyer": self.user,
+            "products": [
+                {"id": self.product.id, "title": self.product.title, "count": 4}
+            ],
+            "shipping_info": self.shipping_info,
+        }
+        self.order = Order.objects.create(**self.mock_order)
+
+    def test_order_list_get_superuser_successful(self):
+        """
+        Tests if superuser can see order list
+        """
+        res = self.client.get(
+            ORDER_LIST_URL, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_order_detail_get_superuser_successful(self):
+        """
+        Tests if superuser can see order detail
+        """
+        order_list = Order.objects.all()
+        order_detail_url = get_order_detail_url(order_list)
+
+        res = self.client.get(
+            order_detail_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_own_order_list_post_superuser_successful(self):
+        """
+        Tests if superuser can post order list
+        """
+        mock_shipping_info = {
+            "user": self.main_user,
+            "address": "Test address",
+            "receiver": "test receiver name",
+            "receiver_dni": 12345678,
+        }
+        shipping_info = ShippingInfo.objects.create(
+            **mock_shipping_info  # create shipping info for order
+        )
+
+        payload = {
+            "buyer": self.main_user.id,
+            "products": [
+                {"id": self.product.id, "title": self.product.title, "count": 4}
+            ],
+            "shipping_info": shipping_info.id,
+        }
+
+        res = self.client.post(
+            ORDER_LIST_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+    def test_order_list_post_superuser_for_other_user_successful(self):
+        """
+        Tests if superuser can post in order list for other user
+        """
+
+        payload = {
+            "buyer": self.user.id,
+            "products": [
+                {"id": self.product.id, "title": self.product.title, "count": 4}
+            ],
+            "shipping_info": self.shipping_info.id,
+        }
+
+        res = self.client.post(
+            ORDER_LIST_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+    def test_own_order_detail_patch_superuser_successful(self):
+        """
+        Tests if superuser can patch own order detail
+        """
+        mock_shipping_info = {
+            "user": self.main_user,
+            "address": "Test address",
+            "receiver": "test receiver name",
+            "receiver_dni": 12345678,
+        }
+        shipping_info = ShippingInfo.objects.create(
+            **mock_shipping_info  # create shipping info for order
+        )
+
+        mock_order = {
+            "buyer": self.main_user,
+            "products": [
+                {"id": self.product.id, "title": self.product.title, "count": 4}
+            ],
+            "shipping_info": shipping_info,
+        }
+        order = Order.objects.create(**mock_order)
+
+        order_detail_url = get_order_detail_url(
+            [order]  # obtain the url of created order
+        )
+
+        payload = {
+            "products": [
+                {"id": self.product.id, "title": self.product.title, "count": 6}
+            ]
+        }
+
+        res = self.client.patch(
+            order_detail_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+        order.refresh_from_db()
+
+        self.assertEqual(order.products[0]["count"], payload["products"][0]["count"])
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_order_detail_patch_superuser_from_other_user_successful(self):
+        """
+        Tests if superuser can patch order detail from other user
+        """
+        order_list = Order.objects.all()
+        order_detail_url = get_order_detail_url(order_list)
+
+        payload = {
+            "products": [
+                {"id": self.product.id, "title": self.product.title, "count": 6}
+            ]
+        }
+
+        res = self.client.patch(
+            order_detail_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+        self.order.refresh_from_db()
+
+        self.assertEqual(
+            self.order.products[0]["count"], payload["products"][0]["count"]
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_own_order_detail_put_superuser_successful(self):
+        """
+        Tests if superuser can put own order detail
+        """
+        mock_shipping_info = {
+            "user": self.main_user,
+            "address": "Test address",
+            "receiver": "test receiver name",
+            "receiver_dni": 12345678,
+        }
+        shipping_info = ShippingInfo.objects.create(
+            **mock_shipping_info  # create shipping info for order
+        )
+
+        mock_order = {
+            "buyer": self.main_user,
+            "products": [
+                {"id": self.product.id, "title": self.product.title, "count": 4}
+            ],
+            "shipping_info": shipping_info,
+        }
+        order = Order.objects.create(**mock_order)
+
+        order_detail_url = get_order_detail_url(
+            [order]  # obtain the url of created order
+        )
+
+        payload = {
+            "buyer": self.main_user.id,
+            "products": [
+                {"id": self.product.id, "title": self.product.title, "count": 6}
+            ],
+            "shipping_info": shipping_info.id,
+        }
+
+        res = self.client.put(
+            order_detail_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+        order.refresh_from_db()
+
+        self.assertEqual(order.products[0]["count"], payload["products"][0]["count"])
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_order_detail_put_superuser_from_other_user_successful(self):
+        """
+        Tests if superuser can put own order detail
+        """
+        order_list = Order.objects.all()
+        order_detail_url = get_order_detail_url(order_list)
+
+        payload = {
+            "buyer": self.user.id,
+            "products": [
+                {"id": self.product.id, "title": self.product.title, "count": 6}
+            ],
+            "shipping_info": self.shipping_info.id,
+        }
+
+        res = self.client.put(
+            order_detail_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+        self.order.refresh_from_db()
+
+        self.assertEqual(
+            self.order.products[0]["count"], payload["products"][0]["count"]
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_own_order_detail_delete_super_user_successful(self):
+        """
+        Tests if superuser can delete own order detail
+        """
+        mock_shipping_info = {
+            "user": self.main_user,
+            "address": "Test address",
+            "receiver": "test receiver name",
+            "receiver_dni": 12345678,
+        }
+        shipping_info = ShippingInfo.objects.create(
+            **mock_shipping_info  # create shipping info for order
+        )
+
+        mock_order = {
+            "buyer": self.main_user,
+            "products": [
+                {"id": self.product.id, "title": self.product.title, "count": 4}
+            ],
+            "shipping_info": shipping_info,
+        }
+        order = Order.objects.create(**mock_order)
+
+        order_detail_url = get_order_detail_url(
+            [order]  # obtain the url of created order
+        )
+
+        res = self.client.delete(
+            order_detail_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_order_detail_delete_superuser_from_other_user_successful(self):
+        """
+        Tests if superuser can delete order detail from other user
+        """
+        order_list = Order.objects.all()
+        order_detail_url = get_order_detail_url(order_list)
+
+        res = self.client.delete(
+            order_detail_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
