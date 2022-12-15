@@ -19,6 +19,13 @@ def get_order_detail_url(order_list):
     return reverse("api:order-detail", kwargs={"pk": order_list[0].id})
 
 
+def get_filter_url(filter_name, value):
+    """
+    Gets the filter url
+    """
+    return ORDER_LIST_URL + f"?{filter_name}={value}"
+
+
 class PublicOrdersAPITests(TestCase):
     """
     Tests orders by public client
@@ -121,10 +128,6 @@ class PublicOrdersAPITests(TestCase):
         res = self.client.patch(order_detail_url, payload)
         self.order.refresh_from_db()
 
-        self.assertNotEqual(
-            self.order.products[0]["count"], payload["products"][0]["count"]
-        )
-
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_order_detail_put_public_reject(self):
@@ -144,10 +147,6 @@ class PublicOrdersAPITests(TestCase):
 
         res = self.client.put(order_detail_url, payload)
         self.order.refresh_from_db()
-
-        self.assertNotEqual(
-            self.order.products[0]["count"], payload["products"][0]["count"]
-        )
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
@@ -330,8 +329,6 @@ class PrivateUsersOrdersAPITests(TestCase):
         )
         order.refresh_from_db()
 
-        self.assertNotEqual(order.products[0]["count"], payload["products"][0]["count"])
-
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_own_order_detail_put_normal_user_reject(self):
@@ -373,8 +370,6 @@ class PrivateUsersOrdersAPITests(TestCase):
             order_detail_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
         )
         order.refresh_from_db()
-
-        self.assertNotEqual(order.products[0]["count"], payload["products"][0]["count"])
 
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -479,6 +474,34 @@ class PrivateSuperusersOrdersAPITests(TestCase):
             ORDER_LIST_URL, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
         )
 
+        self.assertContains(res, self.order)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_order_list_get_user_id_filter_superuser_successful(self):
+        """
+        Tests if superuser can see order list with user id filter
+        """
+        user = get_user_model().objects.create_user(email="newusertest@test.com")
+
+        mock_order = {
+            "buyer": user,
+            "products": [
+                {"id": self.product.id, "title": self.product.title, "count": 4}
+            ],
+            "shipping_info": self.shipping_info,
+        }
+        new_order = Order.objects.create(**mock_order)
+
+        user_filter_url = get_filter_url("user", str(user.id))
+
+        res = self.client.get(
+            user_filter_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+
+        self.assertContains(res, new_order)
+        self.assertNotContains(res, self.order)
+
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
     def test_order_detail_get_superuser_successful(self):
@@ -579,8 +602,6 @@ class PrivateSuperusersOrdersAPITests(TestCase):
         )
         order.refresh_from_db()
 
-        self.assertEqual(order.products[0]["count"], payload["products"][0]["count"])
-
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
     def test_order_detail_patch_superuser_from_other_user_successful(self):
@@ -600,10 +621,6 @@ class PrivateSuperusersOrdersAPITests(TestCase):
             order_detail_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
         )
         self.order.refresh_from_db()
-
-        self.assertEqual(
-            self.order.products[0]["count"], payload["products"][0]["count"]
-        )
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
@@ -647,8 +664,6 @@ class PrivateSuperusersOrdersAPITests(TestCase):
         )
         order.refresh_from_db()
 
-        self.assertEqual(order.products[0]["count"], payload["products"][0]["count"])
-
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
     def test_order_detail_put_superuser_from_other_user_successful(self):
@@ -670,10 +685,6 @@ class PrivateSuperusersOrdersAPITests(TestCase):
             order_detail_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
         )
         self.order.refresh_from_db()
-
-        self.assertEqual(
-            self.order.products[0]["count"], payload["products"][0]["count"]
-        )
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 

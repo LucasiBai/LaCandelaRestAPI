@@ -180,6 +180,17 @@ class ShippingInfoModelTest(TestCase):
             f"Shipping Info of {self.user.get_full_name()}", str(shipping_info)
         )
 
+    def test_create_shipping_info_no_name_user_successful(self):
+        """
+        Tests if model can create shipping info
+        """
+        new_user = get_user_model().objects.create_user(email="testi@testemail.com")
+
+        new_mock_shipping_info = {**self.mock_shipping_info, "user": new_user}
+        shipping_info = ShippingInfo.objects.create(**new_mock_shipping_info)
+
+        self.assertEqual(f"Shipping Info of {new_user.email}", str(shipping_info))
+
 
 class OrderModelTest(TestCase):
     """
@@ -187,7 +198,9 @@ class OrderModelTest(TestCase):
     """
 
     def setUp(self):
-        self.user = get_user_model().objects.create_user(email="testemail@test.com")
+        self.user = get_user_model().objects.create_user(
+            email="testemail@test.com", first_name="Test", last_name="Testi"
+        )
 
         self.category = Category.objects.create(title="TestCategory")
         self.mock_product = {
@@ -235,6 +248,17 @@ class OrderModelTest(TestCase):
         self.assertTrue(order.created_at)
 
         self.assertEqual(f"Order of {order.buyer.get_full_name()}", str(order))
+
+    def test_create_order_no_name_user_successful(self):
+        """
+        Tests if model can create an order
+        """
+        new_user = get_user_model().objects.create_user(email="testi@testemail.com")
+
+        new_mock_order = {**self.mock_order, "buyer": new_user}
+        order = Order.objects.create(**new_mock_order)
+
+        self.assertEqual(f"Order of {order.buyer.email}", str(order))
 
     def test_create_order_without_id_successful(self):
         """

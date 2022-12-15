@@ -142,7 +142,9 @@ class ShippingInfo(models.Model):
         verbose_name_plural = _("Shippings Information")
 
     def __str__(self):
-        return f"{_('Shipping Info of')} {self.user.get_full_name()}"
+        if self.user.first_name and self.user.last_name:
+            return f"{_('Shipping Info of')} {self.user.get_full_name()}"
+        return f"{_('Shipping Info of')} {self.user.email}"
 
 
 class Order(models.Model):
@@ -161,4 +163,6 @@ class Order(models.Model):
         verbose_name_plural = _("Orders")
 
     def __str__(self):
-        return f"{_('Order of')} {self.buyer.get_full_name()}"
+        if self.buyer.first_name and self.buyer.last_name:
+            return f"{_('Order of')} {self.buyer.get_full_name()}"
+        return f"{_('Order of')} {self.buyer.email}"
