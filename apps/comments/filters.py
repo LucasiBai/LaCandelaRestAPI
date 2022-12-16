@@ -3,9 +3,10 @@ from django.utils.translation import gettext_lazy as _
 from django_filters import rest_framework as filters
 
 from .serializers import CommentSerializer
+from apps.api_root.utils import FilterMethods
 
 
-class CommentFilterset(filters.FilterSet):
+class CommentFilterset(filters.FilterSet, FilterMethods):
     """
     Comments Api Filterset
     """
@@ -31,19 +32,6 @@ class CommentFilterset(filters.FilterSet):
     )
 
     limit = filters.NumberFilter(method="query_limit", label=_("Limit"))  # limit filter
-
-    def query_limit(self, queryset, name, value):
-        """
-        Limits the returned queryset
-        """
-        return queryset[:value]
-
-    def get_by_id(self, queryset, name, value):
-        """
-        Gets the queryset with the entered id
-        """
-        filter_value = {name: value}
-        return queryset.filter(**filter_value)
 
     class Meta:
         model = CommentSerializer.Meta.model

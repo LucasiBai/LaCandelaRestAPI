@@ -149,8 +149,8 @@ class PublicCommentAPITest(TestCase):
 
         res = self.client.get(min_rate_filter_url)
 
-        self.assertNotContains(res, self.comment)
-        self.assertContains(res, new_comment)
+        self.assertNotContains(res, self.comment.id)
+        self.assertContains(res, new_comment.id)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
@@ -171,8 +171,8 @@ class PublicCommentAPITest(TestCase):
 
         res = self.client.get(min_rate_filter_url)
 
-        self.assertNotContains(res, self.comment)
-        self.assertContains(res, new_comment)
+        self.assertNotContains(res, self.comment.id)
+        self.assertContains(res, new_comment.id)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
@@ -193,8 +193,8 @@ class PublicCommentAPITest(TestCase):
 
         res = self.client.get(max_rate_filter_url)
 
-        self.assertContains(res, self.comment)
-        self.assertNotContains(res, new_comment)
+        self.assertContains(res, self.comment.id)
+        self.assertNotContains(res, new_comment.id)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
@@ -215,8 +215,8 @@ class PublicCommentAPITest(TestCase):
 
         res = self.client.get(max_rate_filter_url)
 
-        self.assertContains(res, self.comment)
-        self.assertNotContains(res, new_comment)
+        self.assertContains(res, self.comment.id)
+        self.assertNotContains(res, new_comment.id)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
@@ -247,9 +247,9 @@ class PublicCommentAPITest(TestCase):
 
         res = self.client.get(offset_filter_url)
 
-        self.assertNotContains(res, self.comment)
-        self.assertContains(res, first_new_comment)
-        self.assertContains(res, second_new_comment)
+        self.assertNotContains(res, self.comment.id)
+        self.assertContains(res, first_new_comment.id)
+        self.assertContains(res, second_new_comment.id)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
@@ -280,9 +280,9 @@ class PublicCommentAPITest(TestCase):
 
         res = self.client.get(limit_filter_url)
 
-        self.assertContains(res, self.comment)
-        self.assertContains(res, first_new_comment)
-        self.assertNotContains(res, second_new_comment)
+        self.assertContains(res, self.comment.id)
+        self.assertContains(res, first_new_comment.id)
+        self.assertNotContains(res, second_new_comment.id)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 

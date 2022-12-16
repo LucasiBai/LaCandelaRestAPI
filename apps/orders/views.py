@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from .serializers import OrderSerializer
+from .filters import OrderFilterset
 from db.models import Order
 
 
@@ -14,6 +15,7 @@ class OrderViewset(ModelViewSet):
 
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
+    filterset_class = OrderFilterset
 
     def get_permissions(self):
         """

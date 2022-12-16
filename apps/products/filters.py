@@ -3,11 +3,10 @@ from django.utils.translation import gettext_lazy as _
 import django_filters.rest_framework as filters
 
 from .serializers import ProductSerializer
+from apps.api_root.utils import FilterMethods
 
-from .utils import get_validated_rate_products_pk
 
-
-class ProductsFilterSet(filters.FilterSet):
+class ProductsFilterSet(filters.FilterSet, FilterMethods):
     """
     Filterset of Product model
     """
@@ -33,29 +32,6 @@ class ProductsFilterSet(filters.FilterSet):
     offset = filters.NumberFilter(field_name="id", lookup_expr="gte", label=_("Offset"))
 
     limit = filters.NumberFilter(method="query_limit", label=_("Limit"))
-
-    def query_limit(self, queryset, name, value):
-        """
-        Limits the returned queryset
-        """
-        return queryset[:value]
-
-    def query_min_rate(self, queryset, name, value):
-        """
-        Gets the returned products greater or equal than value
-        """
-
-        validated_id_products = get_validated_rate_products_pk("gte", queryset, value)
-
-        return queryset.filter(pk__in=validated_id_products)
-
-    def query_max_rate(self, queryset, name, value):
-        """
-        Gets the returned products lower or equal than value
-        """
-        validated_id_products = get_validated_rate_products_pk("lte", queryset, value)
-
-        return queryset.filter(pk__in=validated_id_products)
 
     class Meta:
         model = ProductSerializer.Meta.model

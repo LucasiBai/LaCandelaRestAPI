@@ -474,7 +474,7 @@ class PrivateSuperusersOrdersAPITests(TestCase):
             ORDER_LIST_URL, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
         )
 
-        self.assertContains(res, self.order)
+        self.assertContains(res, self.order.id)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
@@ -499,8 +499,64 @@ class PrivateSuperusersOrdersAPITests(TestCase):
             user_filter_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
         )
 
-        self.assertContains(res, new_order)
-        self.assertNotContains(res, self.order)
+        self.assertContains(res, new_order.id)
+        self.assertNotContains(res, self.order.id)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_order_list_get_offset_filter_superuser_successful(self):
+        """
+        Tests if superuser can see order list with offset filter
+        """
+        user = get_user_model().objects.create_user(email="newusertest@test.com")
+
+        mock_order = {
+            "buyer": user,
+            "products": [
+                {"id": self.product.id, "title": self.product.title, "count": 4}
+            ],
+            "shipping_info": self.shipping_info,
+        }
+        first_new_order = Order.objects.create(**mock_order)
+        second_new_order = Order.objects.create(**mock_order)
+
+        user_filter_url = get_filter_url("offset", "2")
+
+        res = self.client.get(
+            user_filter_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+
+        self.assertNotContains(res, self.order.id)
+        self.assertContains(res, first_new_order.id)
+        self.assertContains(res, second_new_order.id)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_order_list_get_limit_filter_superuser_successful(self):
+        """
+        Tests if superuser can see order list with limit filter
+        """
+        user = get_user_model().objects.create_user(email="newusertest@test.com")
+
+        mock_order = {
+            "buyer": user,
+            "products": [
+                {"id": self.product.id, "title": self.product.title, "count": 4}
+            ],
+            "shipping_info": self.shipping_info,
+        }
+        first_new_order = Order.objects.create(**mock_order)
+        second_new_order = Order.objects.create(**mock_order)
+
+        user_filter_url = get_filter_url("limit", "2")
+
+        res = self.client.get(
+            user_filter_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+
+        self.assertContains(res, self.order.id)
+        self.assertContains(res, first_new_order.id)
+        self.assertNotContains(res, second_new_order.id)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
