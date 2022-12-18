@@ -36,6 +36,13 @@ def create_user(**kwargs):
     return get_user_model().objects.create_user(**kwargs)
 
 
+def get_filter_url(filter_name, value):
+    """
+    Gets the filter url
+    """
+    return USER_LIST_URL + f"?{filter_name}={value}"
+
+
 class PublicUsersAPITests(TestCase):
     """
     Tests public users api
@@ -573,6 +580,44 @@ class PrivateSuperusersAPITests(TestCase):
         res = self.client.get(
             USER_LIST_URL, HTTP_AUTHORIZATION=f"Bearer {self.superuser_token}"
         )
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_superuser_view_user_data_list_offset_filter_successful(self):
+        """
+        Tests if superuser can see user list with offset filter
+        """
+        first_user_created = create_user(email="testfirst@test.com")
+        second_user_created = create_user(email="testsecond@test.com")
+
+        offset_filter_url = get_filter_url("offset", str(first_user_created.id))
+
+        res = self.client.get(
+            offset_filter_url, HTTP_AUTHORIZATION=f"Bearer {self.superuser_token}"
+        )
+
+        self.assertNotContains(res, self.superuser)
+        self.assertContains(res, first_user_created)
+        self.assertContains(res, second_user_created)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_superuser_view_user_data_list_limit_filter_successful(self):
+        """
+        Tests if superuser can see user list with limit filter
+        """
+        first_user_created = create_user(email="testfirst@test.com")
+        second_user_created = create_user(email="testsecond@test.com")
+
+        limit_filter_url = get_filter_url("limit", "2")
+
+        res = self.client.get(
+            limit_filter_url, HTTP_AUTHORIZATION=f"Bearer {self.superuser_token}"
+        )
+
+        self.assertContains(res, self.superuser)
+        self.assertContains(res, first_user_created)
+        self.assertNotContains(res, second_user_created)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 

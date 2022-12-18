@@ -8,6 +8,7 @@ from rest_framework import status
 
 from apps.api_root.permissions import IsOwnData
 from apps.users.serializers import UserAccountSerializer
+from apps.users.filters import UserAccountFilterset
 
 
 class UserAccountViewset(ModelViewSet):
@@ -17,6 +18,7 @@ class UserAccountViewset(ModelViewSet):
 
     queryset = get_user_model().objects.all()
     serializer_class = UserAccountSerializer
+    filterset_class = UserAccountFilterset
 
     def get_permissions(self):
         if self.action == "create":
