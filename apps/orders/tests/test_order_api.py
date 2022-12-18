@@ -9,6 +9,8 @@ from db.models import Order, Category, Product, ShippingInfo
 
 ORDER_LIST_URL = reverse("api:order-list")  # order list url
 
+MINE_URL = reverse("api:order-get-mine-orders")  # mine order list url
+
 TOKEN_URL = reverse("users:user_token_obtain")  # user token API url
 
 
@@ -230,6 +232,65 @@ class PrivateUsersOrdersAPITests(TestCase):
         )
 
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_order_mine_list_normal_user_successful(self):
+        """
+        Tests if exists mine endpoint with current user orders
+        """
+        mock_shipping_info = {
+            "user": self.main_user,
+            "address": "Test address",
+            "receiver": "test receiver name",
+            "receiver_dni": 12345678,
+        }
+        shipping_info = ShippingInfo.objects.create(
+            **mock_shipping_info  # create shipping info for order
+        )
+
+        mock_order = {
+            "buyer": self.main_user,
+            "products": [
+                {"id": self.product.id, "title": self.product.title, "count": 4}
+            ],
+            "shipping_info": shipping_info,
+        }
+        first_user_order = Order.objects.create(**mock_order)
+        second_user_order = Order.objects.create(**mock_order)
+
+        res = self.client.get(MINE_URL, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertNotContains(res, self.order.id)
+        self.assertContains(res, first_user_order.id)
+        self.assertContains(res, second_user_order.id)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_order_mine_list_normal_user_post_not_allowed_reject(self):
+        """
+        Tests if user can't post in mine list
+        """
+        mock_shipping_info = {
+            "user": self.main_user,
+            "address": "Test address",
+            "receiver": "test receiver name",
+            "receiver_dni": 12345678,
+        }
+        shipping_info = ShippingInfo.objects.create(
+            **mock_shipping_info  # create shipping info for order
+        )
+
+        payload = {
+            "buyer": self.main_user.id,
+            "products": [
+                {"id": self.product.id, "title": self.product.title, "count": 4}
+            ],
+            "shipping_info": shipping_info.id,
+        }
+        res = self.client.post(
+            MINE_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_order_detail_get_normal_user_reject(self):
         """
