@@ -1,9 +1,7 @@
-from apps.products.routers import router as products_router
-from apps.comments.routers import router as comment_router
-from apps.orders.routers import router as order_router
+from apps.products.urls import urlpatterns as products_urls
+from apps.comments.urls import urlpatterns as comment_urls
+from apps.orders.urls import urlpatterns as order_urls
 
 app_name = "api"
 
-urlpatterns = []
-
-urlpatterns += products_router.urls + comment_router.urls + order_router.urls
+urlpatterns = products_urls + comment_urls + order_urls

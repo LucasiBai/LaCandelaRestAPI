@@ -76,6 +76,12 @@ class Category(models.Model):
     Category model
     """
 
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
     title = models.CharField(max_length=255, unique=True)
 
     class Meta:

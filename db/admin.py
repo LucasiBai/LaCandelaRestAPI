@@ -43,9 +43,11 @@ class CategoryAdmin(admin.ModelAdmin):
 
     search_fields = ["title"]
 
-    fieldsets = ((_("Category Title"), {"fields": ["title"]}),)
+    list_filter = ["parent__title"]
 
-    add_fieldsets = ((None, {"classes": ("wide",), "fields": ["title"]}),)
+    fieldsets = ((_("Category Data"), {"fields": ["parent", "title"]}),)
+
+    add_fieldsets = ((None, {"classes": ("wide",), "fields": ["parent", "title"]}),)
 
     list_per_page = 10
 

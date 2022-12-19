@@ -92,6 +92,21 @@ class CategoryModelTest(TestCase):
 
         self.assertEqual("TestCategory", str(category))
 
+    def test_create_child_category_successful(self):
+        """
+        Tests if can create a Category
+        """
+        parent_category = Category.objects.create(title="TestParentCategory")
+
+        child_category = Category.objects.create(
+            title="TestChildCategory", parent=parent_category
+        )
+
+        self.assertEqual("TestChildCategory", child_category.title)
+        self.assertEqual(child_category.parent, parent_category)
+
+        self.assertEqual("TestChildCategory", str(child_category))
+
     def test_create_existing_category_reject(self):
         """
         Tests if can't create an existing category
