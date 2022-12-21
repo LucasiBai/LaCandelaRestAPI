@@ -16,7 +16,9 @@ class CategorySerializer(serializers.ModelSerializer):
         """
         Returns parent categories with its subcategories
         """
-        if not instance.parent:
+        action = self.context.get("action", None)
+
+        if action == "list" or not instance.parent:
             category_data = {
                 "id": instance.id,
                 "title": instance.title,
@@ -33,4 +35,12 @@ class CategorySerializer(serializers.ModelSerializer):
 
                     category_data["subcategories"].append(sub_category_data)
 
+            return category_data
+
+        else:
+            category_data = {
+                "id": instance.id,
+                "title": instance.title,
+                "parent": instance.parent.title,
+            }
             return category_data

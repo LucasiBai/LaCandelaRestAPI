@@ -73,15 +73,29 @@ class PublicUserCategoryAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_category_detail_get_public_successful(self):
+    def test_parent_category_detail_get_public_successful(self):
         """
-        Tests if public user can see the detail of a category
+        Tests if public user can see the detail of parent category
         """
         category_url = get_category_detail_url([self.parent_category])
 
         res = self.client.get(category_url)
 
         self.assertContains(res, self.parent_category)
+        self.assertContains(res, "subcategories")
+        self.assertNotContains(res, "parent")
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_child_category_detail_get_public_successful(self):
+        """
+        Tests if public user can see the detail of child category
+        """
+        category_url = get_category_detail_url([self.child_category])
+
+        res = self.client.get(category_url)
+
+        self.assertContains(res, self.child_category)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
@@ -286,12 +300,32 @@ class PrivateSuperuserCategoryAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-    def test_category_list_post_superuser_successful(self):
+    def test_category_list_post_parent_superuser_successful(self):
         """
-        Tests if superuser can post into category list
+        Tests if superuser can post into category list a parent
         """
         payload = {
             "title": "Test Post Category",
+        }
+
+        res = self.client.post(
+            CATEGORY_LIST_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+    def test_category_list_post_child_superuser_successful(self):
+        """
+        Tests if superuser can post into category list a child
+        """
+        mock_parent_category = {
+            "title": "Test Parent Category",
+        }
+        parent_category = Category.objects.create(**mock_parent_category)
+
+        payload = {
+            "title": "Test Child Category",
+            "parent": parent_category.id,
         }
 
         res = self.client.post(

@@ -11,7 +11,8 @@ class CategoryViewset(ModelViewSet):
     Category API Viewset
     """
 
-    queryset = CategorySerializer.Meta.model.objects.filter(parent=None)
+    model = CategorySerializer.Meta.model
+    queryset = model.objects.all()
     serializer_class = CategorySerializer
 
     def get_permissions(self):
@@ -23,3 +24,19 @@ class CategoryViewset(ModelViewSet):
         else:
             permission_classes = [IsAuthenticated, IsAdminUser]
         return [permission() for permission in permission_classes]
+
+    def list(self, request, *args, **kwargs):
+        """
+        Gets only parent categories
+        """
+        categories = self.queryset.filter(parent=None)
+
+        context = {"action": "list"}
+
+        if categories:
+            serializer = self.serializer_class(categories, context=context, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(
+            {"message": "Not found categories."}, status=status.HTTP_204_NO_CONTENT
+        )
