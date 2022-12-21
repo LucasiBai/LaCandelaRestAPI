@@ -44,6 +44,23 @@ class PublicUserCategoryAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
+    def test_category_list_render_sub_categories_get_public_successful(self):
+        """
+        Tests if public user can see the category list
+        """
+
+        res = self.client.get(CATEGORY_LIST_URL)
+
+        self.assertContains(res, self.parent_category)
+        self.assertContains(res, self.child_category)
+
+        self.assertEqual(
+            res.data[0]["subcategories"][0]["id"],  # parent child children
+            self.child_category.id,
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
     def test_category_list_post_public_reject(self):
         """
         Tests if public user can't post into category list
