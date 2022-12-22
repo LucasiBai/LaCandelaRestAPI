@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from .serializers import CategorySerializer
+from .filters import CategoryFilterset
 
 
 class CategoryViewset(ModelViewSet):
@@ -14,6 +15,7 @@ class CategoryViewset(ModelViewSet):
     model = CategorySerializer.Meta.model
     queryset = model.objects.all()
     serializer_class = CategorySerializer
+    filterset_class = CategoryFilterset
 
     def get_permissions(self):
         """
@@ -29,7 +31,7 @@ class CategoryViewset(ModelViewSet):
         """
         Gets only parent categories
         """
-        categories = self.queryset.filter(parent=None)
+        categories = self.filter_queryset(self.get_queryset().filter(parent=None))
 
         context = {"action": "list"}
 

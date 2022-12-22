@@ -428,7 +428,7 @@ class PublicProductsAPITests(TestCase):
         }
         second_new_product = Product.objects.create(**second_new_mock_product)
 
-        offset_filter_url = get_filter_url("offset", str(first_new_product.id))
+        offset_filter_url = get_filter_url("offset", "2")
 
         res = self.client.get(offset_filter_url)
 

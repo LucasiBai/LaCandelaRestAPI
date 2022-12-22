@@ -19,6 +19,13 @@ def get_category_detail_url(category_list):
     return reverse("api:category-detail", kwargs={"pk": category_list[0].id})
 
 
+def get_filter_url(filter_name, value):
+    """
+    Gets the filter url
+    """
+    return CATEGORY_LIST_URL + f"?{filter_name}={value}"
+
+
 class PublicUserCategoryAPITests(TestCase):
     """
     Tests public category api
@@ -27,9 +34,11 @@ class PublicUserCategoryAPITests(TestCase):
     def setUp(self):
         self.client = APIClient()
 
-        self.parent_category = Category.objects.create(title="ParentCategory")
+        self.model = Category
 
-        self.child_category = Category.objects.create(
+        self.parent_category = self.model.objects.create(title="ParentCategory")
+
+        self.child_category = self.model.objects.create(
             title="ChildCategory", parent=self.parent_category
         )
 
@@ -61,17 +70,56 @@ class PublicUserCategoryAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-    def test_category_list_post_public_reject(self):
+    def test_category_list_get_limit_filter_successful(self):
         """
-        Tests if public user can't post into category list
+        Tests if can filter category list with limit
         """
-        payload = {
-            "title": "Test Post Category",
-        }
+        first_parent_category = self.model.objects.create(title="First Parent Category")
+        second_parent_category = self.model.objects.create(
+            title="Second Parent Category"
+        )
 
-        res = self.client.post(CATEGORY_LIST_URL, payload)
+        limit_filter_url = get_filter_url("limit", "2")
 
-        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+        res = self.client.get(limit_filter_url)
+
+        self.assertContains(res, self.parent_category)
+        self.assertContains(res, first_parent_category)
+        self.assertNotContains(res, second_parent_category)
+
+    def test_category_list_get_offset_filter_successful(self):
+        """
+        Tests if can filter category list with offset
+        """
+        first_parent_category = self.model.objects.create(title="First Parent Category")
+        second_parent_category = self.model.objects.create(
+            title="Second Parent Category"
+        )
+
+        offset_filter_url = get_filter_url("offset", "2")
+
+        res = self.client.get(offset_filter_url)
+
+        self.assertNotContains(res, self.parent_category)
+        self.assertContains(res, first_parent_category)
+        self.assertContains(res, second_parent_category)
+
+    def test_category_list_get_title_no_case_sensitive_filter_successful(self):
+        """
+        Tests if can filter category list with title
+        """
+        first_parent_category = self.model.objects.create(title="First Parent Category")
+        second_parent_category = self.model.objects.create(
+            title="Second Parent Category"
+        )
+
+        title_filter_url = get_filter_url("parent_title", "parent cat")
+
+        res = self.client.get(title_filter_url)
+
+        self.assertNotContains(res, self.parent_category)
+        self.assertContains(res, first_parent_category)
+        self.assertContains(res, second_parent_category)
 
     def test_parent_category_detail_get_public_successful(self):
         """
@@ -98,6 +146,18 @@ class PublicUserCategoryAPITests(TestCase):
         self.assertContains(res, self.child_category)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_category_list_post_public_reject(self):
+        """
+        Tests if public user can't post into category list
+        """
+        payload = {
+            "title": "Test Post Category",
+        }
+
+        res = self.client.post(CATEGORY_LIST_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_category_detail_partial_update_public_reject(self):
         """
@@ -151,6 +211,8 @@ class PrivateUserCategoryAPITests(TestCase):
     def setUp(self):
         self.client = APIClient()
 
+        self.model = Category
+
         main_user_data = {
             "email": "normaluser@test.com",  # create user data
             "password": "testPassword",
@@ -162,9 +224,9 @@ class PrivateUserCategoryAPITests(TestCase):
         res_token = self.client.post(TOKEN_URL, main_user_data)  # get user token
         self.user_token = res_token.data["token"]
 
-        self.parent_category = Category.objects.create(title="ParentCategory")
+        self.parent_category = self.model.objects.create(title="ParentCategory")
 
-        self.child_category = Category.objects.create(
+        self.child_category = self.model.objects.create(
             title="ChildCategory", parent=self.parent_category
         )
 
@@ -270,6 +332,8 @@ class PrivateSuperuserCategoryAPITests(TestCase):
     def setUp(self):
         self.client = APIClient()
 
+        self.model = Category
+
         main_user_data = {
             "email": "normaluser@test.com",  # create user data
             "password": "testPassword",
@@ -281,9 +345,9 @@ class PrivateSuperuserCategoryAPITests(TestCase):
         res_token = self.client.post(TOKEN_URL, main_user_data)  # get user token
         self.user_token = res_token.data["token"]
 
-        self.parent_category = Category.objects.create(title="ParentCategory")
+        self.parent_category = self.model.objects.create(title="ParentCategory")
 
-        self.child_category = Category.objects.create(
+        self.child_category = self.model.objects.create(
             title="ChildCategory", parent=self.parent_category
         )
 
@@ -321,7 +385,7 @@ class PrivateSuperuserCategoryAPITests(TestCase):
         mock_parent_category = {
             "title": "Test Parent Category",
         }
-        parent_category = Category.objects.create(**mock_parent_category)
+        parent_category = self.model.objects.create(**mock_parent_category)
 
         payload = {
             "title": "Test Child Category",

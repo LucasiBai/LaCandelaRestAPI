@@ -29,7 +29,7 @@ class ProductsFilterSet(filters.FilterSet, FilterMethods):
     min_rate = filters.NumberFilter(method="query_min_rate", label=_("Min Rate"))
     max_rate = filters.NumberFilter(method="query_max_rate", label=_("Max Rate"))
 
-    offset = filters.NumberFilter(field_name="id", lookup_expr="gte", label=_("Offset"))
+    offset = filters.NumberFilter(method="query_offset", label=_("Offset"))
 
     limit = filters.NumberFilter(method="query_limit", label=_("Limit"))
 

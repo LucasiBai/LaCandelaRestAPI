@@ -590,7 +590,7 @@ class PrivateSuperusersAPITests(TestCase):
         first_user_created = create_user(email="testfirst@test.com")
         second_user_created = create_user(email="testsecond@test.com")
 
-        offset_filter_url = get_filter_url("offset", str(first_user_created.id))
+        offset_filter_url = get_filter_url("offset", "2")
 
         res = self.client.get(
             offset_filter_url, HTTP_AUTHORIZATION=f"Bearer {self.superuser_token}"

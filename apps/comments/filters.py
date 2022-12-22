@@ -28,7 +28,7 @@ class CommentFilterset(filters.FilterSet, FilterMethods):
     )
 
     offset = filters.NumberFilter(
-        field_name="id", lookup_expr="gte", label=_("Offset")  # offset filter
+        method="query_offset", label=_("Offset")  # offset filter
     )
 
     limit = filters.NumberFilter(method="query_limit", label=_("Limit"))  # limit filter

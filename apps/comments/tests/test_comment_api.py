@@ -243,7 +243,7 @@ class PublicCommentAPITest(TestCase):
             **second_mock_comment
         )  # created new comment
 
-        offset_filter_url = get_filter_url("offset", str(first_new_comment.id))
+        offset_filter_url = get_filter_url("offset", "2")
 
         res = self.client.get(offset_filter_url)
 

@@ -11,7 +11,7 @@ class UserAccountFilterset(filters.FilterSet, FilterMethods):
     User Account Filterset
     """
 
-    offset = filters.NumberFilter(field_name="id", lookup_expr="gte", label=_("Offset"))
+    offset = filters.NumberFilter(method="query_offset", label=_("Offset"))
 
     limit = filters.NumberFilter(
         field_name="id", method="query_limit", label=_("Limit")
