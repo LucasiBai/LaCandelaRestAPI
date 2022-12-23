@@ -5,7 +5,8 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from db.models import Order, Category, Product, ShippingInfo
+from apps.orders.meta import get_app_model
+from db.models import Category, Product, ShippingInfo
 
 ORDER_LIST_URL = reverse("api:order-list")  # order list url
 
@@ -35,6 +36,8 @@ class PublicOrdersAPITests(TestCase):
 
     def setUp(self):
         self.client = APIClient()
+
+        self.model = get_app_model()  # order model
 
         self.user = get_user_model().objects.create_user(
             email="testemail@test.com"  # create user for order
@@ -77,7 +80,7 @@ class PublicOrdersAPITests(TestCase):
             ],
             "shipping_info": self.shipping_info,
         }
-        self.order = Order.objects.create(**self.mock_order)
+        self.order = self.model.objects.create(**self.mock_order)
 
     def test_order_list_get_public_reject(self):
         """
@@ -91,7 +94,7 @@ class PublicOrdersAPITests(TestCase):
         """
         Tests if public user can't see order detail
         """
-        order_list = Order.objects.all()
+        order_list = self.model.objects.all()
         order_detail_url = get_order_detail_url(order_list)
 
         res = self.client.get(order_detail_url)
@@ -118,7 +121,7 @@ class PublicOrdersAPITests(TestCase):
         """
         Tests if public user can't patch order detail
         """
-        order_list = Order.objects.all()
+        order_list = self.model.objects.all()
         order_detail_url = get_order_detail_url(order_list)
 
         payload = {
@@ -136,7 +139,7 @@ class PublicOrdersAPITests(TestCase):
         """
         Tests if public user can't put order detail
         """
-        order_list = Order.objects.all()
+        order_list = self.model.objects.all()
         order_detail_url = get_order_detail_url(order_list)
 
         payload = {
@@ -156,7 +159,7 @@ class PublicOrdersAPITests(TestCase):
         """
         Tests if public user can't delete order detail
         """
-        order_list = Order.objects.all()
+        order_list = self.model.objects.all()
         order_detail_url = get_order_detail_url(order_list)
 
         res = self.client.delete(order_detail_url)
@@ -171,6 +174,8 @@ class PrivateUsersOrdersAPITests(TestCase):
 
     def setUp(self):
         self.client = APIClient()
+
+        self.model = get_app_model()  # order model
 
         main_user_data = {"email": "testmain@test.com", "password": "12345test"}
         self.main_user = get_user_model().objects.create_user(
@@ -221,7 +226,7 @@ class PrivateUsersOrdersAPITests(TestCase):
             ],
             "shipping_info": self.shipping_info,
         }
-        self.order = Order.objects.create(**self.mock_order)
+        self.order = self.model.objects.create(**self.mock_order)
 
     def test_order_list_get_normal_user_reject(self):
         """
@@ -254,8 +259,8 @@ class PrivateUsersOrdersAPITests(TestCase):
             ],
             "shipping_info": shipping_info,
         }
-        first_user_order = Order.objects.create(**mock_order)
-        second_user_order = Order.objects.create(**mock_order)
+        first_user_order = self.model.objects.create(**mock_order)
+        second_user_order = self.model.objects.create(**mock_order)
 
         res = self.client.get(MINE_URL, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
@@ -296,7 +301,7 @@ class PrivateUsersOrdersAPITests(TestCase):
         """
         Tests if normal user can't see order detail
         """
-        order_list = Order.objects.all()
+        order_list = self.model.objects.all()
         order_detail_url = get_order_detail_url(order_list)
 
         res = self.client.get(
@@ -373,7 +378,7 @@ class PrivateUsersOrdersAPITests(TestCase):
             ],
             "shipping_info": shipping_info,
         }
-        order = Order.objects.create(**mock_order)
+        order = self.model.objects.create(**mock_order)
 
         order_detail_url = get_order_detail_url(
             [order]  # obtain the url of created order
@@ -413,7 +418,7 @@ class PrivateUsersOrdersAPITests(TestCase):
             ],
             "shipping_info": shipping_info,
         }
-        order = Order.objects.create(**mock_order)
+        order = self.model.objects.create(**mock_order)
 
         order_detail_url = get_order_detail_url(
             [order]  # obtain the url of created order
@@ -455,7 +460,7 @@ class PrivateUsersOrdersAPITests(TestCase):
             ],
             "shipping_info": shipping_info,
         }
-        order = Order.objects.create(**mock_order)
+        order = self.model.objects.create(**mock_order)
 
         order_detail_url = get_order_detail_url(
             [order]  # obtain the url of created order
@@ -475,6 +480,8 @@ class PrivateSuperusersOrdersAPITests(TestCase):
 
     def setUp(self):
         self.client = APIClient()
+
+        self.model = get_app_model()  # order model
 
         main_user_data = {"email": "testmain@test.com", "password": "12345test"}
         self.main_user = get_user_model().objects.create_superuser(
@@ -525,7 +532,7 @@ class PrivateSuperusersOrdersAPITests(TestCase):
             ],
             "shipping_info": self.shipping_info,
         }
-        self.order = Order.objects.create(**self.mock_order)
+        self.order = self.model.objects.create(**self.mock_order)
 
     def test_order_list_get_superuser_successful(self):
         """
@@ -552,7 +559,7 @@ class PrivateSuperusersOrdersAPITests(TestCase):
             ],
             "shipping_info": self.shipping_info,
         }
-        new_order = Order.objects.create(**mock_order)
+        new_order = self.model.objects.create(**mock_order)
 
         user_filter_url = get_filter_url("user", str(user.id))
 
@@ -578,8 +585,8 @@ class PrivateSuperusersOrdersAPITests(TestCase):
             ],
             "shipping_info": self.shipping_info,
         }
-        first_new_order = Order.objects.create(**mock_order)
-        second_new_order = Order.objects.create(**mock_order)
+        first_new_order = self.model.objects.create(**mock_order)
+        second_new_order = self.model.objects.create(**mock_order)
 
         user_filter_url = get_filter_url("offset", "2")
 
@@ -606,8 +613,8 @@ class PrivateSuperusersOrdersAPITests(TestCase):
             ],
             "shipping_info": self.shipping_info,
         }
-        first_new_order = Order.objects.create(**mock_order)
-        second_new_order = Order.objects.create(**mock_order)
+        first_new_order = self.model.objects.create(**mock_order)
+        second_new_order = self.model.objects.create(**mock_order)
 
         user_filter_url = get_filter_url("limit", "2")
 
@@ -625,7 +632,7 @@ class PrivateSuperusersOrdersAPITests(TestCase):
         """
         Tests if superuser can see order detail
         """
-        order_list = Order.objects.all()
+        order_list = self.model.objects.all()
         order_detail_url = get_order_detail_url(order_list)
 
         res = self.client.get(
@@ -702,7 +709,7 @@ class PrivateSuperusersOrdersAPITests(TestCase):
             ],
             "shipping_info": shipping_info,
         }
-        order = Order.objects.create(**mock_order)
+        order = self.model.objects.create(**mock_order)
 
         order_detail_url = get_order_detail_url(
             [order]  # obtain the url of created order
@@ -725,7 +732,7 @@ class PrivateSuperusersOrdersAPITests(TestCase):
         """
         Tests if superuser can patch order detail from other user
         """
-        order_list = Order.objects.all()
+        order_list = self.model.objects.all()
         order_detail_url = get_order_detail_url(order_list)
 
         payload = {
@@ -762,7 +769,7 @@ class PrivateSuperusersOrdersAPITests(TestCase):
             ],
             "shipping_info": shipping_info,
         }
-        order = Order.objects.create(**mock_order)
+        order = self.model.objects.create(**mock_order)
 
         order_detail_url = get_order_detail_url(
             [order]  # obtain the url of created order
@@ -787,7 +794,7 @@ class PrivateSuperusersOrdersAPITests(TestCase):
         """
         Tests if superuser can put own order detail
         """
-        order_list = Order.objects.all()
+        order_list = self.model.objects.all()
         order_detail_url = get_order_detail_url(order_list)
 
         payload = {
@@ -826,7 +833,7 @@ class PrivateSuperusersOrdersAPITests(TestCase):
             ],
             "shipping_info": shipping_info,
         }
-        order = Order.objects.create(**mock_order)
+        order = self.model.objects.create(**mock_order)
 
         order_detail_url = get_order_detail_url(
             [order]  # obtain the url of created order
@@ -842,7 +849,7 @@ class PrivateSuperusersOrdersAPITests(TestCase):
         """
         Tests if superuser can delete order detail from other user
         """
-        order_list = Order.objects.all()
+        order_list = self.model.objects.all()
         order_detail_url = get_order_detail_url(order_list)
 
         res = self.client.delete(

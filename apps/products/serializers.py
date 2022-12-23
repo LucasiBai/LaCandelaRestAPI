@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from db.models import Product
+from .meta import get_app_model
 from .utils import get_rate_of
 
 
@@ -10,7 +10,7 @@ class ProductSerializer(serializers.ModelSerializer):
     """
 
     class Meta:
-        model = Product
+        model = get_app_model()
         fields = [
             "id",
             "title",

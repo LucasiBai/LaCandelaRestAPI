@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from db.models import Category
+from apps.categories.meta import get_app_model
 
 CATEGORY_LIST_URL = reverse("api:category-list")  # category token api url
 
@@ -34,7 +34,7 @@ class PublicUserCategoryAPITests(TestCase):
     def setUp(self):
         self.client = APIClient()
 
-        self.model = Category
+        self.model = get_app_model()
 
         self.parent_category = self.model.objects.create(title="ParentCategory")
 
@@ -211,7 +211,7 @@ class PrivateUserCategoryAPITests(TestCase):
     def setUp(self):
         self.client = APIClient()
 
-        self.model = Category
+        self.model = get_app_model()
 
         main_user_data = {
             "email": "normaluser@test.com",  # create user data
@@ -332,7 +332,7 @@ class PrivateSuperuserCategoryAPITests(TestCase):
     def setUp(self):
         self.client = APIClient()
 
-        self.model = Category
+        self.model = get_app_model()
 
         main_user_data = {
             "email": "normaluser@test.com",  # create user data

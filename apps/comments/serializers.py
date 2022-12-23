@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
-from db.models import Comment, Order
+from .meta import get_app_model
+from db.models import Order
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -9,7 +10,7 @@ class CommentSerializer(serializers.ModelSerializer):
     """
 
     class Meta:
-        model = Comment
+        model = get_app_model()
         fields = [
             "id",
             "user",

@@ -1,5 +1,4 @@
 from django.test import TestCase
-from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.http import urlsafe_base64_decode
 from django.urls import reverse
@@ -10,6 +9,7 @@ from rest_framework import status
 from rest_framework_simplejwt.exceptions import TokenError
 
 from apps.users.utils import get_reset_password_url
+from apps.users.meta import get_app_model
 
 USER_LIST_URL = reverse("users:user_account-list")  # user list API url
 ME_URL = reverse("users:user_account-get-me-data")  # get user API url
@@ -33,7 +33,7 @@ def create_user(**kwargs):
     """
     Function to create an user in db
     """
-    return get_user_model().objects.create_user(**kwargs)
+    return get_app_model().objects.create_user(**kwargs)
 
 
 def get_filter_url(filter_name, value):
@@ -54,6 +54,8 @@ class PublicUsersAPITests(TestCase):
         """
         self.client = APIClient()
 
+        self.model = get_app_model()  # user model
+
     def test_create_valid_user_success(self):
         """
         Tests if it is possible to create a user with email address in API
@@ -69,7 +71,7 @@ class PublicUsersAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
-        user = get_user_model().objects.get(**res.data)
+        user = self.model.objects.get(**res.data)
         self.assertTrue(user.check_password(payload["password"]))
         self.assertNotIn("password", res.data)
 
@@ -100,7 +102,7 @@ class PublicUsersAPITests(TestCase):
         res = self.client.post(USER_LIST_URL, payload)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-        user_exists = get_user_model().objects.filter(email=payload["email"]).exists()
+        user_exists = self.model.objects.filter(email=payload["email"]).exists()
         self.assertFalse(user_exists)
 
     def test_user_password_too_short(self):
@@ -116,7 +118,7 @@ class PublicUsersAPITests(TestCase):
         res = self.client.post(USER_LIST_URL, payload)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-        user_exists = get_user_model().objects.filter(email=payload["email"]).exists()
+        user_exists = self.model.objects.filter(email=payload["email"]).exists()
         self.assertFalse(user_exists)
 
     def test_unauthorized_user_view_user_data_list_reject(self):
@@ -394,7 +396,7 @@ class PublicUsersAPITests(TestCase):
         }
 
         new_user_payload = {"email": "newuser@test.com", "password": "newuserpassword"}
-        user = get_user_model().objects.create_user(**new_user_payload)
+        user = self.model.objects.create_user(**new_user_payload)
 
         USER_DETAIL_URL = reverse("users:user_account-detail", kwargs={"pk": user.id})
 
@@ -413,6 +415,8 @@ class PrivateUsersAPITests(TestCase):
 
     def setUp(self):
         self.client = APIClient()
+
+        self.model = get_app_model()  # user model
 
         self.user_data = {"email": "test@test.com", "password": "test123"}
 
@@ -484,7 +488,7 @@ class PrivateUsersAPITests(TestCase):
         Tests if normal user can't see another user data
         """
         new_user_payload = {"email": "newuser@test.com", "password": "newuserpassword"}
-        user = get_user_model().objects.create_user(**new_user_payload)
+        user = self.model.objects.create_user(**new_user_payload)
 
         USER_DETAIL_URL = reverse("users:user_account-detail", kwargs={"pk": user.id})
 
@@ -501,7 +505,7 @@ class PrivateUsersAPITests(TestCase):
         new_data_payload = {"email": "newemail@test.com"}
         new_user_payload = {"email": "newuser@test.com", "password": "newuserpassword"}
 
-        user = get_user_model().objects.create_user(**new_user_payload)
+        user = self.model.objects.create_user(**new_user_payload)
 
         USER_DETAIL_URL = reverse("users:user_account-detail", kwargs={"pk": user.id})
 
@@ -527,7 +531,7 @@ class PrivateUsersAPITests(TestCase):
         }
         new_user_payload = {"email": "newuser@test.com", "password": "newuserpassword"}
 
-        user = get_user_model().objects.create_user(**new_user_payload)
+        user = self.model.objects.create_user(**new_user_payload)
 
         USER_DETAIL_URL = reverse("users:user_account-detail", kwargs={"pk": user.id})
 
@@ -545,7 +549,7 @@ class PrivateUsersAPITests(TestCase):
         """
         new_user_payload = {"email": "newuser@test.com", "password": "newuserpassword"}
 
-        user = get_user_model().objects.create_user(**new_user_payload)
+        user = self.model.objects.create_user(**new_user_payload)
 
         USER_DETAIL_URL = reverse("users:user_account-detail", kwargs={"pk": user.id})
 
@@ -565,9 +569,11 @@ class PrivateSuperusersAPITests(TestCase):
     def setUp(self):
         self.client = APIClient()
 
+        self.model = get_app_model()  # user model
+
         self.user_data = {"email": "test@test.com", "password": "test123"}
 
-        self.superuser = get_user_model().objects.create_superuser(**self.user_data)
+        self.superuser = self.model.objects.create_superuser(**self.user_data)
         self.client.force_authenticate(user=self.superuser)
 
         res_token = self.client.post(TOKEN_URL, self.user_data)  # get user token
@@ -626,7 +632,7 @@ class PrivateSuperusersAPITests(TestCase):
         Tests if superuser can see another user data
         """
         new_user_payload = {"email": "newuser@test.com", "password": "newuserpassword"}
-        user = get_user_model().objects.create_user(**new_user_payload)
+        user = self.model.objects.create_user(**new_user_payload)
 
         USER_DETAIL_URL = reverse("users:user_account-detail", kwargs={"pk": user.id})
 
@@ -643,7 +649,7 @@ class PrivateSuperusersAPITests(TestCase):
         new_data_payload = {"email": "newemail@test.com"}
         new_user_payload = {"email": "newuser@test.com", "password": "newuserpassword"}
 
-        user = get_user_model().objects.create_user(**new_user_payload)
+        user = self.model.objects.create_user(**new_user_payload)
 
         USER_DETAIL_URL = reverse("users:user_account-detail", kwargs={"pk": user.id})
 
@@ -672,7 +678,7 @@ class PrivateSuperusersAPITests(TestCase):
             "email": "newuser@test.com",  # New User
             "password": "newuserpassword",
         }
-        user = get_user_model().objects.create_user(**new_user_payload)
+        user = self.model.objects.create_user(**new_user_payload)
 
         USER_DETAIL_URL = reverse("users:user_account-detail", kwargs={"pk": user.id})
 
@@ -690,7 +696,7 @@ class PrivateSuperusersAPITests(TestCase):
         """
         new_user_payload = {"email": "newuser@test.com", "password": "newuserpassword"}
 
-        user = get_user_model().objects.create_user(**new_user_payload)
+        user = self.model.objects.create_user(**new_user_payload)
 
         USER_DETAIL_URL = reverse("users:user_account-detail", kwargs={"pk": user.id})
 

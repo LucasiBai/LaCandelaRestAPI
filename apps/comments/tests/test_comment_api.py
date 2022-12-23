@@ -5,7 +5,8 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from db.models import Comment, Product, Category, Order, ShippingInfo
+from apps.comments.meta import get_app_model
+from db.models import Product, Category, Order, ShippingInfo
 
 
 COMMENT_LIST_URL = reverse("api:comment-list")  # comment list API url
@@ -35,6 +36,8 @@ class PublicCommentAPITest(TestCase):
     def setUp(self):
         self.client = APIClient()  # API Client
 
+        self.model = get_app_model()  # comment model
+
         self.category = Category.objects.create(title="TestCategory")
         mock_product = {
             "title": "Test title",
@@ -60,7 +63,7 @@ class PublicCommentAPITest(TestCase):
             "content": "Test comment content",
             "rate": 4.3,
         }
-        self.comment = Comment.objects.create(**self.mock_comment)
+        self.comment = self.model.objects.create(**self.mock_comment)
 
     def test_comment_list_get_public_successful(self):
         """
@@ -84,7 +87,7 @@ class PublicCommentAPITest(TestCase):
             "content": "Test comment content",
             "rate": 4.3,
         }
-        new_comment = Comment.objects.create(**mock_comment)  # created new comment
+        new_comment = self.model.objects.create(**mock_comment)  # created new comment
 
         user_filter_url = get_filter_url("user", str(self.user.id))
 
@@ -121,7 +124,7 @@ class PublicCommentAPITest(TestCase):
             "content": "Test comment content",
             "rate": 4.3,
         }
-        new_comment = Comment.objects.create(**mock_comment)  # created new comment
+        new_comment = self.model.objects.create(**mock_comment)  # created new comment
 
         product_filter_url = get_filter_url("product", str(self.product.id))
 
@@ -143,7 +146,7 @@ class PublicCommentAPITest(TestCase):
             "content": "Test comment content",
             "rate": 4.6,
         }
-        new_comment = Comment.objects.create(**mock_comment)  # created new comment
+        new_comment = self.model.objects.create(**mock_comment)  # created new comment
 
         min_rate_filter_url = get_filter_url("min_rate", "4.4")
 
@@ -165,7 +168,7 @@ class PublicCommentAPITest(TestCase):
             "content": "Test comment content",
             "rate": 4.6,
         }
-        new_comment = Comment.objects.create(**mock_comment)  # created new comment
+        new_comment = self.model.objects.create(**mock_comment)  # created new comment
 
         min_rate_filter_url = get_filter_url("min_rate", "4.6")
 
@@ -187,7 +190,7 @@ class PublicCommentAPITest(TestCase):
             "content": "Test comment content",
             "rate": 4.6,
         }
-        new_comment = Comment.objects.create(**mock_comment)  # created new comment
+        new_comment = self.model.objects.create(**mock_comment)  # created new comment
 
         max_rate_filter_url = get_filter_url("max_rate", "4.4")
 
@@ -209,7 +212,7 @@ class PublicCommentAPITest(TestCase):
             "content": "Test comment content",
             "rate": 4.6,
         }
-        new_comment = Comment.objects.create(**mock_comment)  # created new comment
+        new_comment = self.model.objects.create(**mock_comment)  # created new comment
 
         max_rate_filter_url = get_filter_url("max_rate", "4.3")
 
@@ -231,7 +234,7 @@ class PublicCommentAPITest(TestCase):
             "content": "Test comment content",
             "rate": 4.6,
         }
-        first_new_comment = Comment.objects.create(
+        first_new_comment = self.model.objects.create(
             **first_mock_comment
         )  # created new comment
 
@@ -239,7 +242,7 @@ class PublicCommentAPITest(TestCase):
             **first_mock_comment,
             "subject": "Second New Test comment subject",  # create second new comment
         }
-        second_new_comment = Comment.objects.create(
+        second_new_comment = self.model.objects.create(
             **second_mock_comment
         )  # created new comment
 
@@ -264,7 +267,7 @@ class PublicCommentAPITest(TestCase):
             "content": "Test comment content",
             "rate": 4.6,
         }
-        first_new_comment = Comment.objects.create(
+        first_new_comment = self.model.objects.create(
             **first_mock_comment
         )  # created new comment
 
@@ -272,7 +275,7 @@ class PublicCommentAPITest(TestCase):
             **first_mock_comment,
             "subject": "Second New Test comment subject",  # create second new comment
         }
-        second_new_comment = Comment.objects.create(
+        second_new_comment = self.model.objects.create(
             **second_mock_comment
         )  # created new comment
 
@@ -290,7 +293,7 @@ class PublicCommentAPITest(TestCase):
         """
         Tests if public user can see comment detail
         """
-        comment_list = Comment.objects.all()
+        comment_list = self.model.objects.all()
         comment_url = get_comment_detail_url(comment_list)
 
         res = self.client.get(comment_url)
@@ -321,7 +324,7 @@ class PublicCommentAPITest(TestCase):
         """
         Tests if public user can't patch comment detail
         """
-        comment_list = Comment.objects.all()
+        comment_list = self.model.objects.all()
         comment_url = get_comment_detail_url(comment_list)
 
         payload = {"subject": "New Subject"}
@@ -337,7 +340,7 @@ class PublicCommentAPITest(TestCase):
         """
         Tests if public user can't put comment detail
         """
-        comment_list = Comment.objects.all()
+        comment_list = self.model.objects.all()
         comment_url = get_comment_detail_url(comment_list)
 
         payload = {
@@ -359,7 +362,7 @@ class PublicCommentAPITest(TestCase):
         """
         Tests if public user can't delete comment
         """
-        comment_list = Comment.objects.all()
+        comment_list = self.model.objects.all()
         comment_url = get_comment_detail_url(comment_list)
 
         res = self.client.delete(comment_url)
@@ -374,6 +377,8 @@ class PrivateUserCommentAPITest(TestCase):
 
     def setUp(self):
         self.client = APIClient()  # API Client
+
+        self.model = get_app_model()  # comment model
 
         main_user_data = {"email": "testmain@test.com", "password": "12345test"}
         self.main_user = get_user_model().objects.create_user(**main_user_data)
@@ -407,7 +412,7 @@ class PrivateUserCommentAPITest(TestCase):
             "content": "Test comment content",
             "rate": 4.3,
         }
-        self.comment = Comment.objects.create(**self.mock_comment)
+        self.comment = self.model.objects.create(**self.mock_comment)
 
     def test_comment_list_get_normal_user_successful(self):
         """
@@ -425,7 +430,7 @@ class PrivateUserCommentAPITest(TestCase):
         """
         Tests if normal user can see comment detail
         """
-        comment_list = Comment.objects.all()
+        comment_list = self.model.objects.all()
         comment_url = get_comment_detail_url(comment_list)
 
         res = self.client.get(
@@ -605,7 +610,7 @@ class PrivateUserCommentAPITest(TestCase):
             "content": "Test comment content",
             "rate": 4.3,
         }
-        comment = Comment.objects.create(**mock_comment)
+        comment = self.model.objects.create(**mock_comment)
 
         comment_url = get_comment_detail_url([comment])  # get created comment url
 
@@ -624,7 +629,7 @@ class PrivateUserCommentAPITest(TestCase):
         """
         Tests if normal user can't patch comment detail from other user
         """
-        comment_list = Comment.objects.all()
+        comment_list = self.model.objects.all()
         comment_url = get_comment_detail_url(comment_list)  # get comment url
 
         payload = {"subject": "New Subject"}
@@ -649,7 +654,7 @@ class PrivateUserCommentAPITest(TestCase):
             "content": "Test comment content",
             "rate": 4.3,
         }
-        comment = Comment.objects.create(**mock_comment)
+        comment = self.model.objects.create(**mock_comment)
 
         comment_url = get_comment_detail_url([comment])  # get created comment url
 
@@ -674,7 +679,7 @@ class PrivateUserCommentAPITest(TestCase):
         """
         Tests if normal user can't put comment detail from other user
         """
-        comment_list = Comment.objects.all()
+        comment_list = self.model.objects.all()
         comment_url = get_comment_detail_url(comment_list)  # get comment url
 
         payload = {
@@ -705,7 +710,7 @@ class PrivateUserCommentAPITest(TestCase):
             "content": "Test comment content",
             "rate": 4.3,
         }
-        comment = Comment.objects.create(**mock_comment)
+        comment = self.model.objects.create(**mock_comment)
 
         comment_url = get_comment_detail_url([comment])  # get created comment url
 
@@ -719,7 +724,7 @@ class PrivateUserCommentAPITest(TestCase):
         """
         Tests if normal user can't delete comment from other user
         """
-        comment_list = Comment.objects.all()
+        comment_list = self.model.objects.all()
         comment_url = get_comment_detail_url(comment_list)  # get comment url
 
         res = self.client.delete(
@@ -736,6 +741,8 @@ class PrivateSuperuserCommentAPITest(TestCase):
 
     def setUp(self):
         self.client = APIClient()  # API Client
+
+        self.model = get_app_model()  # comment model
 
         main_user_data = {"email": "testmain@test.com", "password": "12345test"}
         self.main_user = get_user_model().objects.create_superuser(**main_user_data)
@@ -769,7 +776,7 @@ class PrivateSuperuserCommentAPITest(TestCase):
             "content": "Test comment content",
             "rate": 4.3,
         }
-        self.comment = Comment.objects.create(**self.mock_comment)
+        self.comment = self.model.objects.create(**self.mock_comment)
 
     def test_comment_list_get_superuser_successful(self):
         """
@@ -787,7 +794,7 @@ class PrivateSuperuserCommentAPITest(TestCase):
         """
         Tests if superuser can see comment detail
         """
-        comment_list = Comment.objects.all()
+        comment_list = self.model.objects.all()
         comment_url = get_comment_detail_url(comment_list)
 
         res = self.client.get(
@@ -967,7 +974,7 @@ class PrivateSuperuserCommentAPITest(TestCase):
             "content": "Test comment content",
             "rate": 4.3,
         }
-        comment = Comment.objects.create(**mock_comment)
+        comment = self.model.objects.create(**mock_comment)
 
         comment_url = get_comment_detail_url([comment])  # get created comment url
 
@@ -986,7 +993,7 @@ class PrivateSuperuserCommentAPITest(TestCase):
         """
         Tests if superuser can patch comment detail from other user
         """
-        comment_list = Comment.objects.all()
+        comment_list = self.model.objects.all()
         comment_url = get_comment_detail_url(comment_list)  # get comment url
 
         payload = {"subject": "New Subject"}
@@ -1011,7 +1018,7 @@ class PrivateSuperuserCommentAPITest(TestCase):
             "content": "Test comment content",
             "rate": 4.3,
         }
-        comment = Comment.objects.create(**mock_comment)
+        comment = self.model.objects.create(**mock_comment)
 
         comment_url = get_comment_detail_url([comment])  # get created comment url
 
@@ -1036,7 +1043,7 @@ class PrivateSuperuserCommentAPITest(TestCase):
         """
         Tests if superuser can put comment detail from other user
         """
-        comment_list = Comment.objects.all()
+        comment_list = self.model.objects.all()
         comment_url = get_comment_detail_url(comment_list)  # get comment url
 
         payload = {
@@ -1067,7 +1074,7 @@ class PrivateSuperuserCommentAPITest(TestCase):
             "content": "Test comment content",
             "rate": 4.3,
         }
-        comment = Comment.objects.create(**mock_comment)
+        comment = self.model.objects.create(**mock_comment)
 
         comment_url = get_comment_detail_url([comment])  # get created comment url
 
@@ -1081,7 +1088,7 @@ class PrivateSuperuserCommentAPITest(TestCase):
         """
         Tests if superuser can delete comment from other user
         """
-        comment_list = Comment.objects.all()
+        comment_list = self.model.objects.all()
         comment_url = get_comment_detail_url(comment_list)  # get comment url
 
         res = self.client.delete(

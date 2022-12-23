@@ -5,7 +5,8 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework import status
 
-from db.models import Product, Category, Comment
+from apps.products.meta import get_app_model
+from db.models import Category, Comment
 
 
 PRODUCTS_LIST_URL = reverse("api:product-list")  # products list api url
@@ -35,6 +36,8 @@ class PublicProductsAPITests(TestCase):
     def setUp(self):
         self.client = APIClient()
 
+        self.model = get_app_model()  # product model
+
         self.category = Category.objects.create(title="TestCategory")
 
         self.mock_product = {
@@ -51,7 +54,7 @@ class PublicProductsAPITests(TestCase):
             "sold": 11,
         }
 
-        self.product = Product.objects.create(**self.mock_product)
+        self.product = self.model.objects.create(**self.mock_product)
 
     def test_products_list_get_public_successful(self):
         """
@@ -90,7 +93,7 @@ class PublicProductsAPITests(TestCase):
         """
         Tests if public user can see the detail of a product
         """
-        products_list = Product.objects.all()
+        products_list = self.model.objects.all()
         product_url = get_products_detail_url(products_list)
 
         res = self.client.get(product_url)
@@ -103,7 +106,7 @@ class PublicProductsAPITests(TestCase):
         """
         Tests if products has automatic rate
         """
-        products_list = Product.objects.all()
+        products_list = self.model.objects.all()
         product_url = get_products_detail_url(products_list)
 
         res = self.client.get(product_url)
@@ -128,7 +131,7 @@ class PublicProductsAPITests(TestCase):
 
         Comment.objects.create(**mock_comment)
 
-        products_list = Product.objects.all()
+        products_list = self.model.objects.all()
         product_url = get_products_detail_url(products_list)
 
         res = self.client.get(product_url)
@@ -156,7 +159,7 @@ class PublicProductsAPITests(TestCase):
         Comment.objects.create(**first_mock_comment)
         Comment.objects.create(**second_mock_comment)
 
-        products_list = Product.objects.all()
+        products_list = self.model.objects.all()
         product_url = get_products_detail_url(products_list)
 
         res = self.client.get(product_url)
@@ -167,7 +170,7 @@ class PublicProductsAPITests(TestCase):
         """
         Tests if product detail 'category' has category title
         """
-        products_list = Product.objects.all()
+        products_list = self.model.objects.all()
         product_url = get_products_detail_url(products_list)
 
         res = self.client.get(product_url)
@@ -178,7 +181,7 @@ class PublicProductsAPITests(TestCase):
         """
         Tests if public user can't partial update a product
         """
-        products_list = Product.objects.all()
+        products_list = self.model.objects.all()
         product_url = get_products_detail_url(products_list)
 
         payload = {
@@ -198,7 +201,7 @@ class PublicProductsAPITests(TestCase):
         """
         Tests if public user can't update a product
         """
-        products_list = Product.objects.all()
+        products_list = self.model.objects.all()
         product_url = get_products_detail_url(products_list)
 
         payload = {
@@ -227,7 +230,7 @@ class PublicProductsAPITests(TestCase):
         """
         Tests if public user can't delete a product
         """
-        products_list = Product.objects.all()
+        products_list = self.model.objects.all()
         product_url = get_products_detail_url(products_list)
 
         res = self.client.delete(product_url)
@@ -244,7 +247,7 @@ class PublicProductsAPITests(TestCase):
             "price": 1120,
         }
 
-        new_product = Product.objects.create(**new_mock_product)
+        new_product = self.model.objects.create(**new_mock_product)
 
         min_price_filter_url = get_filter_url("min_price", "1115")
 
@@ -265,7 +268,7 @@ class PublicProductsAPITests(TestCase):
             "price": 1115,
         }
 
-        new_product = Product.objects.create(**new_mock_product)
+        new_product = self.model.objects.create(**new_mock_product)
 
         min_price_filter_url = get_filter_url("min_price", "1115")
 
@@ -286,7 +289,7 @@ class PublicProductsAPITests(TestCase):
             "price": 1120,
         }
 
-        new_product = Product.objects.create(**new_mock_product)
+        new_product = self.model.objects.create(**new_mock_product)
 
         max_price_filter_url = get_filter_url("max_price", "1115")
 
@@ -307,7 +310,7 @@ class PublicProductsAPITests(TestCase):
             "price": 1120,
         }
 
-        new_product = Product.objects.create(**new_mock_product)
+        new_product = self.model.objects.create(**new_mock_product)
 
         max_price_filter_url = get_filter_url("max_price", "1111")
 
@@ -328,7 +331,7 @@ class PublicProductsAPITests(TestCase):
             "price": 1112,
         }
 
-        new_product = Product.objects.create(**new_mock_product)
+        new_product = self.model.objects.create(**new_mock_product)
 
         title_filter_url = get_filter_url("title", "New")
 
@@ -349,7 +352,7 @@ class PublicProductsAPITests(TestCase):
             "price": 1112,
         }
 
-        new_product = Product.objects.create(**new_mock_product)
+        new_product = self.model.objects.create(**new_mock_product)
 
         title_filter_url = get_filter_url("title", "new")
 
@@ -374,7 +377,7 @@ class PublicProductsAPITests(TestCase):
             "category": category,
         }
 
-        new_product = Product.objects.create(**new_mock_product)
+        new_product = self.model.objects.create(**new_mock_product)
 
         category_filter_url = get_filter_url("category", category.title)
 
@@ -399,7 +402,7 @@ class PublicProductsAPITests(TestCase):
             "category": category,
         }
 
-        new_product = Product.objects.create(**new_mock_product)
+        new_product = self.model.objects.create(**new_mock_product)
 
         category_filter_url = get_filter_url("category", category.title.lower())
 
@@ -419,14 +422,14 @@ class PublicProductsAPITests(TestCase):
             "title": "Test First New Product",
             "price": 1112,
         }
-        first_new_product = Product.objects.create(**first_new_mock_product)
+        first_new_product = self.model.objects.create(**first_new_mock_product)
 
         second_new_mock_product = {
             **self.mock_product,
             "title": "Test Second New Product",
             "price": 1112,
         }
-        second_new_product = Product.objects.create(**second_new_mock_product)
+        second_new_product = self.model.objects.create(**second_new_mock_product)
 
         offset_filter_url = get_filter_url("offset", "2")
 
@@ -447,14 +450,14 @@ class PublicProductsAPITests(TestCase):
             "title": "Test First New Product",
             "price": 1112,
         }
-        first_new_product = Product.objects.create(**first_new_mock_product)
+        first_new_product = self.model.objects.create(**first_new_mock_product)
 
         second_new_mock_product = {
             **self.mock_product,
             "title": "Test Second New Product",
             "price": 1112,
         }
-        second_new_product = Product.objects.create(**second_new_mock_product)
+        second_new_product = self.model.objects.create(**second_new_mock_product)
 
         offset_filter_url = get_filter_url("limit", "2")
 
@@ -474,7 +477,7 @@ class PublicProductsAPITests(TestCase):
             **self.mock_product,
             "title": "Test New Product",  # creating new product
         }
-        new_product = Product.objects.create(**new_mock_product)
+        new_product = self.model.objects.create(**new_mock_product)
 
         user = get_user_model().objects.create_user(
             email="testuser@test.com",
@@ -507,7 +510,7 @@ class PublicProductsAPITests(TestCase):
             **self.mock_product,
             "title": "Test New Product",  # creating new product
         }
-        new_product = Product.objects.create(**new_mock_product)
+        new_product = self.model.objects.create(**new_mock_product)
 
         user = get_user_model().objects.create_user(
             email="testuser@test.com",
@@ -541,6 +544,8 @@ class PrivateUserProductsAPITests(TestCase):
     def setUp(self):
         self.client = APIClient()
 
+        self.model = get_app_model()  # product model
+
         # Create Product
 
         self.category = Category.objects.create(title="TestCategory")
@@ -559,7 +564,7 @@ class PrivateUserProductsAPITests(TestCase):
             "sold": 11,
         }
 
-        self.product = Product.objects.create(**self.mock_product)
+        self.product = self.model.objects.create(**self.mock_product)
 
         # User authenticate
 
@@ -610,7 +615,7 @@ class PrivateUserProductsAPITests(TestCase):
         """
         Tests if normal user can see the detail of a product
         """
-        products_list = Product.objects.all()
+        products_list = self.model.objects.all()
         product_url = get_products_detail_url(products_list)
 
         res = self.client.get(product_url)
@@ -623,7 +628,7 @@ class PrivateUserProductsAPITests(TestCase):
         """
         Tests if normal user can't partial update a product
         """
-        products_list = Product.objects.all()
+        products_list = self.model.objects.all()
         product_url = get_products_detail_url(products_list)
 
         payload = {
@@ -645,7 +650,7 @@ class PrivateUserProductsAPITests(TestCase):
         """
         Tests if normal user can't update a product
         """
-        products_list = Product.objects.all()
+        products_list = self.model.objects.all()
         product_url = get_products_detail_url(products_list)
 
         payload = {
@@ -676,7 +681,7 @@ class PrivateUserProductsAPITests(TestCase):
         """
         Tests if normal user can't delete a product
         """
-        products_list = Product.objects.all()
+        products_list = self.model.objects.all()
         product_url = get_products_detail_url(products_list)
 
         res = self.client.delete(
@@ -693,6 +698,8 @@ class PrivateSuperuserProductsAPITests(TestCase):
 
     def setUp(self):
         self.client = APIClient()
+
+        self.model = get_app_model()  # product model
 
         # Create Product
 
@@ -712,7 +719,7 @@ class PrivateSuperuserProductsAPITests(TestCase):
             "sold": 11,
         }
 
-        self.product = Product.objects.create(**self.mock_product)
+        self.product = self.model.objects.create(**self.mock_product)
 
         # User authenticate
 
@@ -803,7 +810,7 @@ class PrivateSuperuserProductsAPITests(TestCase):
             "sold": 11,
         }
 
-        Product.objects.create(**mock_product)
+        self.model.objects.create(**mock_product)
 
         payload = {**mock_product, "category": self.category.id}
 
@@ -817,7 +824,7 @@ class PrivateSuperuserProductsAPITests(TestCase):
         """
         Tests if superuser can see the detail of a product
         """
-        products_list = Product.objects.all()
+        products_list = self.model.objects.all()
         product_url = get_products_detail_url(products_list)
 
         res = self.client.get(product_url)
@@ -830,7 +837,7 @@ class PrivateSuperuserProductsAPITests(TestCase):
         """
         Tests if superuser can partial update a product
         """
-        products_list = Product.objects.all()
+        products_list = self.model.objects.all()
         product_url = get_products_detail_url(products_list)
 
         payload = {
@@ -852,7 +859,7 @@ class PrivateSuperuserProductsAPITests(TestCase):
         """
         Tests if superuser can update a product
         """
-        products_list = Product.objects.all()
+        products_list = self.model.objects.all()
         product_url = get_products_detail_url(products_list)
 
         payload = {
@@ -883,7 +890,7 @@ class PrivateSuperuserProductsAPITests(TestCase):
         """
         Tests if superuser can delete a product
         """
-        products_list = Product.objects.all()
+        products_list = self.model.objects.all()
         product_url = get_products_detail_url(products_list)
 
         res = self.client.delete(

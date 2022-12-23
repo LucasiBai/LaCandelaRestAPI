@@ -3,7 +3,6 @@ from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 
 from .filters import ProductsFilterSet
 from apps.products.serializers import ProductSerializer
-from db.models import Product
 
 
 class ProductsViewSet(ModelViewSet):
@@ -11,7 +10,8 @@ class ProductsViewSet(ModelViewSet):
     Products model viewset
     """
 
-    queryset = Product.objects.all()
+    model = ProductSerializer.Meta.model
+    queryset = model.objects.all()
     serializer_class = ProductSerializer
     filterset_class = ProductsFilterSet
 

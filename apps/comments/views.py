@@ -13,7 +13,8 @@ class CommentViewset(ModelViewSet):
     Comment API Viewset
     """
 
-    queryset = CommentSerializer.Meta.model.objects.all()
+    model = CommentSerializer.Meta.model
+    queryset = model.objects.all()
     serializer_class = CommentSerializer
     filterset_class = CommentFilterset
 

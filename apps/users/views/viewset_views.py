@@ -1,5 +1,3 @@
-from django.contrib.auth import get_user_model
-
 from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
@@ -16,7 +14,8 @@ class UserAccountViewset(ModelViewSet):
     User Account Viewset
     """
 
-    queryset = get_user_model().objects.all()
+    model = UserAccountSerializer.Meta.model
+    queryset = model.objects.all()
     serializer_class = UserAccountSerializer
     filterset_class = UserAccountFilterset
 
@@ -47,7 +46,7 @@ class UserAccountViewset(ModelViewSet):
         Gets user model instance
         """
         user_pk = request.user.id
-        user = get_user_model().objects.filter(pk=user_pk).first()
+        user = self.model.objects.filter(pk=user_pk).first()
 
         return user
 

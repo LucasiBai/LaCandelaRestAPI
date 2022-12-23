@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from db.models import Category
+from .meta import get_app_model
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -9,7 +9,7 @@ class CategorySerializer(serializers.ModelSerializer):
     """
 
     class Meta:
-        model = Category
+        model = get_app_model()
         fields = ["id", "parent", "title"]
 
     def to_representation(self, instance):
@@ -24,7 +24,7 @@ class CategorySerializer(serializers.ModelSerializer):
                 "title": instance.title,
                 "subcategories": [],
             }
-            sub_categories = Category.objects.exclude(parent=None)
+            sub_categories = self.Meta.model.objects.exclude(parent=None)
 
             for sub_category in sub_categories:
                 if sub_category.parent == instance:

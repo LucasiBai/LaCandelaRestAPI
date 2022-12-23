@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from db.models import Order
+from .meta import get_app_model
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -9,7 +9,7 @@ class OrderSerializer(serializers.ModelSerializer):
     """
 
     class Meta:
-        model = Order
+        model = get_app_model()
         fields = [
             "id",
             "buyer",

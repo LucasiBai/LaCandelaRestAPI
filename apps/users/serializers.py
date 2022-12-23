@@ -1,4 +1,3 @@
-from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.http import urlsafe_base64_decode
 
@@ -10,6 +9,7 @@ from rest_framework_simplejwt.serializers import (
 )
 
 from .utils import send_reset_password_url_to
+from .meta import get_app_model
 
 
 class UserAccountSerializer(serializers.ModelSerializer):
@@ -18,7 +18,7 @@ class UserAccountSerializer(serializers.ModelSerializer):
     """
 
     class Meta:
-        model = get_user_model()
+        model = get_app_model()
         fields = [
             "id",
             "email",
@@ -39,7 +39,7 @@ class UserAccountSerializer(serializers.ModelSerializer):
         """
         Create a new user with create_user
         """
-        user = get_user_model().objects.create_user(**validated_data)
+        user = self.Meta.model.objects.create_user(**validated_data)
         return user
 
     def update(self, instance, validated_data):
@@ -71,7 +71,7 @@ class ResetPasswordSerializer(serializers.Serializer):
         """
         Validates if exists user associated with entered email
         """
-        user_exists = get_user_model().objects.filter(email=value).exists()
+        user_exists = get_app_model().objects.filter(email=value).exists()
 
         if not user_exists:
             raise serializers.ValidationError(
@@ -109,7 +109,7 @@ class ChangePasswordConfirmSerializer(serializers.Serializer):
             )
 
         pk = urlsafe_base64_decode(encoded_pk).decode()
-        self.user = get_user_model().objects.filter(pk=pk).first()
+        self.user = get_app_model().objects.filter(pk=pk).first()
 
         if not self.user:
             raise serializers.ValidationError("Unknown primary key")

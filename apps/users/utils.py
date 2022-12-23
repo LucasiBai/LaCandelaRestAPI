@@ -1,10 +1,10 @@
-from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.core.mail import send_mail
 
 from core.settings import base
+from .meta import get_app_model
 
 FRONT_END_URL = base.env("FRONT_END_URL")
 APP_NAME = base.env("APP_NAME")
@@ -14,7 +14,7 @@ def get_reset_password_url(email):
     """
     Generates user reset password url
     """
-    user = get_user_model().objects.get(email=email)
+    user = get_app_model().objects.get(email=email)
 
     encoded_pk = urlsafe_base64_encode(force_bytes(user.pk))
     token = PasswordResetTokenGenerator().make_token(user)

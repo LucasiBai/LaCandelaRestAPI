@@ -9,7 +9,6 @@ from rest_framework import status
 
 from .serializers import OrderSerializer
 from .filters import OrderFilterset
-from db.models import Order
 
 
 class OrderViewset(ModelViewSet):
@@ -17,7 +16,8 @@ class OrderViewset(ModelViewSet):
     Order API Viewset
     """
 
-    queryset = Order.objects.all()
+    model = OrderSerializer.Meta.model
+    queryset = model.objects.all()
     serializer_class = OrderSerializer
     filterset_class = OrderFilterset
 
@@ -52,7 +52,7 @@ class OrderViewset(ModelViewSet):
         Custom action view with orders of current user
         """
 
-        user_orders = self.queryset.filter(buyer=request.user)
+        user_orders = self.get_queryset().filter(buyer=request.user)
 
         if request.method == "GET":
             if user_orders:
