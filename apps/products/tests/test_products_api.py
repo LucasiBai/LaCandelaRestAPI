@@ -535,6 +535,217 @@ class PublicProductsAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
+    def test_products_price_asc_order_filter_successful(self):
+        """
+        Tests if api has a price ascendent order filter
+        """
+        new_mock_product = {
+            **self.mock_product,
+            "title": "Test New Product",
+            "price": 1000,
+        }
+
+        new_product = self.model.objects.create(**new_mock_product)
+
+        price_asc_filter_url = get_filter_url("price_order", "asc")
+
+        res = self.client.get(price_asc_filter_url)
+
+        self.assertEqual(res.data[0]["id"], new_product.id)
+        self.assertEqual(res.data[1]["id"], self.product.id)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_products_price_asc_order_filter_no_case_sensitive_successful(self):
+        """
+        Tests if api has a price ascendent order filter no case sensitive
+        """
+        new_mock_product = {
+            **self.mock_product,
+            "title": "Test New Product",
+            "price": 1000,
+        }
+
+        new_product = self.model.objects.create(**new_mock_product)
+
+        price_asc_filter_url = get_filter_url("price_order", "aSc")
+
+        res = self.client.get(price_asc_filter_url)
+
+        self.assertEqual(res.data[0]["id"], new_product.id)
+        self.assertEqual(res.data[1]["id"], self.product.id)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_products_price_desc_order_filter_successful(self):
+        """
+        Tests if api has a price descendent order filter
+        """
+        new_mock_product = {
+            **self.mock_product,
+            "title": "Test New Product",
+            "price": 1500,
+        }
+
+        new_product = self.model.objects.create(**new_mock_product)
+
+        price_desc_filter_url = get_filter_url("price_order", "desc")
+
+        res = self.client.get(price_desc_filter_url)
+
+        self.assertEqual(res.data[0]["id"], new_product.id)
+        self.assertEqual(res.data[1]["id"], self.product.id)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_products_price_desc_order_filter_no_case_sensitive_successful(self):
+        """
+        Tests if api has a price descendent order filter no case sensitive
+        """
+        new_mock_product = {
+            **self.mock_product,
+            "title": "Test New Product",
+            "price": 1500,
+        }
+
+        new_product = self.model.objects.create(**new_mock_product)
+
+        price_desc_filter_url = get_filter_url("price_order", "dEsC")
+
+        res = self.client.get(price_desc_filter_url)
+
+        self.assertEqual(res.data[0]["id"], new_product.id)
+        self.assertEqual(res.data[1]["id"], self.product.id)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_products_title_asc_order_filter_successful(self):
+        """
+        Tests if api has a title ascendent order filter
+        """
+        new_mock_product = {
+            **self.mock_product,
+            "title": "Test Second Product",
+            "price": 1500,
+        }
+
+        new_product = self.model.objects.create(**new_mock_product)
+
+        title_asc_filter_url = get_filter_url("title_order", "asc")
+
+        res = self.client.get(title_asc_filter_url)
+
+        self.assertEqual(res.data[0]["id"], new_product.id)
+        self.assertEqual(res.data[1]["id"], self.product.id)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_products_title_asc_order_filter_no_case_sensitive_successful(self):
+        """
+        Tests if api has a title ascendent order filter no case sensitive
+        """
+        new_mock_product = {
+            **self.mock_product,
+            "title": "Test Second Product",
+            "price": 1500,
+        }
+
+        new_product = self.model.objects.create(**new_mock_product)
+
+        title_asc_filter_url = get_filter_url("title_order", "aSc")
+
+        res = self.client.get(title_asc_filter_url)
+
+        self.assertEqual(res.data[0]["id"], new_product.id)
+        self.assertEqual(res.data[1]["id"], self.product.id)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_products_title_desc_order_filter_successful(self):
+        """
+        Tests if api has a title descendent order filter
+        """
+        new_mock_product = {
+            **self.mock_product,
+            "title": "Test U Product",
+            "price": 1500,
+        }
+
+        new_product = self.model.objects.create(**new_mock_product)
+
+        title_desc_filter_url = get_filter_url("title_order", "desc")
+
+        res = self.client.get(title_desc_filter_url)
+
+        self.assertEqual(res.data[0]["id"], new_product.id)
+        self.assertEqual(res.data[1]["id"], self.product.id)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_products_title_desc_order_filter_no_case_sensitive_successful(self):
+        """
+        Tests if api has a title descendent order filter no case sensitive
+        """
+        new_mock_product = {
+            **self.mock_product,
+            "title": "Test U Product",
+            "price": 1500,
+        }
+
+        new_product = self.model.objects.create(**new_mock_product)
+
+        title_desc_filter_url = get_filter_url("title_order", "DeSc")
+
+        res = self.client.get(title_desc_filter_url)
+
+        self.assertEqual(res.data[0]["id"], new_product.id)
+        self.assertEqual(res.data[1]["id"], self.product.id)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_products_search_filter_by_title_successful(self):
+        """
+        Tests if api has a search filter thats search by title
+        """
+        new_mock_product = {
+            **self.mock_product,
+            "title": "Test Search Title 1",
+        }
+        new_first_product = self.model.objects.create(**new_mock_product)
+
+        new_mock_product["title"] = "Test Search Title 2"
+        new_second_product = self.model.objects.create(**new_mock_product)
+
+        title_desc_filter_url = get_filter_url("search", "test search title")
+
+        res = self.client.get(title_desc_filter_url)
+
+        self.assertNotContains(res, self.product)
+        self.assertContains(res, new_first_product)
+        self.assertContains(res, new_second_product)
+
+    def test_products_search_filter_by_description_successful(self):
+        """
+        Tests if api has a search filter thats search by description
+        """
+        new_mock_product = {
+            **self.mock_product,
+            "title": "Test Search Title 1",
+            "description": "Test Search Description",
+        }
+        new_first_product = self.model.objects.create(**new_mock_product)
+
+        new_mock_product["title"] = "Test Search Title 2"
+        new_second_product = self.model.objects.create(**new_mock_product)
+
+        title_desc_filter_url = get_filter_url("search", "test search description")
+
+        res = self.client.get(title_desc_filter_url)
+
+        self.assertNotContains(res, self.product)
+        self.assertContains(res, new_first_product)
+        self.assertContains(res, new_second_product)
+
 
 class PrivateUserProductsAPITests(TestCase):
     """

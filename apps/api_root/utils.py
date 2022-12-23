@@ -37,3 +37,12 @@ class FilterMethods:
         validated_id_products = get_validated_rate_products_pk("lte", queryset, value)
 
         return queryset.filter(pk__in=validated_id_products)
+
+    def query_order(self, queryset, name, value):
+        """
+        Gets query order by ASC or DESC
+        """
+        if value.upper() == "ASC":
+            return queryset.order_by(name)
+        elif value.upper() == "DESC":
+            return queryset.order_by(f"-{name}")

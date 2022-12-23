@@ -1,4 +1,5 @@
 from django.utils.translation import gettext_lazy as _
+from django.db.models import Q
 
 import django_filters.rest_framework as filters
 
@@ -10,6 +11,8 @@ class ProductsFilterSet(filters.FilterSet, FilterMethods):
     """
     Filterset of Product model
     """
+
+    # Filters
 
     title = filters.CharFilter(
         field_name="title", lookup_expr="icontains", label=_("Title")
@@ -33,6 +36,28 @@ class ProductsFilterSet(filters.FilterSet, FilterMethods):
 
     limit = filters.NumberFilter(method="query_limit", label=_("Limit"))
 
+    # Orders
+
+    price_order = filters.CharFilter(
+        field_name="price", method="query_order", label=_("Price Order")
+    )
+
+    title_order = filters.CharFilter(
+        field_name="title", method="query_order", label=_("Title Order")
+    )
+
+    # Searcher
+
+    search = filters.CharFilter(method="query_search", label=_("Search Product"))
+
+    def query_search(self, queryset, name, value):
+        """
+        Searchs in products by title and description
+        """
+        return queryset.filter(
+            Q(title__icontains=value) | Q(description__icontains=value)
+        ).order_by("-sold")
+
     class Meta:
         model = ProductSerializer.Meta.model
         fields = [
@@ -42,4 +67,7 @@ class ProductsFilterSet(filters.FilterSet, FilterMethods):
             "max_price",
             "offset",
             "limit",
+            "title_order",
+            "price_order",
+            "search",
         ]
