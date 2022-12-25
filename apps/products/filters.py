@@ -12,6 +12,8 @@ class ProductsFilterSet(filters.FilterSet, FilterMethods):
     Filterset of Product model
     """
 
+    _results = 0
+
     # Filters
 
     title = filters.CharFilter(
@@ -52,11 +54,36 @@ class ProductsFilterSet(filters.FilterSet, FilterMethods):
 
     def query_search(self, queryset, name, value):
         """
-        Searchs in products by title and description
+        Search in products by title and description
         """
         return queryset.filter(
-            Q(title__icontains=value) | Q(description__icontains=value)
+            Q(title__icontains=value)
+            | Q(description__icontains=value)
+            | Q(category__title__icontains=value)
         ).order_by("-sold")
+
+    def get_total_results(self):
+        """
+        Gets the quantity of total results in request
+        """
+        return self._results
+
+    def filter_queryset(self, queryset):
+        """
+        Returns the filtered queryset with total results
+        """
+        for name, value in self.form.cleaned_data.items():
+            if name == "offset":
+                self._results = len(queryset)
+
+            queryset = self.filters[name].filter(queryset, value)
+
+        data = {
+            "queryset": queryset,
+            "results": self.get_total_results(),
+        }
+
+        return data
 
     class Meta:
         model = ProductSerializer.Meta.model
@@ -65,9 +92,9 @@ class ProductsFilterSet(filters.FilterSet, FilterMethods):
             "category",
             "min_price",
             "max_price",
-            "offset",
-            "limit",
             "title_order",
             "price_order",
             "search",
+            "offset",
+            "limit",
         ]

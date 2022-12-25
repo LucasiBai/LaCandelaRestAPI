@@ -13,13 +13,13 @@ class FilterMethods:
         """
         Gets started item the returned queryset
         """
-        return queryset[value - 1 :]
+        return queryset[int(value) - 1 :]
 
     def query_limit(self, queryset, name, value):
         """
         Limits the returned queryset
         """
-        return queryset[:value]
+        return queryset[: int(value)]
 
     def query_min_rate(self, queryset, name, value):
         """

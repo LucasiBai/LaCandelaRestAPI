@@ -65,6 +65,9 @@ class PublicProductsAPITests(TestCase):
 
         self.assertContains(res, self.product)
 
+        self.assertContains(res, "results")
+        self.assertEqual(res.data["results"], 1)
+
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
     def test_products_list_post_public_reject(self):
@@ -551,8 +554,8 @@ class PublicProductsAPITests(TestCase):
 
         res = self.client.get(price_asc_filter_url)
 
-        self.assertEqual(res.data[0]["id"], new_product.id)
-        self.assertEqual(res.data[1]["id"], self.product.id)
+        self.assertEqual(res.data["data"][0]["id"], new_product.id)
+        self.assertEqual(res.data["data"][1]["id"], self.product.id)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
@@ -572,8 +575,8 @@ class PublicProductsAPITests(TestCase):
 
         res = self.client.get(price_asc_filter_url)
 
-        self.assertEqual(res.data[0]["id"], new_product.id)
-        self.assertEqual(res.data[1]["id"], self.product.id)
+        self.assertEqual(res.data["data"][0]["id"], new_product.id)
+        self.assertEqual(res.data["data"][1]["id"], self.product.id)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
@@ -593,8 +596,8 @@ class PublicProductsAPITests(TestCase):
 
         res = self.client.get(price_desc_filter_url)
 
-        self.assertEqual(res.data[0]["id"], new_product.id)
-        self.assertEqual(res.data[1]["id"], self.product.id)
+        self.assertEqual(res.data["data"][0]["id"], new_product.id)
+        self.assertEqual(res.data["data"][1]["id"], self.product.id)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
@@ -614,8 +617,8 @@ class PublicProductsAPITests(TestCase):
 
         res = self.client.get(price_desc_filter_url)
 
-        self.assertEqual(res.data[0]["id"], new_product.id)
-        self.assertEqual(res.data[1]["id"], self.product.id)
+        self.assertEqual(res.data["data"][0]["id"], new_product.id)
+        self.assertEqual(res.data["data"][1]["id"], self.product.id)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
@@ -635,8 +638,8 @@ class PublicProductsAPITests(TestCase):
 
         res = self.client.get(title_asc_filter_url)
 
-        self.assertEqual(res.data[0]["id"], new_product.id)
-        self.assertEqual(res.data[1]["id"], self.product.id)
+        self.assertEqual(res.data["data"][0]["id"], new_product.id)
+        self.assertEqual(res.data["data"][1]["id"], self.product.id)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
@@ -656,8 +659,8 @@ class PublicProductsAPITests(TestCase):
 
         res = self.client.get(title_asc_filter_url)
 
-        self.assertEqual(res.data[0]["id"], new_product.id)
-        self.assertEqual(res.data[1]["id"], self.product.id)
+        self.assertEqual(res.data["data"][0]["id"], new_product.id)
+        self.assertEqual(res.data["data"][1]["id"], self.product.id)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
@@ -677,8 +680,8 @@ class PublicProductsAPITests(TestCase):
 
         res = self.client.get(title_desc_filter_url)
 
-        self.assertEqual(res.data[0]["id"], new_product.id)
-        self.assertEqual(res.data[1]["id"], self.product.id)
+        self.assertEqual(res.data["data"][0]["id"], new_product.id)
+        self.assertEqual(res.data["data"][1]["id"], self.product.id)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
@@ -698,8 +701,8 @@ class PublicProductsAPITests(TestCase):
 
         res = self.client.get(title_desc_filter_url)
 
-        self.assertEqual(res.data[0]["id"], new_product.id)
-        self.assertEqual(res.data[1]["id"], self.product.id)
+        self.assertEqual(res.data["data"][0]["id"], new_product.id)
+        self.assertEqual(res.data["data"][1]["id"], self.product.id)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
@@ -716,9 +719,9 @@ class PublicProductsAPITests(TestCase):
         new_mock_product["title"] = "Test Search Title 2"
         new_second_product = self.model.objects.create(**new_mock_product)
 
-        title_desc_filter_url = get_filter_url("search", "test search title")
+        search_filter_url = get_filter_url("search", "test search title")
 
-        res = self.client.get(title_desc_filter_url)
+        res = self.client.get(search_filter_url)
 
         self.assertNotContains(res, self.product)
         self.assertContains(res, new_first_product)
@@ -738,13 +741,83 @@ class PublicProductsAPITests(TestCase):
         new_mock_product["title"] = "Test Search Title 2"
         new_second_product = self.model.objects.create(**new_mock_product)
 
-        title_desc_filter_url = get_filter_url("search", "test search description")
+        search_filter_url = get_filter_url("search", "test search description")
 
-        res = self.client.get(title_desc_filter_url)
+        res = self.client.get(search_filter_url)
 
         self.assertNotContains(res, self.product)
         self.assertContains(res, new_first_product)
         self.assertContains(res, new_second_product)
+
+    def test_products_search_filter_by_category_successful(self):
+        """
+        Tests if api has a search filter thats search by category
+        """
+        category = Category.objects.create(title="Test Second Category")
+
+        new_mock_product = {
+            **self.mock_product,
+            "title": "Test Search Title 1",
+            "category": category,
+        }
+        new_first_product = self.model.objects.create(**new_mock_product)
+
+        new_mock_product["title"] = "Test Search Title 2"
+        new_second_product = self.model.objects.create(**new_mock_product)
+
+        search_filter_url = get_filter_url("search", "test second catego")
+
+        res = self.client.get(search_filter_url)
+
+        self.assertNotContains(res, self.product)
+        self.assertContains(res, new_first_product)
+        self.assertContains(res, new_second_product)
+
+    def test_products_search_filter_with_limit_results_successful(self):
+        """
+        Tests if api search filter with limit filter, the 'results' are correct
+        """
+        new_mock_product = {
+            **self.mock_product,
+            "title": "Test Search Title 1",
+        }
+        new_first_product = self.model.objects.create(**new_mock_product)
+
+        new_mock_product["title"] = "Test Search Title 2"
+        new_second_product = self.model.objects.create(**new_mock_product)
+
+        search_filter_url = get_filter_url("search", "test search title") + "&limit=1"
+
+        res = self.client.get(search_filter_url)
+
+        self.assertNotContains(res, self.product)
+        self.assertContains(res, new_first_product)
+        self.assertNotContains(res, new_second_product)
+
+        self.assertEqual(res.data["results"], 2)
+
+    def test_products_search_filter_with_offset_results_successful(self):
+        """
+        Tests if api search filter with offset filter, the 'results' are correct
+        """
+        new_mock_product = {
+            **self.mock_product,
+            "title": "Test Search Title 1",
+        }
+        new_first_product = self.model.objects.create(**new_mock_product)
+
+        new_mock_product["title"] = "Test Search Title 2"
+        new_second_product = self.model.objects.create(**new_mock_product)
+
+        search_filter_url = get_filter_url("search", "test search title") + "&offset=2"
+
+        res = self.client.get(search_filter_url)
+
+        self.assertNotContains(res, self.product)
+        self.assertNotContains(res, new_first_product)
+        self.assertContains(res, new_second_product)
+
+        self.assertEqual(res.data["results"], 2)
 
 
 class PrivateUserProductsAPITests(TestCase):
