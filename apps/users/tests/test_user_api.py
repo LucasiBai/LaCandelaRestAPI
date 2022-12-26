@@ -574,7 +574,6 @@ class PrivateSuperusersAPITests(TestCase):
         self.user_data = {"email": "test@test.com", "password": "test123"}
 
         self.superuser = self.model.objects.create_superuser(**self.user_data)
-        self.client.force_authenticate(user=self.superuser)
 
         res_token = self.client.post(TOKEN_URL, self.user_data)  # get user token
         self.superuser_token = res_token.data["token"]
@@ -586,6 +585,11 @@ class PrivateSuperusersAPITests(TestCase):
         res = self.client.get(
             USER_LIST_URL, HTTP_AUTHORIZATION=f"Bearer {self.superuser_token}"
         )
+
+        self.assertIn("results", res.data)
+        self.assertIn("data", res.data)
+
+        self.assertEqual(res.data["results"], 1)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
@@ -606,6 +610,8 @@ class PrivateSuperusersAPITests(TestCase):
         self.assertContains(res, first_user_created)
         self.assertContains(res, second_user_created)
 
+        self.assertEqual(res.data["results"], 3)
+
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
     def test_superuser_view_user_data_list_limit_filter_successful(self):
@@ -624,6 +630,8 @@ class PrivateSuperusersAPITests(TestCase):
         self.assertContains(res, self.superuser)
         self.assertContains(res, first_user_created)
         self.assertNotContains(res, second_user_created)
+
+        self.assertEqual(res.data["results"], 3)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 

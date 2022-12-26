@@ -3,11 +3,12 @@ from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
 
+from apps.api_root.utils import FilterMethodsViewset
 from .serializers import CategorySerializer
 from .filters import CategoryFilterset
 
 
-class CategoryViewset(ModelViewSet):
+class CategoryViewset(FilterMethodsViewset):
     """
     Category API Viewset
     """
@@ -37,7 +38,13 @@ class CategoryViewset(ModelViewSet):
 
         if categories:
             serializer = self.serializer_class(categories, context=context, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+
+            export_data = {
+                "results": self.results,
+                "data": serializer.data,
+            }
+
+            return Response(export_data, status=status.HTTP_200_OK)
 
         return Response(
             {"message": "Not found categories."}, status=status.HTTP_204_NO_CONTENT

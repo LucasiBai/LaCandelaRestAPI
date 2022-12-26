@@ -3,10 +3,10 @@ from django.utils.translation import gettext_lazy as _
 from django_filters import rest_framework as filters
 
 from .serializers import CategorySerializer
-from apps.api_root.utils import FilterMethods
+from apps.api_root.utils import FilterMethods, FilterResultsFilterset
 
 
-class CategoryFilterset(filters.FilterSet, FilterMethods):
+class CategoryFilterset(FilterResultsFilterset, FilterMethods):
     """
     Categories Filterset
     """

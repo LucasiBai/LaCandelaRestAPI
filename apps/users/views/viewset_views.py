@@ -5,11 +5,12 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from apps.api_root.permissions import IsOwnData
+from apps.api_root.utils import FilterMethodsViewset
 from apps.users.serializers import UserAccountSerializer
 from apps.users.filters import UserAccountFilterset
 
 
-class UserAccountViewset(ModelViewSet):
+class UserAccountViewset(FilterMethodsViewset):
     """
     User Account Viewset
     """
@@ -49,6 +50,27 @@ class UserAccountViewset(ModelViewSet):
         user = self.model.objects.filter(pk=user_pk).first()
 
         return user
+
+    def list(self, request, *args, **kwargs):
+        """
+        Gets users and results quantity
+        """
+        users = self.filter_queryset(self.get_queryset())
+
+        if users:
+            serializer = self.serializer_class(users, many=True)
+
+            export_data = {
+                "results": self.results,
+                "data": serializer.data,
+            }
+
+            return Response(export_data, status=status.HTTP_200_OK)
+
+        return Response(
+            {"results": 0, "message": "Not found users."},
+            status=status.HTTP_204_NO_CONTENT,
+        )
 
     @action(detail=False, methods=["get", "patch"], url_path="me")
     def get_me_data(self, request, *args, **kwargs):

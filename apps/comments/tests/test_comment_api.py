@@ -73,6 +73,11 @@ class PublicCommentAPITest(TestCase):
 
         self.assertContains(res, self.comment)
 
+        self.assertIn("results", res.data)
+        self.assertIn("data", res.data)
+
+        self.assertEqual(res.data["results"], 1)
+
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
     def test_comment_list_user_id_filter_successful(self):
@@ -254,6 +259,8 @@ class PublicCommentAPITest(TestCase):
         self.assertContains(res, first_new_comment.id)
         self.assertContains(res, second_new_comment.id)
 
+        self.assertEquals(res.data["results"], 3)
+
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
     def test_comment_list_limit_filter_successful(self):
@@ -286,6 +293,8 @@ class PublicCommentAPITest(TestCase):
         self.assertContains(res, self.comment.id)
         self.assertContains(res, first_new_comment.id)
         self.assertNotContains(res, second_new_comment.id)
+
+        self.assertEquals(res.data["results"], 3)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
@@ -423,6 +432,9 @@ class PrivateUserCommentAPITest(TestCase):
         )
 
         self.assertContains(res, self.comment)
+
+        self.assertIn("results", res.data)
+        self.assertIn("data", res.data)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
@@ -787,6 +799,9 @@ class PrivateSuperuserCommentAPITest(TestCase):
         )
 
         self.assertContains(res, self.comment)
+
+        self.assertIn("results", res.data)
+        self.assertIn("data", res.data)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 

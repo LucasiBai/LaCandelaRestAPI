@@ -1,13 +1,13 @@
-from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 
 from .filters import ProductsFilterSet
 from apps.products.serializers import ProductSerializer
+from apps.api_root.utils import FilterMethodsViewset
 
 
-class ProductsViewSet(ModelViewSet):
+class ProductsViewSet(FilterMethodsViewset):
     """
     Products model viewset
     """
@@ -27,18 +27,6 @@ class ProductsViewSet(ModelViewSet):
             permission_classes = [IsAuthenticated, IsAdminUser]
         return [permission() for permission in permission_classes]
 
-    def filter_queryset(self, queryset):
-        """
-        Gets the filtered queryset and total results from filterset
-        """
-        for backend in list(self.filter_backends):
-            backend_data = backend().filter_queryset(self.request, queryset, self)
-
-            queryset = backend_data["queryset"]
-
-            self.results = backend_data["results"]
-        return queryset
-
     def list(self, request, *args, **kwargs):
         """
         Gets products and results quantity
@@ -48,7 +36,10 @@ class ProductsViewSet(ModelViewSet):
         if products:
             serializer = self.serializer_class(products, many=True)
 
-            export_data = {"results": self.results, "data": serializer.data}
+            export_data = {
+                "results": self.results,
+                "data": serializer.data,
+            }
 
             return Response(export_data, status=status.HTTP_200_OK)
 

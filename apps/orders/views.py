@@ -1,17 +1,16 @@
 from django.contrib.auth import get_user_model
 
-from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework import status
 
-
+from apps.api_root.utils import FilterMethodsViewset
 from .serializers import OrderSerializer
 from .filters import OrderFilterset
 
 
-class OrderViewset(ModelViewSet):
+class OrderViewset(FilterMethodsViewset):
     """
     Order API Viewset
     """
@@ -30,6 +29,27 @@ class OrderViewset(ModelViewSet):
         else:
             permission_classes = [IsAuthenticated, IsAdminUser]
         return [permission() for permission in permission_classes]
+
+    def list(self, request, *args, **kwargs):
+        """
+        Gets orders and results quantity
+        """
+        orders = self.filter_queryset(self.get_queryset())
+
+        if orders:
+            serializer = self.serializer_class(orders, many=True)
+
+            export_data = {
+                "results": self.results,
+                "data": serializer.data,
+            }
+
+            return Response(export_data, status=status.HTTP_200_OK)
+
+        return Response(
+            {"results": 0, "message": "Not found orders."},
+            status=status.HTTP_204_NO_CONTENT,
+        )
 
     def create(self, request, *args, **kwargs):
         """
@@ -52,14 +72,22 @@ class OrderViewset(ModelViewSet):
         Custom action view with orders of current user
         """
 
-        user_orders = self.get_queryset().filter(buyer=request.user)
+        user_orders = self.filter_queryset(
+            self.get_queryset().filter(buyer=request.user)
+        )
 
         if request.method == "GET":
             if user_orders:
                 serializer = self.serializer_class(user_orders, many=True)
-                return Response(serializer.data, status=status.HTTP_200_OK)
+
+                export_data = {
+                    "results": self.results,
+                    "data": serializer.data,
+                }
+
+                return Response(export_data, status=status.HTTP_200_OK)
             return Response(
-                {"message": "User have not placed orders yet"},
+                {"results": 0, "message": "User have not placed orders yet"},
                 status.HTTP_204_NO_CONTENT,
             )
 

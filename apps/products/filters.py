@@ -4,10 +4,10 @@ from django.db.models import Q
 import django_filters.rest_framework as filters
 
 from .serializers import ProductSerializer
-from apps.api_root.utils import FilterMethods
+from apps.api_root.utils import FilterMethods, FilterResultsFilterset
 
 
-class ProductsFilterSet(filters.FilterSet, FilterMethods):
+class ProductsFilterSet(FilterResultsFilterset, FilterMethods):
     """
     Filterset of Product model
     """
@@ -61,29 +61,6 @@ class ProductsFilterSet(filters.FilterSet, FilterMethods):
             | Q(description__icontains=value)
             | Q(category__title__icontains=value)
         ).order_by("-sold")
-
-    def get_total_results(self):
-        """
-        Gets the quantity of total results in request
-        """
-        return self._results
-
-    def filter_queryset(self, queryset):
-        """
-        Returns the filtered queryset with total results
-        """
-        for name, value in self.form.cleaned_data.items():
-            if name == "offset":
-                self._results = len(queryset)
-
-            queryset = self.filters[name].filter(queryset, value)
-
-        data = {
-            "queryset": queryset,
-            "results": self.get_total_results(),
-        }
-
-        return data
 
     class Meta:
         model = ProductSerializer.Meta.model

@@ -51,6 +51,9 @@ class PublicUserCategoryAPITests(TestCase):
 
         self.assertContains(res, self.parent_category)
 
+        self.assertIn("results", res.data)
+        self.assertIn("data", res.data)
+
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
     def test_category_list_render_sub_categories_get_public_successful(self):
@@ -64,7 +67,7 @@ class PublicUserCategoryAPITests(TestCase):
         self.assertContains(res, self.child_category)
 
         self.assertEqual(
-            res.data[0]["subcategories"][0]["id"],  # parent child children
+            res.data["data"][0]["subcategories"][0]["id"],  # parent child children
             self.child_category.id,
         )
 
@@ -87,6 +90,8 @@ class PublicUserCategoryAPITests(TestCase):
         self.assertContains(res, first_parent_category)
         self.assertNotContains(res, second_parent_category)
 
+        self.assertEqual(res.data["results"], 3)
+
     def test_category_list_get_offset_filter_successful(self):
         """
         Tests if can filter category list with offset
@@ -103,6 +108,8 @@ class PublicUserCategoryAPITests(TestCase):
         self.assertNotContains(res, self.parent_category)
         self.assertContains(res, first_parent_category)
         self.assertContains(res, second_parent_category)
+
+        self.assertEqual(res.data["results"], 3)
 
     def test_category_list_get_title_no_case_sensitive_filter_successful(self):
         """
@@ -241,6 +248,9 @@ class PrivateUserCategoryAPITests(TestCase):
 
         self.assertContains(res, self.parent_category)
 
+        self.assertIn("results", res.data)
+        self.assertIn("data", res.data)
+
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
     def test_category_list_post_normal_user_reject(self):
@@ -361,6 +371,9 @@ class PrivateSuperuserCategoryAPITests(TestCase):
         )
 
         self.assertContains(res, self.parent_category)
+
+        self.assertIn("results", res.data)
+        self.assertIn("data", res.data)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 

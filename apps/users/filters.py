@@ -2,11 +2,11 @@ from django.utils.translation import gettext_lazy as _
 
 from django_filters import rest_framework as filters
 
-from apps.api_root.utils import FilterMethods
+from apps.api_root.utils import FilterMethods, FilterResultsFilterset
 from .serializers import UserAccountSerializer
 
 
-class UserAccountFilterset(filters.FilterSet, FilterMethods):
+class UserAccountFilterset(FilterResultsFilterset, FilterMethods):
     """
     User Account Filterset
     """

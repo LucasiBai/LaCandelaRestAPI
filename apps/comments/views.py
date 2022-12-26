@@ -1,14 +1,14 @@
-from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
 
 from apps.api_root.permissions import IsOwnDataOrSuperuser
+from apps.api_root.utils import FilterMethodsViewset
 from .serializers import CommentSerializer
 from .filters import CommentFilterset
 
 
-class CommentViewset(ModelViewSet):
+class CommentViewset(FilterMethodsViewset):
     """
     Comment API Viewset
     """
@@ -29,6 +29,27 @@ class CommentViewset(ModelViewSet):
         else:
             permission_classes = [IsAuthenticated, IsOwnDataOrSuperuser]
         return [permission() for permission in permission_classes]
+
+    def list(self, request, *args, **kwargs):
+        """
+        Gets comments and results quantity
+        """
+        comments = self.filter_queryset(self.get_queryset())
+
+        if comments:
+            serializer = self.serializer_class(comments, many=True)
+
+            export_data = {
+                "results": self.results,
+                "data": serializer.data,
+            }
+
+            return Response(export_data, status=status.HTTP_200_OK)
+
+        return Response(
+            {"results": 0, "message": "Not found comments."},
+            status=status.HTTP_204_NO_CONTENT,
+        )
 
     def create(self, request, *args, **kwargs):
         context = {"user": request.user, "action": "create"}
