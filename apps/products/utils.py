@@ -29,10 +29,10 @@ def get_validated_rate_products_pk(filter, queryset, value):
     for instance in queryset:
         rate = get_rate_of(instance)
 
-        if filter == "gte":
+        if filter.lower() == "gte":
             if rate >= value:
                 validated_id_products.append(instance.id)
-        elif filter == "lte":
+        elif filter.lower() == "lte":
             if rate <= value:
                 validated_id_products.append(instance.id)
         else:

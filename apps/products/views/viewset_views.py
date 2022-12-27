@@ -1,8 +1,9 @@
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
 
-from .filters import ProductsFilterSet
+from apps.products.filters import ProductsFilterSet
 from apps.products.serializers import ProductSerializer
 from apps.api_root.utils import FilterMethodsViewset
 
@@ -21,7 +22,11 @@ class ProductsViewSet(FilterMethodsViewset):
         """
         Gets custom permission for the view
         """
-        if self.action == "list" or self.action == "retrieve":
+        if (
+            self.action == "list"
+            or self.action == "retrieve"
+            or self.action == "get_related_products"
+        ):
             permission_classes = [AllowAny]
         else:
             permission_classes = [IsAuthenticated, IsAdminUser]
@@ -47,3 +52,39 @@ class ProductsViewSet(FilterMethodsViewset):
             {"results": 0, "message": "Not found products."},
             status=status.HTTP_204_NO_CONTENT,
         )
+
+    @action(
+        detail=True,
+        methods=["get", "post"],
+        url_path="related-products",
+    )
+    def get_related_products(self, request, pk, *args, **kwargs):
+        """
+        Gets related products from pk
+        """
+
+        if request.method == "GET":
+            try:
+                int(pk)
+            except:
+                return Response(
+                    {"message": "ID must be an integer"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            product = self.get_queryset().filter(pk=pk).first()
+
+            related_products = (
+                self.get_queryset().filter(category=product.category).exclude(pk=pk)
+            )
+
+            if related_products:
+                serializer = self.serializer_class(related_products)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(
+                {"message": "Not found related products"},
+                status=status.HTTP_204_NO_CONTENT,
+            )
+
+        else:
+            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)

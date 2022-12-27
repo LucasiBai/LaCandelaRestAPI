@@ -45,9 +45,9 @@ class PublicProductsAPITests(TestCase):
             "description": "Test description",
             "price": 1111,
             "images": [
-                "testimgurl/1.com",
-                "testimgurl/2.com",  # Mock product data
-                "testimgurl/3.com",
+                "testimgurl.com/1",
+                "testimgurl.com/2",  # Mock product data
+                "testimgurl.com/3",
             ],
             "stock": 11,
             "category": self.category,
