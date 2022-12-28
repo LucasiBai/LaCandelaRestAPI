@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
 
-from apps.products.filters import ProductsFilterSet
+from apps.products.filters import ProductsFilterSet, RelatedProductsFilterset
 from apps.products.serializers import ProductSerializer
 from apps.api_root.utils import FilterMethodsViewset
 
@@ -57,6 +57,7 @@ class ProductsViewSet(FilterMethodsViewset):
         detail=True,
         methods=["get", "post"],
         url_path="related-products",
+        filterset_class=RelatedProductsFilterset,
     )
     def get_related_products(self, request, pk, *args, **kwargs):
         """
@@ -74,12 +75,21 @@ class ProductsViewSet(FilterMethodsViewset):
 
             product = self.get_queryset().filter(pk=pk).first()
 
-            related_products = (
-                self.get_queryset().filter(category=product.category).exclude(pk=pk)
-            )
+            params = request.query_params
+
+            if params:
+                related_products = self.filter_queryset(
+                    self.get_queryset().filter(category=product.category).exclude(pk=pk)
+                )
+            else:
+                related_products = (
+                    self.get_queryset()
+                    .filter(category=product.category)
+                    .exclude(pk=pk)[:10]
+                )
 
             if related_products:
-                serializer = self.serializer_class(related_products)
+                serializer = self.serializer_class(related_products, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             return Response(
                 {"message": "Not found related products"},

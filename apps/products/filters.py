@@ -75,3 +75,23 @@ class ProductsFilterSet(FilterResultsFilterset, FilterMethods):
             "offset",
             "limit",
         ]
+
+
+class RelatedProductsFilterset(FilterResultsFilterset):
+    """
+    Related Products Filterset
+    """
+
+    _results = 0
+
+    limit = filters.NumberFilter(method="query_limit", label=_("Limit"))
+
+    def query_limit(self, queryset, name, value):
+        """
+        Limits the returned queryset
+        """
+        return queryset[: int(value)]
+
+    class Meta:
+        model = ProductSerializer.Meta.model
+        fields = ["limit"]
