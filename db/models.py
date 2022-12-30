@@ -172,3 +172,37 @@ class Order(models.Model):
         if self.buyer.first_name and self.buyer.last_name:
             return f"{_('Order of')} {self.buyer.get_full_name()}"
         return f"{_('Order of')} {self.buyer.email}"
+
+
+class Cart(models.Model):
+    """
+    Cart model
+    """
+
+    user = models.OneToOneField(UserAccount, on_delete=models.CASCADE)
+    total_items = models.IntegerField(default=0)
+    last_modification = models.DateField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("Cart")
+        verbose_name_plural = _("Carts")
+
+    def __str__(self):
+        return f"{str(self.user)}'s Cart"
+
+
+class CartItem(models.Model):
+    """
+    Cart Item model
+    """
+
+    cart = models.ForeignKey("Cart", on_delete=models.CASCADE)
+    product = models.ForeignKey("Product", on_delete=models.CASCADE)
+    count = models.IntegerField(default=0)
+
+    class Meta:
+        verbose_name = _("Cart Item")
+        verbose_name_plural = _("Cart Items")
+
+    def __str__(self):
+        return f"{self.product.title} to {self.cart.user.email}'s Cart"

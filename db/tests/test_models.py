@@ -5,7 +5,15 @@ from django.contrib.auth import get_user_model
 from django.db.utils import IntegrityError
 
 
-from db.models import Category, Product, Comment, Order, ShippingInfo
+from db.models import (
+    Category,
+    Product,
+    Comment,
+    Order,
+    ShippingInfo,
+    Cart,
+    CartItem,
+)
 
 
 class UserModelTest(TestCase):
@@ -377,3 +385,80 @@ class CommentModelTest(TestCase):
         self.assertEqual(mock_comment["subject"], str(comment))
 
         self.assertTrue(comment.created_at)
+
+
+class CartModelTest(TestCase):
+    """
+    Tests Cart model
+    """
+
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            email="testemail@test.com", first_name="Test", last_name="Testi"
+        )
+
+    def test_create_cart_successful(self):
+        """
+        Tests if can create a cart
+        """
+        mock_cart = {"user": self.user}
+        cart = Cart.objects.create(**mock_cart)
+
+        self.assertEqual(cart.user, self.user)
+        self.assertEqual(cart.total_items, 0)
+        self.assertTrue(cart.last_modification)
+
+        self.assertEqual(str(cart), f"{str(self.user)}'s Cart")
+
+    def test_create_cart_with_existent_user_reject(self):
+        mock_cart = {"user": self.user}
+        Cart.objects.create(**mock_cart)
+
+        with self.assertRaises(IntegrityError):
+            Cart.objects.create(**mock_cart)
+
+
+class CartItemModelTest(TestCase):
+    """
+    Tests Cart item model
+    """
+
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            email="testemail@test.com", first_name="Test", last_name="Testi"
+        )
+
+        self.mock_cart = {"user": self.user}
+        self.cart = Cart.objects.create(**self.mock_cart)
+
+        self.category = Category.objects.create(title="TestCategory")
+        self.mock_product = {
+            "title": "Test title",
+            "description": "Test description",
+            "price": 1111,
+            "images": [
+                "testimgurl.com/1",
+                "testimgurl.com/2",
+                "testimgurl.com/3",
+            ],
+            "stock": 11,
+            "category": self.category,
+            "sold": 11,
+        }
+        self.product = Product.objects.create(**self.mock_product)
+
+    def test_create_cart_item_successful(self):
+        """
+        Tests if can create a cart item
+        """
+        mock_cart_item = {"cart": self.cart, "product": self.product, "count": 5}
+        cart_item = CartItem.objects.create(**mock_cart_item)
+
+        self.assertEqual(cart_item.cart, self.cart)
+        self.assertEqual(cart_item.product, self.product)
+        self.assertEqual(cart_item.count, mock_cart_item["count"])
+
+        self.assertEqual(
+            str(cart_item),
+            f"{cart_item.product.title} to {cart_item.cart.user.email}'s Cart",
+        )

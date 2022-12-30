@@ -186,6 +186,66 @@ class ShippingInfoAdmin(admin.ModelAdmin):
     list_per_page = 10
 
 
+class CartAdmin(admin.ModelAdmin):
+    """
+    Cart admin configuration
+    """
+
+    ordering = ["id"]
+    list_display = ["id", "__str__", "last_modification"]
+    list_display_links = ["__str__"]
+
+    search_fields = ["user__id", "user__email"]
+
+    fieldsets = (
+        (_("Cart References"), {"fields": ["user"]}),
+        (_("Cart Data"), {"fields": ["total_items"]}),
+    )
+
+    add_fieldsets = (
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": [
+                    "user",
+                ],
+            },
+        ),
+    )
+
+    list_per_page = 10
+
+
+class CartItemAdmin(admin.ModelAdmin):
+    """
+    Cart Item admin configuration
+    """
+
+    ordering = ["id"]
+    list_display = ["id", "cart__user", "product__title"]
+    list_display_links = ["cart__user__email", "product__title"]
+
+    search_fields = ["cart__user__id", "cart__user__email", "product__title"]
+
+    fieldsets = (
+        (_("Cart Item References"), {"fields": ["cart", "product"]}),
+        (_("Cart Item Data"), {"fields": ["count"]}),
+    )
+
+    add_fieldsets = (
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": ["cart", "product", "count"],
+            },
+        ),
+    )
+
+    list_per_page = 10
+
+
 admin.site.register(models.UserAccount, UserAdmin)  # user admin register
 admin.site.register(models.Category, CategoryAdmin)  # category admin register
 admin.site.register(models.Product, ProductAdmin)  # product admin register
@@ -194,3 +254,5 @@ admin.site.register(models.Order, OrderAdmin)  # order admin register
 admin.site.register(
     models.ShippingInfo, ShippingInfoAdmin  # shipping info admin register
 )
+admin.site.register(models.Cart, CartAdmin)  # cart admin register
+admin.site.register(models.CartItem, CartItemAdmin)  # cart item admin register
