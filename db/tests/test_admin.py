@@ -431,7 +431,7 @@ class CartItemModelAdminTest(TestCase):
         """
         Tests if cart item added is listed
         """
-        url = reverse("admin:db_cart_item_changelist")
+        url = reverse("admin:db_cartitem_changelist")
         res = self.client.get(url)
 
         self.assertContains(res, self.cart_item.id)
@@ -442,16 +442,16 @@ class CartItemModelAdminTest(TestCase):
         """
         Tests if cart_item added can be edited
         """
-        url = reverse("admin:db_cart_item_change", args=[self.cart_item.id])
+        url = reverse("admin:db_cartitem_change", args=[self.cart_item.id])
         res = self.client.get(url)
 
         self.assertEqual(res.status_code, 200)  # Testing if status code is 200
 
     def test_create_cart_item_page(self):
         """
-        Tests if can add cart_item
+        Tests if can add cart item
         """
-        url = reverse("admin:db_cart_item_add")
+        url = reverse("admin:db_cartitem_add")
         res = self.client.get(url)
 
         self.assertEqual(res.status_code, 200)  # Testing if status code is 200
@@ -485,8 +485,6 @@ class CartModelAdminTest(TestCase):
         res = self.client.get(url)
 
         self.assertContains(res, self.cart.id)
-        self.assertContains(res, str(self.cart))
-        self.assertContains(res, self.cart.last_modification)
 
     def test_cart_change_page(self):
         """

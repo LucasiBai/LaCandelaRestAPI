@@ -65,6 +65,7 @@ class ProductsViewSet(FilterMethodsViewset):
         """
 
         if request.method == "GET":
+
             try:
                 int(pk)
             except:

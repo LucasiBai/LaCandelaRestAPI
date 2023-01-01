@@ -223,10 +223,10 @@ class CartItemAdmin(admin.ModelAdmin):
     """
 
     ordering = ["id"]
-    list_display = ["id", "cart__user", "product__title"]
-    list_display_links = ["cart__user__email", "product__title"]
+    list_display = ["id", "cart", "product"]
+    list_display_links = ["cart", "product"]
 
-    search_fields = ["cart__user__id", "cart__user__email", "product__title"]
+    search_fields = ["cart", "product"]
 
     fieldsets = (
         (_("Cart Item References"), {"fields": ["cart", "product"]}),
