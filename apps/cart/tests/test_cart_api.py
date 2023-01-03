@@ -5,12 +5,14 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 from rest_framework import status
 
-from apps.cart.meta import get_app_model
+from apps.cart.meta import get_app_model, get_secondary_model
 
-from db.models import CartItem, Category, Product
+from db.models import Category, Product
 
 
-MY_CART_URL = reverse("api:my-cart")
+MY_CART_URL = reverse("api:my-cart")  # cart API url
+
+TOKEN_URL = reverse("users:user_token_obtain")  # user token API url
 
 
 class PublicCartApiTests(TestCase):
@@ -77,7 +79,7 @@ class PublicCartApiTests(TestCase):
     #         "product": self.product.id,
     #         "count": 5,
     #     }
-    #     CartItem.objects.create(**mock_cart_item)
+    #     get_secondary_model().objects.create(**mock_cart_item)
 
     #     payload = {"id": 1}
 
@@ -129,7 +131,7 @@ class PrivateUserCartApiTests(TestCase):
 
         self.cart = self.model.objects.create(user=self.main_user)
 
-        self.cart_item = CartItem.objects.create(
+        self.cart_item = get_secondary_model().objects.create(
             product=self.product, cart=self.cart, count=5
         )
 
