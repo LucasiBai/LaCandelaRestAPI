@@ -417,6 +417,196 @@ class CartModelTest(TestCase):
         with self.assertRaises(IntegrityError):
             Cart.objects.create(**mock_cart)
 
+    def test_get_products_in_cart_method_successful(self):
+        """
+        Test if cart has get_products method and return current products
+        """
+        # Cart creation
+        mock_cart = {"user": self.user}
+        cart = Cart.objects.create(**mock_cart)
+
+        # Product creation
+        category = Category.objects.create(title="TestCategory")
+        mock_product = {
+            "title": "Test title",
+            "description": "Test description",
+            "price": 1111,
+            "images": [
+                "testimgurl.com/1",
+                "testimgurl.com/2",
+                "testimgurl.com/3",
+            ],
+            "stock": 11,
+            "category": category,
+            "sold": 11,
+        }
+        product = Product.objects.create(**mock_product)
+
+        # Cart item creation
+        mock_cart_item = {"product": product, "count": 5}
+        new_product = cart.add_product(**mock_cart_item)
+
+        products = cart.get_products()
+
+        self.assertTrue(products)
+        self.assertEqual(products[0], new_product)
+
+        self.assertEqual(cart.total_items, mock_cart_item["count"])
+
+    def test_add_product_in_cart_method_successful(self):
+        """
+        Test if cart has add_product method and update total items
+        """
+        # Cart creation
+        mock_cart = {"user": self.user}
+        cart = Cart.objects.create(**mock_cart)
+
+        # Product creation
+        category = Category.objects.create(title="TestCategory")
+        mock_product = {
+            "title": "Test title",
+            "description": "Test description",
+            "price": 1111,
+            "images": [
+                "testimgurl.com/1",
+                "testimgurl.com/2",
+                "testimgurl.com/3",
+            ],
+            "stock": 11,
+            "category": category,
+            "sold": 11,
+        }
+        product = Product.objects.create(**mock_product)
+
+        # Cart item creation
+        mock_cart_item = {"product": product, "count": 5}
+        new_product = cart.add_product(**mock_cart_item)
+
+        self.assertTrue(new_product)
+
+        self.assertEqual(new_product.product, product)
+        self.assertEqual(new_product.count, mock_cart_item["count"])
+
+        products = cart.get_products()
+        self.assertEqual(products[0], new_product)
+
+        self.assertEqual(cart.total_items, mock_cart_item["count"])
+
+    def test_add_product_in_cart_method_no_duplication_successful(self):
+        """
+        Test if cart has add_product method and update total items
+        without duplication of product
+        """
+        # Cart creation
+        mock_cart = {"user": self.user}
+        cart = Cart.objects.create(**mock_cart)
+
+        # Product creation
+        category = Category.objects.create(title="TestCategory")
+        mock_product = {
+            "title": "Test title",
+            "description": "Test description",
+            "price": 1111,
+            "images": [
+                "testimgurl.com/1",
+                "testimgurl.com/2",
+                "testimgurl.com/3",
+            ],
+            "stock": 11,
+            "category": category,
+            "sold": 11,
+        }
+        product = Product.objects.create(**mock_product)
+
+        # Cart item creation
+        mock_cart_item = {"product": product, "count": 5}
+        cart.add_product(**mock_cart_item)
+        cart.add_product(**mock_cart_item)
+
+        products = cart.get_products()
+        self.assertEqual(len(products), 1)
+
+        self.assertEqual(cart.total_items, mock_cart_item["count"] * 2)
+
+    def test_get_total_price_in_cart_method_with_single_product_successful(self):
+        """
+        Test if cart has get_total_price method and return price
+        """
+        # Cart creation
+        mock_cart = {"user": self.user}
+        cart = Cart.objects.create(**mock_cart)
+
+        # Product creation
+        category = Category.objects.create(title="TestCategory")
+        mock_product = {
+            "title": "Test title",
+            "description": "Test description",
+            "price": 1111,
+            "images": [
+                "testimgurl.com/1",
+                "testimgurl.com/2",
+                "testimgurl.com/3",
+            ],
+            "stock": 11,
+            "category": category,
+            "sold": 11,
+        }
+        product = Product.objects.create(**mock_product)
+
+        # Cart item creation
+        mock_cart_item = {"product": product, "count": 5}
+        cart.add_product(**mock_cart_item)
+
+        price = cart.get_total_price()
+
+        self.assertTrue(price)
+        self.assertEqual(price, product.price * mock_cart_item["count"])
+
+    def test_get_total_price_in_cart_method_with_some_products_successful(self):
+        """
+        Test if cart has get_total_price method and return price
+        """
+        # Cart creation
+        mock_cart = {"user": self.user}
+        cart = Cart.objects.create(**mock_cart)
+
+        # Product creation
+        category = Category.objects.create(title="TestCategory")
+        mock_product = {
+            "title": "Test title",
+            "description": "Test description",
+            "price": 1111,
+            "images": [
+                "testimgurl.com/1",
+                "testimgurl.com/2",
+                "testimgurl.com/3",
+            ],
+            "stock": 11,
+            "category": category,
+            "sold": 11,
+        }
+        first_product = Product.objects.create(**mock_product)
+
+        mock_product["title"] = "Test Title 2"
+        mock_product["price"] = 232
+        second_product = Product.objects.create(**mock_product)
+
+        # Cart item creation
+        mock_cart_item = {"product": first_product, "count": 5}
+        first_cart_item = cart.add_product(**mock_cart_item)
+
+        mock_cart_item = {"product": second_product, "count": 2}
+        second_cart_item = cart.add_product(**mock_cart_item)
+
+        price = cart.get_total_price()
+
+        self.assertTrue(price)
+        self.assertEqual(
+            price,
+            first_product.price * first_cart_item.count
+            + second_product.price * second_cart_item.count,
+        )
+
 
 class CartItemModelTest(TestCase):
     """

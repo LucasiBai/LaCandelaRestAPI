@@ -190,6 +190,45 @@ class Cart(models.Model):
     def __str__(self):
         return f"{str(self.user)}'s Cart"
 
+    def get_products(self):
+        """
+        Gets own products
+        """
+        products = CartItem.objects.filter(cart=self)
+
+        return products
+
+    def get_total_price(self):
+        """
+        Calculates total price
+        """
+
+        cart_items = CartItem.objects.filter(cart=self)
+
+        products_price = [item.product.price * item.count for item in cart_items]
+
+        price = sum(products_price)
+
+        return price
+
+    def add_product(self, product: Product, count: int):
+        """
+        Creates a cart item and update total_items
+        """
+        self.total_items += count
+
+        item_find = CartItem.objects.filter(cart=self, product=product).first()
+
+        if item_find:
+            item_find.set_count(count)
+            return item_find
+
+        payload = {"cart": self, "product": product, "count": count}
+
+        cart_item = CartItem.objects.create(**payload)
+
+        return cart_item
+
 
 class CartItem(models.Model):
     """
@@ -206,3 +245,6 @@ class CartItem(models.Model):
 
     def __str__(self):
         return f"{self.product.title} to {self.cart.user.email}'s Cart"
+
+    def set_count(self, count: int):
+        self.count += count
