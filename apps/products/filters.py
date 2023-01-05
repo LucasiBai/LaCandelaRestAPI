@@ -48,6 +48,10 @@ class ProductsFilterSet(FilterResultsFilterset, FilterMethods):
         field_name="title", method="query_order", label=_("Title Order")
     )
 
+    sold_order = filters.CharFilter(
+        field_name="sold", method="query_order", label=_("Sold Order")
+    )
+
     # Searcher
 
     search = filters.CharFilter(method="query_search", label=_("Search Product"))
@@ -71,6 +75,7 @@ class ProductsFilterSet(FilterResultsFilterset, FilterMethods):
             "max_price",
             "title_order",
             "price_order",
+            "sold_order",
             "search",
             "offset",
             "limit",

@@ -211,16 +211,19 @@ class Cart(models.Model):
 
         return price
 
-    def add_product(self, product: Product, count: int):
+    def add_product(self, product: Product = None, count: int = None):
         """
         Creates a cart item and update total_items
         """
+        if not product and not count:
+            raise ValueError("Method must receive 'product' and 'count'")
+
         self.total_items += count
 
         item_find = CartItem.objects.filter(cart=self, product=product).first()
 
         if item_find:
-            item_find.set_count(count)
+            item_find.set_count(item_find.count + count)
             return item_find
 
         payload = {"cart": self, "product": product, "count": count}
@@ -247,4 +250,4 @@ class CartItem(models.Model):
         return f"{self.product.title} to {self.cart.user.email}'s Cart"
 
     def set_count(self, count: int):
-        self.count += count
+        self.count = count

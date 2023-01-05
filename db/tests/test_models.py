@@ -492,6 +492,17 @@ class CartModelTest(TestCase):
 
         self.assertEqual(cart.total_items, mock_cart_item["count"])
 
+    def test_add_product_in_cart_method_without_params_reject(self):
+        """
+        Test if cart has add_product method with constraints in params
+        """
+        # Cart creation
+        mock_cart = {"user": self.user}
+        cart = Cart.objects.create(**mock_cart)
+
+        with self.assertRaises(ValueError):
+            cart.add_product()
+
     def test_add_product_in_cart_method_no_duplication_successful(self):
         """
         Test if cart has add_product method and update total items

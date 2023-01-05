@@ -819,6 +819,90 @@ class PublicProductsAPITests(TestCase):
 
         self.assertEqual(res.data["results"], 2)
 
+    def test_products_sold_asc_order_filter_successful(self):
+        """
+        Tests if api has a sold ascendent order filter
+        """
+        new_mock_product = {
+            **self.mock_product,
+            "title": "Test Second Product",
+            "sold": 10,
+        }
+
+        new_product = self.model.objects.create(**new_mock_product)
+
+        sold_asc_filter_url = get_filter_url("sold_order", "asc")
+
+        res = self.client.get(sold_asc_filter_url)
+
+        self.assertEqual(res.data["data"][0]["id"], new_product.id)
+        self.assertEqual(res.data["data"][1]["id"], self.product.id)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_products_sold_asc_order_filter_no_case_sensitive_successful(self):
+        """
+        Tests if api has a sold ascendent order filter no case sensitive
+        """
+        new_mock_product = {
+            **self.mock_product,
+            "title": "Test Second Product",
+            "sold": 10,
+        }
+
+        new_product = self.model.objects.create(**new_mock_product)
+
+        sold_asc_filter_url = get_filter_url("sold_order", "aSc")
+
+        res = self.client.get(sold_asc_filter_url)
+
+        self.assertEqual(res.data["data"][0]["id"], new_product.id)
+        self.assertEqual(res.data["data"][1]["id"], self.product.id)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_products_sold_desc_order_filter_successful(self):
+        """
+        Tests if api has a sold descendent order filter
+        """
+        new_mock_product = {
+            **self.mock_product,
+            "title": "Test Second Product",
+            "sold": 15,
+        }
+
+        new_product = self.model.objects.create(**new_mock_product)
+
+        sold_desc_filter_url = get_filter_url("sold_order", "desc")
+
+        res = self.client.get(sold_desc_filter_url)
+
+        self.assertEqual(res.data["data"][0]["id"], new_product.id)
+        self.assertEqual(res.data["data"][1]["id"], self.product.id)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_products_sold_desc_order_filter_no_case_sensitive_successful(self):
+        """
+        Tests if api has a sold descendent order filter no case sensitive
+        """
+        new_mock_product = {
+            **self.mock_product,
+            "title": "Test Second Product",
+            "sold": 15,
+        }
+
+        new_product = self.model.objects.create(**new_mock_product)
+
+        sold_desc_filter_url = get_filter_url("sold_order", "dEsC")
+
+        res = self.client.get(sold_desc_filter_url)
+
+        self.assertEqual(res.data["data"][0]["id"], new_product.id)
+        self.assertEqual(res.data["data"][1]["id"], self.product.id)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
 
 class PrivateUserProductsAPITests(TestCase):
     """
