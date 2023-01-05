@@ -152,7 +152,7 @@ class PrivateUserCartApiTests(TestCase):
         """
         Tests if normal user without current cart can see cart api
         """
-        new_user_data = {"email": "testuser@test.com", "password": "Test123"}
+        new_user_data = {"email": "testnocartuser@test.com", "password": "Test123"}
         user = get_user_model().objects.create_user(**new_user_data)  # create user
 
         res_token = self.client.post(TOKEN_URL, new_user_data)  # get user token
