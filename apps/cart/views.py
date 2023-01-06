@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-from .serializers import CartSerializer
+from .serializers import CartSerializer, CartItemSerializer
 
 
 class CartApiView(APIView):
@@ -58,3 +58,24 @@ class CartApiView(APIView):
             return Response(response, status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CartItemRetrieveApiView(APIView):
+    """
+    Cart Item Retrieve Apiview
+    """
+    model = CartItemSerializer.Meta.model
+    queryset = model.objects.all()
+    serializer_class = CartItemSerializer
+
+    def delete(self, request, pk, *args, **kwargs):
+        """
+        Deletes selected Cart Item
+        """
+        cart_item = self.queryset.filter(pk=pk).first()
+
+        if cart_item:
+            cart_item.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        return Response({"message": "Cart Item not found."}, status=status.HTTP_404_NOT_FOUND)

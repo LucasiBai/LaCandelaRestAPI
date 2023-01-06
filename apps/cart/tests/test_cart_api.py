@@ -14,6 +14,13 @@ MY_CART_URL = reverse("api:my-cart")  # cart API url
 TOKEN_URL = reverse("users:user_token_obtain")  # user token API url
 
 
+def get_cart_item_detail_url(cart_item):
+    """
+    Gets the cart item detail url of entered item
+    """
+    return reverse("api:cart_item", kwargs={"pk": cart_item.id})
+
+
 class PublicCartApiTests(TestCase):
     """
     Tests Cart Api from public api
@@ -67,23 +74,23 @@ class PublicCartApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    # def test_cart_view_delete_public_user_reject(self):
-    #     """
-    #     Tests if public user can't delete product in cart api view
-    #     """
+    def test_cart_view_delete_public_user_reject(self):
+        """
+        Tests if public user can't delete product in cart api view
+        """
 
-    #     mock_cart_item = {
-    #         "cart": self.cart.id,  # cart payload
-    #         "product": self.product.id,
-    #         "count": 5,
-    #     }
-    #     get_secondary_model().objects.create(**mock_cart_item)
+        mock_cart_item = {
+            "cart": self.cart,  # cart payload
+            "product": self.product,
+            "count": 5,
+        }
+        cart_item = get_secondary_model().objects.create(**mock_cart_item)
 
-    #     payload = {"id": 1}
+        cart_item_url = get_cart_item_detail_url(cart_item)
 
-    #     res = self.client.delete(MY_CART_URL, payload)
+        res = self.client.delete(cart_item_url)
 
-    #     self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
 class PrivateUserCartApiTests(TestCase):
@@ -187,3 +194,55 @@ class PrivateUserCartApiTests(TestCase):
 
         self.assertEqual(res_get.data["data"]["items"][0]["product"]["id"], self.product.id)
         self.assertEqual(res_get.data["data"]["items"][0]["count"], payload["count"])
+
+    def test_auto_cart_view_post_cart_item_normal_user_successful(self):
+        """
+        Tests if normal user without current cart can post an item in cart
+        """
+        new_user_data = {"email": "testnocartuser@test.com", "password": "Test123"}
+        get_user_model().objects.create_user(**new_user_data)  # create user
+
+        res_token = self.client.post(TOKEN_URL, new_user_data)  # get user token
+        user_token = res_token.data["token"]
+
+        payload = {
+            "product": self.product.id,  # cart payload
+            "count": 5,
+        }
+
+        res_post = self.client.post(MY_CART_URL, payload, HTTP_AUTHORIZATION=f"Bearer {user_token}")
+
+        self.assertEqual(res_post.data["data"]["product"]["id"], self.product.id)
+        self.assertEqual(res_post.data["data"]["product"]["title"], self.product.title)
+        self.assertEqual(res_post.data["data"]["count"], payload["count"])
+
+        self.assertEqual(res_post.status_code, status.HTTP_201_CREATED)
+
+        res_get = self.client.get(MY_CART_URL, HTTP_AUTHORIZATION=f"Bearer {user_token}")
+
+        self.assertTrue(res_get.data["data"]["items"])
+
+        self.assertEqual(res_get.data["data"]["items"][0]["product"]["id"], self.product.id)
+        self.assertEqual(res_get.data["data"]["items"][0]["count"], payload["count"])
+
+    def test_cart_view_delete_public_user_successful(self):
+        """
+        Tests if public user can delete product in cart api view
+        """
+
+        mock_cart_item = {
+            "cart": self.cart,  # cart payload
+            "product": self.product,
+            "count": 5,
+        }
+        cart_item = get_secondary_model().objects.create(**mock_cart_item)
+
+        cart_item_url = get_cart_item_detail_url(cart_item)
+
+        res_delete = self.client.delete(cart_item_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res_delete.status_code, status.HTTP_204_NO_CONTENT)
+
+        res_get = self.client.get(MY_CART_URL, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertFalse(res_get.data["data"]["items"])
