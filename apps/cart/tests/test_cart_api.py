@@ -9,7 +9,6 @@ from apps.cart.meta import get_app_model, get_secondary_model
 
 from db.models import Category, Product
 
-
 MY_CART_URL = reverse("api:my-cart")  # cart API url
 
 TOKEN_URL = reverse("users:user_token_obtain")  # user token API url
@@ -54,20 +53,19 @@ class PublicCartApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    # def test_cart_view_post_public_user_reject(self):
-    #     """
-    #     Tests if public user can't post product in cart api view
-    #     """
+    def test_cart_view_post_public_user_reject(self):
+        """
+        Tests if public user can't post product in cart api view
+        """
 
-    #     payload = {
-    #         "cart": self.cart.id,
-    #         "product": self.product.id,  # cart payload
-    #         "count": 5,
-    #     }
+        payload = {
+            "product": self.product.id,  # cart payload
+            "count": 5,
+        }
 
-    #     res = self.client.post(MY_CART_URL, payload)
+        res = self.client.post(MY_CART_URL, payload)
 
-    #     self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
     # def test_cart_view_delete_public_user_reject(self):
     #     """
@@ -164,3 +162,28 @@ class PrivateUserCartApiTests(TestCase):
         self.assertTrue(res.data["data"])
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_cart_view_post_cart_item_normal_user_successful(self):
+        """
+        Tests if normal user can post an item in cart
+        """
+
+        payload = {
+            "product": self.product.id,  # cart payload
+            "count": 5,
+        }
+
+        res_post = self.client.post(MY_CART_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res_post.data["data"]["product"]["id"], self.product.id)
+        self.assertEqual(res_post.data["data"]["product"]["title"], self.product.title)
+        self.assertEqual(res_post.data["data"]["count"], payload["count"])
+
+        self.assertEqual(res_post.status_code, status.HTTP_201_CREATED)
+
+        res_get = self.client.get(MY_CART_URL, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertTrue(res_get.data["data"]["items"])
+
+        self.assertEqual(res_get.data["data"]["items"][0]["product"]["id"], self.product.id)
+        self.assertEqual(res_get.data["data"]["items"][0]["count"], payload["count"])
