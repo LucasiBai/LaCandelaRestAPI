@@ -54,12 +54,11 @@ class CartSerializer(serializers.ModelSerializer):
         instance = self.context.get("instance", None)
 
         payload = {
-            "cart": instance,
             "product": product,
             "count": count
         }
 
-        cart_item = get_secondary_model().objects.create(**payload)
+        cart_item = instance.add_product(**payload)
 
         return cart_item
 

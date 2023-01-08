@@ -194,6 +194,8 @@ class Cart(models.Model):
         """
         Gets own products
         """
+        self.refresh_from_db()
+        
         products = CartItem.objects.filter(cart=self)
 
         return products
@@ -202,6 +204,7 @@ class Cart(models.Model):
         """
         Calculates total price
         """
+        self.refresh_from_db()
 
         cart_items = CartItem.objects.filter(cart=self)
 
@@ -218,17 +221,20 @@ class Cart(models.Model):
         if not product and not count:
             raise ValueError("Method must receive 'product' and 'count'")
 
-        self.total_items += count
-
         item_find = CartItem.objects.filter(cart=self, product=product).first()
 
         if item_find:
+            self.total_items += count
+            self.save()
+
             item_find.set_count(item_find.count + count)
+            item_find.save()
             return item_find
 
         payload = {"cart": self, "product": product, "count": count}
 
         cart_item = CartItem.objects.create(**payload)
+        cart_item.save()
 
         return cart_item
 

@@ -184,16 +184,18 @@ class PrivateUserCartApiTests(TestCase):
 
         self.assertEqual(res_post.data["data"]["product"]["id"], self.product.id)
         self.assertEqual(res_post.data["data"]["product"]["title"], self.product.title)
-        self.assertEqual(res_post.data["data"]["count"], payload["count"])
+        self.assertEqual(res_post.data["data"]["count"], 5 + payload["count"])
 
         self.assertEqual(res_post.status_code, status.HTTP_201_CREATED)
 
         res_get = self.client.get(MY_CART_URL, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
         self.assertTrue(res_get.data["data"]["items"])
+        self.assertEqual(len(res_get.data["data"]["items"]), 1)
 
         self.assertEqual(res_get.data["data"]["items"][0]["product"]["id"], self.product.id)
-        self.assertEqual(res_get.data["data"]["items"][0]["count"], payload["count"])
+        self.assertEqual(res_get.data["data"]["total_items"], 5 + payload["count"])
+        self.assertEqual(res_get.data["data"]["items"][0]["count"], 5 + payload["count"])
 
     def test_auto_cart_view_post_cart_item_normal_user_successful(self):
         """
@@ -221,8 +223,10 @@ class PrivateUserCartApiTests(TestCase):
         res_get = self.client.get(MY_CART_URL, HTTP_AUTHORIZATION=f"Bearer {user_token}")
 
         self.assertTrue(res_get.data["data"]["items"])
+        self.assertEqual(len(res_get.data["data"]["items"]), 1)
 
         self.assertEqual(res_get.data["data"]["items"][0]["product"]["id"], self.product.id)
+        self.assertEqual(res_get.data["data"]["total_items"], payload["count"])
         self.assertEqual(res_get.data["data"]["items"][0]["count"], payload["count"])
 
     def test_cart_view_delete_public_user_successful(self):
@@ -245,3 +249,7 @@ class PrivateUserCartApiTests(TestCase):
 
         with self.assertRaises(get_secondary_model().DoesNotExist):
             get_secondary_model().objects.get(pk=cart_item.pk)
+
+        res_get = self.client.get(MY_CART_URL, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertFalse(res_get.data["data"]["items"])
