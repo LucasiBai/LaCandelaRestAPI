@@ -190,13 +190,20 @@ class Cart(models.Model):
     def __str__(self):
         return f"{str(self.user)}'s Cart"
 
+    @staticmethod
+    def get_cart_item_model():
+        """
+        Returns cart item model
+        """
+        return CartItem
+
     def get_products(self):
         """
         Gets own products
         """
         self.refresh_from_db()
-        
-        products = CartItem.objects.filter(cart=self)
+
+        products = self.get_cart_item_model().objects.filter(cart=self)
 
         return products
 
@@ -206,7 +213,7 @@ class Cart(models.Model):
         """
         self.refresh_from_db()
 
-        cart_items = CartItem.objects.filter(cart=self)
+        cart_items = self.get_cart_item_model().objects.filter(cart=self)
 
         products_price = [item.product.price * item.count for item in cart_items]
 
@@ -221,22 +228,39 @@ class Cart(models.Model):
         if not product and not count:
             raise ValueError("Method must receive 'product' and 'count'")
 
-        item_find = CartItem.objects.filter(cart=self, product=product).first()
+        self.total_items += count
+        self.save()
+
+        item_find = self.get_cart_item_model().objects.filter(cart=self, product=product).first()
 
         if item_find:
-            self.total_items += count
-            self.save()
-
             item_find.set_count(item_find.count + count)
             item_find.save()
             return item_find
 
         payload = {"cart": self, "product": product, "count": count}
 
-        cart_item = CartItem.objects.create(**payload)
+        cart_item = self.get_cart_item_model().objects.create(**payload)
         cart_item.save()
 
         return cart_item
+
+    def remove_product(self, product: Product = None):
+        """
+        Deletes entered product and update total_items
+        """
+        if not product:
+            raise ValueError("Method must receive a 'product'")
+
+        cart_item = self.get_cart_item_model().objects.filter(cart=self, product=product).first()
+
+        if not cart_item:
+            raise self.DoesNotExist
+
+        self.total_items -= cart_item.count
+        self.save()
+
+        cart_item.delete()
 
 
 class CartItem(models.Model):

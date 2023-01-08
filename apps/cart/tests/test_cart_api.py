@@ -134,7 +134,7 @@ class PrivateUserCartApiTests(TestCase):
 
         # Cart creation
 
-        self.cart = self.model.objects.create(user=self.main_user)
+        self.cart = self.model.objects.create(user=self.main_user, total_items=5)
 
         self.cart_item = get_secondary_model().objects.create(
             product=self.product, cart=self.cart, count=5
@@ -234,22 +234,16 @@ class PrivateUserCartApiTests(TestCase):
         Tests if public user can delete product in cart api view
         """
 
-        mock_cart_item = {
-            "cart": self.cart,  # cart payload
-            "product": self.product,
-            "count": 5,
-        }
-        cart_item = get_secondary_model().objects.create(**mock_cart_item)
-
-        cart_item_url = get_cart_item_detail_url(cart_item)
+        cart_item_url = get_cart_item_detail_url(self.cart_item)
 
         res_delete = self.client.delete(cart_item_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
         self.assertEqual(res_delete.status_code, status.HTTP_204_NO_CONTENT)
 
         with self.assertRaises(get_secondary_model().DoesNotExist):
-            get_secondary_model().objects.get(pk=cart_item.pk)
+            get_secondary_model().objects.get(pk=self.cart_item.pk)
 
         res_get = self.client.get(MY_CART_URL, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
         self.assertFalse(res_get.data["data"]["items"])
+        self.assertEqual(res_get.data["data"]["total_items"], 0)

@@ -64,6 +64,7 @@ class CartItemRetrieveApiView(APIView):
     """
     Cart Item Retrieve Apiview
     """
+
     model = CartItemSerializer.Meta.model
     queryset = model.objects.all()
     serializer_class = CartItemSerializer
@@ -75,7 +76,9 @@ class CartItemRetrieveApiView(APIView):
         cart_item = self.queryset.filter(pk=pk).first()
 
         if cart_item:
-            cart_item.delete()
+            cart = cart_item.cart
+            cart.remove_product(cart_item.product)
+            
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         return Response({"message": "Cart Item not found."}, status=status.HTTP_404_NOT_FOUND)

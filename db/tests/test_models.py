@@ -4,7 +4,6 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.db.utils import IntegrityError
 
-
 from db.models import (
     Category,
     Product,
@@ -538,6 +537,84 @@ class CartModelTest(TestCase):
         self.assertEqual(len(products), 1)
 
         self.assertEqual(cart.total_items, mock_cart_item["count"] * 2)
+
+    def test_remove_product_in_cart_method_successful(self):
+        """
+        Test if cart has remove_product method and update total items
+        """
+        # Cart creation
+        mock_cart = {"user": self.user}
+        cart = Cart.objects.create(**mock_cart)
+
+        # Product creation
+        category = Category.objects.create(title="TestCategory")
+        mock_product = {
+            "title": "Test title",
+            "description": "Test description",
+            "price": 1111,
+            "images": [
+                "testimgurl.com/1",
+                "testimgurl.com/2",
+                "testimgurl.com/3",
+            ],
+            "stock": 11,
+            "category": category,
+            "sold": 11,
+        }
+        product = Product.objects.create(**mock_product)
+
+        # Cart item creation
+        mock_cart_item = {"product": product, "count": 5}
+        new_product = cart.add_product(**mock_cart_item)
+
+        # Execution of delete method
+        cart.remove_product(product)
+
+        products = cart.get_products()
+        self.assertFalse(products)
+
+        self.assertEqual(cart.total_items, 0)
+
+    def test_remove_product_in_cart_method_no_existing_item_reject(self):
+        """
+        Test if cart has remove_product method and reject when cart don't have product
+        """
+        # Cart creation
+        mock_cart = {"user": self.user}
+        cart = Cart.objects.create(**mock_cart)
+
+        # Product creation
+        category = Category.objects.create(title="TestCategory")
+        mock_product = {
+            "title": "Test title",
+            "description": "Test description",
+            "price": 1111,
+            "images": [
+                "testimgurl.com/1",
+                "testimgurl.com/2",
+                "testimgurl.com/3",
+            ],
+            "stock": 11,
+            "category": category,
+            "sold": 11,
+        }
+        product = Product.objects.create(**mock_product)
+
+        # Execution of delete method
+        with self.assertRaises(cart.DoesNotExist):
+            cart.remove_product(product)
+
+    def test_remove_product_in_cart_method_no_product_reject(self):
+        """
+        Test if cart has remove_product method and reject when no pass products
+        """
+        # Cart creation
+        mock_cart = {"user": self.user}
+        cart = Cart.objects.create(**mock_cart)
+
+        # Execution of delete method
+        with self.assertRaises(ValueError):
+            cart.remove_product()
 
     def test_get_total_price_in_cart_method_with_single_product_successful(self):
         """
