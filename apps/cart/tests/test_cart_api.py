@@ -243,6 +243,5 @@ class PrivateUserCartApiTests(TestCase):
 
         self.assertEqual(res_delete.status_code, status.HTTP_204_NO_CONTENT)
 
-        res_get = self.client.get(MY_CART_URL, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
-
-        self.assertFalse(res_get.data["data"]["items"])
+        with self.assertRaises(get_secondary_model().DoesNotExist):
+            get_secondary_model().objects.get(pk=cart_item.pk)

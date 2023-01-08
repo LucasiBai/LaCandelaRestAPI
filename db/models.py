@@ -28,7 +28,7 @@ class UserAccountManager(BaseUserManager):
         return user
 
     def create_superuser(self, email, password, **kwargs):
-        """Creates a super user with email"""
+        """Creates a superuser with email"""
 
         if not email or not password:
             raise ValueError("Users must have an email address and password")
