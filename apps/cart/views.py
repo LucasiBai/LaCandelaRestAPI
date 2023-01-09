@@ -77,8 +77,12 @@ class CartItemRetrieveApiView(APIView):
 
         if cart_item:
             cart = cart_item.cart
+
+            if not request.user.id == cart.user.id:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+
             cart.remove_product(cart_item.product)
-            
+
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         return Response({"message": "Cart Item not found."}, status=status.HTTP_404_NOT_FOUND)

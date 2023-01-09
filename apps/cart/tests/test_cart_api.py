@@ -229,9 +229,9 @@ class PrivateUserCartApiTests(TestCase):
         self.assertEqual(res_get.data["data"]["total_items"], payload["count"])
         self.assertEqual(res_get.data["data"]["items"][0]["count"], payload["count"])
 
-    def test_cart_view_delete_public_user_successful(self):
+    def test_cart_view_delete_cart_item_normal_user_successful(self):
         """
-        Tests if public user can delete product in cart api view
+        Tests if normal user can delete product in cart api view
         """
 
         cart_item_url = get_cart_item_detail_url(self.cart_item)
@@ -247,3 +247,34 @@ class PrivateUserCartApiTests(TestCase):
 
         self.assertFalse(res_get.data["data"]["items"])
         self.assertEqual(res_get.data["data"]["total_items"], 0)
+
+    def test_cart_view_delete_no_existing_cart_item_normal_user_reject(self):
+        """
+        Tests if normal user can't delete not added product in cart api view
+        """
+
+        cart_item_url = MY_CART_URL + "412/"
+
+        res_delete = self.client.delete(cart_item_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res_delete.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_cart_view_delete_cart_item_of_other_user_reject(self):
+        """
+        Tests if normal user can't delete product of other user in cart api view
+        """
+        # Another user create
+        new_user_data = {"email": "testnocartuser@test.com", "password": "Test123"}
+        new_user = get_user_model().objects.create_user(**new_user_data)  # create user
+
+        user_cart = self.model.objects.create(user=new_user)
+        cart_item = user_cart.add_product(self.product, 5)
+
+        cart_item_url = get_cart_item_detail_url(cart_item)
+
+        res_delete = self.client.delete(
+            cart_item_url,
+            HTTP_AUTHORIZATION=f"Bearer {self.user_token}",  # current user token
+        )
+
+        self.assertEqual(res_delete.status_code, status.HTTP_401_UNAUTHORIZED)
