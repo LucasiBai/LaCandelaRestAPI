@@ -124,6 +124,7 @@ class Product(models.Model):
     stock = models.PositiveIntegerField()
     category = models.ForeignKey("Category", on_delete=models.CASCADE)
     sold = models.PositiveBigIntegerField()
+    rate = models.FloatField(default=5.0, editable=False)
 
     class Meta:
         verbose_name = _("Product")
@@ -131,6 +132,22 @@ class Product(models.Model):
 
     def __str__(self):
         return self.title
+
+    def create_comment(self, user: UserAccount, subject: str, content: str, rate: float):
+        """
+        Creates a comment and update rate with avg
+        """
+        if not 0.1 <= rate <= 5:
+            raise ValueError("Rate must be between 0.0 and 5.0")
+
+        comment = Comment.objects.create(product=self, user=user, subject=subject, content=content, rate=rate)
+
+        product_rate_avg = Comment.objects.filter(product=self).aggregate(models.Avg('rate'))
+
+        self.rate = product_rate_avg['rate__avg']
+        self.save()
+
+        return comment
 
 
 class ShippingInfo(models.Model):

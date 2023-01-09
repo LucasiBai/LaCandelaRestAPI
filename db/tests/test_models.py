@@ -158,6 +158,7 @@ class ProductModelTest(TestCase):
         self.assertEqual(product.description, self.mock_product["description"])
         self.assertEqual(product.images[0], self.mock_product["images"][0])
         self.assertEqual(product.category, self.category)
+        self.assertEqual(product.rate, 5.0)
 
         self.assertEqual(self.mock_product["title"], str(product))
 
@@ -170,6 +171,84 @@ class ProductModelTest(TestCase):
 
         with self.assertRaises(IntegrityError):
             Product.objects.create(**self.mock_product)
+
+    def test_create_comment_product_method_successful(self):
+        """
+        Tests if product has create_comment and update his rate with it
+        """
+        product = Product.objects.create(**self.mock_product)
+
+        user = get_user_model().objects.create_user(email="testemail@test.com")
+
+        comment_payload = {
+            "user": user,
+            "subject": "Test Subject",
+            "content": "Test Content",
+            "rate": 3.2,
+        }
+
+        comment = product.create_comment(**comment_payload)
+
+        self.assertEqual(product.rate, 3.2)
+        self.assertEqual(comment.product, product)
+        self.assertEqual(comment.user, user)
+
+    def test_create_comment_product_method_sets_avg_rate_successful(self):
+        """
+        Tests if product has create_comment and update his rate with avg
+        """
+        product = Product.objects.create(**self.mock_product)
+
+        user = get_user_model().objects.create_user(email="testemail@test.com")
+
+        comment_payload = {
+            "user": user,
+            "subject": "Test Subject",
+            "content": "Test Content",
+            "rate": 2,
+        }
+        product.create_comment(**comment_payload)
+
+        comment_payload["rate"] = 4
+        product.create_comment(**comment_payload)
+
+        self.assertEqual(product.rate, 3)
+
+    def test_create_comment_product_method_negative_rate_reject(self):
+        """
+        Tests if product can't create comment with negative rate
+        """
+        product = Product.objects.create(**self.mock_product)
+
+        user = get_user_model().objects.create_user(email="testemail@test.com")
+
+        comment_payload = {
+            "user": user,
+            "subject": "Test Subject",
+            "content": "Test Content",
+            "rate": -0.1,
+        }
+
+        with self.assertRaises(ValueError):
+            product.create_comment(**comment_payload)
+
+    def test_create_comment_product_method_greater_rate_reject(self):
+        """
+        Tests if product can't create comment with rate greater than 5
+        """
+        product = Product.objects.create(**self.mock_product)
+
+        user = get_user_model().objects.create_user(email="testemail@test.com")
+
+        comment_payload = {
+            "user": user,
+            "subject": "Test Subject",
+            "content": "Test Content",
+            "rate": 5.1,
+        }
+
+        with self.assertRaises(ValueError):
+            product.create_comment(**comment_payload)
 
 
 class ShippingInfoModelTest(TestCase):
