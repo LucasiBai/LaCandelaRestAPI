@@ -464,6 +464,59 @@ class CommentModelTest(TestCase):
 
         self.assertTrue(comment.created_at)
 
+    def test_comment_manager_get_rate_avg_of_method_successful(self):
+        """
+        Tests if comment has a manager with get_rate_avg_of and return
+        the rate avg of entered product
+        """
+        mock_comment = {
+            "user": self.user,
+            "product": self.product,
+            "subject": "Test comment subject",
+            "content": "Test comment content",
+            "rate": 5,
+        }
+
+        comment = Comment.objects.create(**mock_comment)
+
+        mock_comment["rate"] = 2
+        comment = Comment.objects.create(**mock_comment)
+
+        rate_avg = Comment.objects.get_rate_avg_of(self.product)
+
+        self.assertEqual(rate_avg, 3.5)
+
+    def test_comment_manager_get_rate_avg_of_method_no_comment_successful(self):
+        """
+        Tests if comment has a manager with get_rate_avg_of and return
+        the rate as 5 whether model doesn't have comment of product
+        """
+
+        rate_avg = Comment.objects.get_rate_avg_of(self.product)
+
+        self.assertEqual(rate_avg, 5)
+
+    def test_comment_manager_get_rate_avg_of_method_no_param_reject(self):
+        """
+        Tests if comment has a manager with get_rate_avg_of and return
+        the rate avg of entered product
+        """
+        mock_comment = {
+            "user": self.user,
+            "product": self.product,
+            "subject": "Test comment subject",
+            "content": "Test comment content",
+            "rate": 5,
+        }
+
+        comment = Comment.objects.create(**mock_comment)
+
+        mock_comment["rate"] = 2
+        comment = Comment.objects.create(**mock_comment)
+
+        with self.assertRaises(ValueError):
+            Comment.objects.get_rate_avg_of()
+
 
 class CartModelTest(TestCase):
     """

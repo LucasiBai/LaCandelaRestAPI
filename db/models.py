@@ -92,6 +92,25 @@ class Category(models.Model):
         return self.title
 
 
+class CommentManager(models.Manager):
+    """
+    Custom Comment Manager
+    """
+
+    def get_rate_avg_of(self, product=None):
+        """
+        Get rate avg of entered product
+        """
+        if not product:
+            raise ValueError("Method must receive 'product'")
+
+        rate_avg = Comment.objects.filter(product=product).aggregate(models.Avg('rate'))
+
+        if rate_avg["rate__avg"]:
+            return rate_avg["rate__avg"]
+        return 5
+
+
 class Comment(models.Model):
     """
     Comment model
@@ -103,6 +122,8 @@ class Comment(models.Model):
     content = models.TextField()
     rate = models.FloatField()
     created_at = models.DateField(auto_now_add=True)
+
+    objects = CommentManager()  # custom manager
 
     class Meta:
         verbose_name = _("Comment")
@@ -142,9 +163,9 @@ class Product(models.Model):
 
         comment = Comment.objects.create(product=self, user=user, subject=subject, content=content, rate=rate)
 
-        product_rate_avg = Comment.objects.filter(product=self).aggregate(models.Avg('rate'))
+        product_rate_avg = Comment.objects.get_rate_avg_of(self)
 
-        self.rate = product_rate_avg['rate__avg']
+        self.rate = product_rate_avg
         self.save()
 
         return comment
