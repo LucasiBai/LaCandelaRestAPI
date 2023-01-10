@@ -31,8 +31,8 @@ class ProductsFilterSet(FilterResultsFilterset, FilterMethods):
         field_name="price", lookup_expr="lte", label=_("Max Price")
     )
 
-    min_rate = filters.NumberFilter(method="query_min_rate", label=_("Min Rate"))
-    max_rate = filters.NumberFilter(method="query_max_rate", label=_("Max Rate"))
+    min_rate = filters.NumberFilter(field_name="rate", lookup_expr="gte", label=_("Min Rate"))
+    max_rate = filters.NumberFilter(field_name="rate", lookup_expr="lte", label=_("Max Rate"))
 
     offset = filters.NumberFilter(method="query_offset", label=_("Offset"))
 

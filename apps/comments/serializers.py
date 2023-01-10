@@ -28,7 +28,7 @@ class CommentSerializer(serializers.ModelSerializer):
         current_user = self.context.get("user", None)
         action = self.context.get("action", None)
 
-        if action:
+        if action and action == "create":
             if current_user.id != value.id and not current_user.is_superuser:
                 raise serializers.ValidationError(
                     "Current user only can create his own comment"
@@ -51,7 +51,7 @@ class CommentSerializer(serializers.ModelSerializer):
         """
         action = self.context.get("action", None)
 
-        if action:
+        if action and action == "create":
             product = attrs["product"]
             current_user = attrs["user"]
             user_orders = Order.objects.filter(buyer=current_user)
@@ -69,3 +69,19 @@ class CommentSerializer(serializers.ModelSerializer):
 
         else:
             return attrs
+
+    def create(self, validated_data):
+        """
+        Creates a new comment with product create_comment
+        """
+        product = validated_data.get("product", None)
+
+        data = validated_data
+        data.pop("product")
+
+        if not product:
+            raise self.Meta.model.DoesNotExist
+
+        instance = product.create_comment(**data)
+
+        return instance

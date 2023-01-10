@@ -486,6 +486,28 @@ class CommentModelTest(TestCase):
 
         self.assertEqual(rate_avg, 3.5)
 
+    def test_comment_manager_get_rate_avg_of_method_rounded_rate_successful(self):
+        """
+        Tests if comment has a manager with get_rate_avg_of and return
+        the rounded rate avg of entered product
+        """
+        mock_comment = {
+            "user": self.user,
+            "product": self.product,
+            "subject": "Test comment subject",
+            "content": "Test comment content",
+            "rate": 4.3,
+        }
+
+        comment = Comment.objects.create(**mock_comment)
+
+        mock_comment["rate"] = 2.4
+        comment = Comment.objects.create(**mock_comment)
+
+        rate_avg = Comment.objects.get_rate_avg_of(self.product)
+
+        self.assertEqual(rate_avg, 3.35)
+
     def test_comment_manager_get_rate_avg_of_method_no_comment_successful(self):
         """
         Tests if comment has a manager with get_rate_avg_of and return

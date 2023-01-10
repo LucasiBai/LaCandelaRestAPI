@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
 from .meta import get_app_model
-from .utils import get_rate_of
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -20,6 +19,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "stock",
             "category",
             "sold",
+            "rate",
         ]
         extra_kwargs = {"id": {"read_only": True}}
 
@@ -27,8 +27,6 @@ class ProductSerializer(serializers.ModelSerializer):
         """
         Custom representation of instance
         """
-
-        rate = get_rate_of(instance)
 
         data = {
             "id": instance.id,
@@ -39,7 +37,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "stock": instance.stock,
             "category": instance.category.title,
             "sold": instance.sold,
-            "rate": rate,
+            "rate": instance.rate,
         }
 
         return data

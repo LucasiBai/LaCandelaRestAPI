@@ -8,7 +8,6 @@ from rest_framework import status
 from apps.products.meta import get_app_model
 from db.models import Category, Comment
 
-
 PRODUCTS_LIST_URL = reverse("api:product-list")  # products list api url
 
 TOKEN_URL = reverse("users:user_token_obtain")  # user token API url
@@ -126,13 +125,12 @@ class PublicProductsAPITests(TestCase):
 
         mock_comment = {
             "user": user,
-            "product": self.product,
             "subject": "Test comment subject",
             "content": "Test comment content",
             "rate": 4.3,
         }
 
-        Comment.objects.create(**mock_comment)
+        self.product.create_comment(**mock_comment)
 
         products_list = self.model.objects.all()
         product_url = get_products_detail_url(products_list)
@@ -151,7 +149,6 @@ class PublicProductsAPITests(TestCase):
 
         first_mock_comment = {
             "user": user,
-            "product": self.product,
             "subject": "Test comment subject",
             "content": "Test comment content",
             "rate": 4.3,
@@ -159,8 +156,8 @@ class PublicProductsAPITests(TestCase):
 
         second_mock_comment = {**first_mock_comment, "rate": 2.4}
 
-        Comment.objects.create(**first_mock_comment)
-        Comment.objects.create(**second_mock_comment)
+        self.product.create_comment(**first_mock_comment)
+        self.product.create_comment(**second_mock_comment)
 
         products_list = self.model.objects.all()
         product_url = get_products_detail_url(products_list)
@@ -489,12 +486,11 @@ class PublicProductsAPITests(TestCase):
 
         mock_comment = {
             "user": user,
-            "product": self.product,
             "subject": "Test comment subject",  # new comment
             "content": "Test comment content",
             "rate": 4.3,
         }
-        Comment.objects.create(**mock_comment)
+        self.product.create_comment(**mock_comment)
 
         min_rate_filter_url = get_filter_url("min_rate", "5")
 
@@ -522,12 +518,11 @@ class PublicProductsAPITests(TestCase):
 
         mock_comment = {
             "user": user,
-            "product": self.product,
             "subject": "Test comment subject",  # new comment
             "content": "Test comment content",
             "rate": 4.3,
         }
-        Comment.objects.create(**mock_comment)
+        self.product.create_comment(**mock_comment)
 
         max_rate_filter_url = get_filter_url("max_rate", "4.3")
 

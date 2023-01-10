@@ -97,7 +97,8 @@ class CommentManager(models.Manager):
     Custom Comment Manager
     """
 
-    def get_rate_avg_of(self, product=None):
+    @staticmethod
+    def get_rate_avg_of(product=None):
         """
         Get rate avg of entered product
         """
@@ -107,7 +108,7 @@ class CommentManager(models.Manager):
         rate_avg = Comment.objects.filter(product=product).aggregate(models.Avg('rate'))
 
         if rate_avg["rate__avg"]:
-            return rate_avg["rate__avg"]
+            return round(rate_avg["rate__avg"], 2)
         return 5
 
 
