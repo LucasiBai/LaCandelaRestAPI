@@ -10,3 +10,5 @@ django-cors-headers==3.13
 psycopg2==2.9.4
 
 djangorestframework-simplejwt==5.2.2
+
+mercadopago==2.2.0
