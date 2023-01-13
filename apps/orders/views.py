@@ -24,7 +24,7 @@ class OrderViewset(FilterMethodsViewset):
         """
         Gets custom permission for the view
         """
-        if self.action == "create" or self.action == "get_mine_orders":
+        if self.action == "get_mine_orders":
             permission_classes = [IsAuthenticated]
         else:
             permission_classes = [IsAuthenticated, IsAdminUser]

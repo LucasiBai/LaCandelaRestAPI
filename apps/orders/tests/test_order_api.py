@@ -403,9 +403,9 @@ class PrivateUsersOrdersAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_own_order_list_post_normal_user_successful(self):
+    def test_own_order_list_post_normal_user_reject(self):
         """
-        Tests if normal user can post order list
+        Tests if normal user can't post order list
         """
         mock_shipping_info = {
             "user": self.main_user,
@@ -429,7 +429,7 @@ class PrivateUsersOrdersAPITests(TestCase):
             ORDER_LIST_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
         )
 
-        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_order_list_post_normal_user_for_other_user_reject(self):
         """
@@ -448,7 +448,7 @@ class PrivateUsersOrdersAPITests(TestCase):
             ORDER_LIST_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
         )
 
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_own_order_detail_patch_normal_user_reject(self):
         """

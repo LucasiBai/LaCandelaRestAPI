@@ -48,7 +48,7 @@ class PaymentMethodsTests(TestCase):
         """
 
         with self.assertRaises(ValueError):
-            payment_method = self.payment_model()
+            self.payment_model()
 
     def test_mercado_pago_get_preference_successful(self):
         """
@@ -68,7 +68,7 @@ class PaymentMethodsTests(TestCase):
 
         preference_items = preference["items"]
 
-        self.assertEquals(preference_items[0]["id"], self.product.id)
+        self.assertEquals(preference_items[0]["id"], str(self.product.id))
         self.assertEquals(preference_items[0]["quantity"], self.cart_item.count)
 
     # TODO: Create test of change_payment_method

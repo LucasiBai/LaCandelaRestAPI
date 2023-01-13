@@ -1,8 +1,10 @@
+import datetime
+
 import mercadopago
 
 from .models import PaymentState
 
-from db.models import Cart
+from db.models import Cart, CartItem
 
 from .meta import MP_ACCESS_TOKEN
 
@@ -49,54 +51,68 @@ class MercadoPagoMethod(PaymentState.PaymentStateInterface):
     def __str__(self):
         return "MercadoPago Payment Method"
 
+    def format_preference(self, data):
+        """
+        Formats obtained preference
+        """
+        format_data = {
+            "id": data["id"],
+            "client_id": data["client_id"],
+            "date_created": data["date_created"],
+            "marketplace": data["marketplace"],
+            "items": data["items"],
+            "payer": data["payer"],
+            "date_of_expiration": data["date_of_expiration"],
+            "init_point": data["init_point"],
+        }
+
+        return format_data
+
+    def format_cart_item(self, item: CartItem):
+        """
+        Formats cart item for preference data
+        """
+        format_data = {
+            "id": item.product.id,
+            "currency_id": "ARS",
+            "description": item.product.description,
+            "category_id": item.product.category.title,
+            "picture_url": item.product.images[0],
+            "title": item.product.title,
+            "quantity": item.count,
+            "unit_price": float(item.product.price),
+        }
+
+        return format_data
+
     def get_preference(self):
-        """Gets Mercado Pago preference data"""
+        """
+        Gets Mercado Pago preference data
+        """
+        cart_items = [self.format_cart_item(item) for item in self._cart.get_products()]
+
+        user = self._cart.user
 
         sdk = mercadopago.SDK(MP_ACCESS_TOKEN)
 
         preference_data = {
-            "items": [
-                {
-                    "title": "Mi producto",
-                    "quantity": 1,
-                    "unit_price": 75.76,
-                }
-            ]
+            "items": cart_items,
+            "payer": {
+                "name": user.first_name,
+                "surname": user.last_name,
+                "email": user.email,
+            },
+            "back_urls": {
+                "success": "https://www.success.com",
+                "failure": "http://www.failure.com",
+                "pending": "http://www.pending.com"
+            },
+            "date_of_expiration": (datetime.datetime.now() + datetime.timedelta(days=3)).strftime(
+                "%Y-%m-%dT%H:%M:%S-04:00")
         }
 
         preference_response = sdk.preference().create(preference_data)
 
         preference = preference_response["response"]
 
-        return preference
-
-# example_data = {'additional_info': '', 'auto_return': '', 'back_urls': {'failure': '', 'pending': '', 'success': ''},
-#                 'binary_mode': False, 'client_id': '4717115773333598', 'collector_id': 643565524, 'coupon_code': None,
-#                 'coupon_labels': None, 'date_created': '2023-01-12T06:10:24.102-04:00', 'date_of_expiration': None,
-#                 'expiration_date_from': None, 'expiration_date_to': None, 'expires': False, 'external_reference': '',
-#                 'id': '643565524-83578599-1952-4a2e-a8b4-f481c1a97df5',
-#                 'init_point': 'https://www.mercadopago.com.ar/checkout/v1/redirect?pref_id=643565524-83578599-1952-4a2e-a8b4-f481c1a97df5',
-#                 'internal_metadata': None, 'items': [
-#         {'id': '', 'category_id': '', 'currency_id': 'ARS', 'description': '', 'title': 'Mi producto', 'quantity': 1,
-#          'unit_price': 75.76}], 'marketplace': 'MP-MKT-4717115773333598', 'marketplace_fee': 0, 'metadata': {},
-#                 'notification_url': None, 'operation_type': 'regular_payment',
-#                 'payer': {'phone': {'area_code': '', 'number': ''},
-#                           'address': {'zip_code': '', 'street_name': '',
-#                                       'street_number': None},
-#                           'email': '',
-#                           'identification': {'number': '', 'type': ''},
-#                           'name': '', 'surname': '',
-#                           'date_created': None, 'last_purchase': None},
-#                 'payment_methods': {'default_card_id': None, 'default_payment_method_id': None,
-#                                     'excluded_payment_methods': [{'id': ''}], 'excluded_payment_types': [{'id': ''}],
-#                                     'installments': None, 'default_installments': None}, 'processing_modes': None,
-#                 'product_id': None,
-#                 'redirect_urls': {'failure': '', 'pending': '', 'success': ''},
-#                 'sandbox_init_point': 'https://sandbox.mercadopago.com.ar/checkout/v1/redirect?pref_id=643565524-83578599-1952-4a2e-a8b4-f481c1a97df5',
-#                 'site_id': 'MLA', 'shipments': {'default_shipping_method': None,
-#                                                 'receiver_address': {'zip_code': '', 'street_name': '',
-#                                                                      'street_number': None,
-#                                                                      'floor': '', 'apartment': '', 'city_name': None,
-#                                                                      'state_name': None, 'country_name': None}},
-#                 'total_amount': None,
-#                 'last_updated': None}
+        return self.format_preference(preference)
