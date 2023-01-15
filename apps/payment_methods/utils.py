@@ -1,12 +1,12 @@
-import datetime
+from datetime import datetime
 
 import mercadopago
 
-from .models import PaymentState
+from core.settings.base import MERCADO_PAGO_CONFIG
 
 from db.models import Cart, CartItem
 
-from .meta import MP_ACCESS_TOKEN
+from .models import PaymentState
 
 
 class PaymentMethod:
@@ -93,7 +93,7 @@ class MercadoPagoMethod(PaymentState.PaymentStateInterface):
 
         user = self._cart.user
 
-        sdk = mercadopago.SDK(MP_ACCESS_TOKEN)
+        sdk = mercadopago.SDK(MERCADO_PAGO_CONFIG["ACCESS_TOKEN"])
 
         preference_data = {
             "items": cart_items,
@@ -102,12 +102,8 @@ class MercadoPagoMethod(PaymentState.PaymentStateInterface):
                 "surname": user.last_name,
                 "email": user.email,
             },
-            "back_urls": {
-                "success": "https://www.success.com",
-                "failure": "http://www.failure.com",
-                "pending": "http://www.pending.com"
-            },
-            "date_of_expiration": (datetime.datetime.now() + datetime.timedelta(days=3)).strftime(
+            "back_urls": MERCADO_PAGO_CONFIG["BACK_URLS"],
+            "date_of_expiration": (datetime.now() + MERCADO_PAGO_CONFIG["DATE_OF_EXPIRATION"]).strftime(
                 "%Y-%m-%dT%H:%M:%S-04:00")
         }
 

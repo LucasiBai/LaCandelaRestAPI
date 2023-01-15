@@ -1,7 +1,7 @@
 from pathlib import Path
 import environ
 import os
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 env = environ.Env()
 environ.Env.read_env()
@@ -125,3 +125,11 @@ EMAIL_PORT = env("EMAIL_PORT")
 EMAIL_USE_TLS = env("EMAIL_USE_TLS")
 EMAIL_HOST_USER = env("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = "qhvnilqmludrrakd"
+
+MERCADO_PAGO_CONFIG = {
+    "ACCESS_TOKEN": env("MP_ACCESS_TOKEN"),
+    "DATE_OF_EXPIRATION": timedelta(days=3),
+    "BACK_URLS": {
+        "success": "http://localhost:8000/api/cart/",
+    }
+}

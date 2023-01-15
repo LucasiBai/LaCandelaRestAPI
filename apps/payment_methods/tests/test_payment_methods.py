@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 
@@ -19,7 +21,7 @@ class PaymentMethodsTests(TestCase):
         mock_product = {
             "title": "Test title",
             "description": "Test description",
-            "price": 1111,
+            "price": 11,
             "images": [
                 "testimgurl.com/1",
                 "testimgurl.com/2",  # Mock product data
@@ -65,10 +67,25 @@ class PaymentMethodsTests(TestCase):
         self.assertIn("marketplace", preference)
         self.assertIn("payer", preference)
         self.assertIn("init_point", preference)
+        self.assertIn("date_of_expiration", preference)
 
         preference_items = preference["items"]
 
         self.assertEquals(preference_items[0]["id"], str(self.product.id))
         self.assertEquals(preference_items[0]["quantity"], self.cart_item.count)
+
+    def test_mercado_pago_get_preference_date_of_expiration_successful(self):
+        """
+        Tests if method returns the correct date of expiration
+        """
+
+        payment_method = self.payment_model(self.cart, MercadoPagoMethod)
+
+        preference = payment_method.get_preference()
+
+        estimated_date = (datetime.now() + timedelta(days=3)).strftime(
+            "%Y-%m-%d")
+
+        self.assertEquals(preference["date_of_expiration"][:10], estimated_date)
 
     # TODO: Create test of change_payment_method
