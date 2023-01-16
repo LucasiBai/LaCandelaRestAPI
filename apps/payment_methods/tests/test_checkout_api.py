@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework import status
 
-from db.models import Cart
+from db.models import Cart, Category, Product
 
 TOKEN_URL = reverse("users:user_token_obtain")  # user token API url
 
@@ -66,12 +66,52 @@ class PrivateCheckoutApiTests(TestCase):
 
         self.cart = Cart.objects.create(user=self.user)
 
-    def test_checkout_view_mp_method_public_user_reject(self):
+        category = Category.objects.create(title="TestCategory")
+
+        mock_product = {
+            "title": "Test title",
+            "description": "Test description",
+            "price": 11,
+            "images": [
+                "testimgurl.com/1",
+                "testimgurl.com/2",  # Mock product data
+                "testimgurl.com/3",
+            ],
+            "stock": 11,
+            "category": category,
+            "sold": 11,
+        }
+        self.product = Product.objects.create(**mock_product)
+
+        self.cart_item = self.cart.add_product(self.product, 5)
+
+    def test_checkout_view_mp_method_normal_user_successful(self):
         """
-        Tests if public user can't see checkout view
+        Tests if public user can see own checkout view
         """
         checkout_url = get_checkout_of("mp", self.cart.id)
 
         res = self.client.get(checkout_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
+        self.assertContains(res, "user")
+        self.assertContains(res, "preference")
+
         self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    # TODO: Test remove cart items
+    def test_checkout_view_of_other_user_mp_method_normal_user_successful(self):
+        """
+        Tests if public user can't see checkout view of other user
+        """
+        new_user = get_user_model().objects.create_user(email="newuser@test.com")
+
+        user_cart = Cart.objects.create(user=new_user)
+
+        checkout_url = get_checkout_of("mp", user_cart.id)
+
+        res = self.client.get(checkout_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+

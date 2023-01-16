@@ -301,6 +301,19 @@ class Cart(models.Model):
 
         cart_item.delete()
 
+    def remove_all_products(self):
+        """
+        Deletes all cart products and update total_items
+        """
+
+        cart_items = self.get_cart_item_model().objects.filter(cart=self)
+
+        if cart_items:
+            cart_items.delete()
+
+        self.total_items = 0
+        self.save()
+
 
 class CartItem(models.Model):
     """

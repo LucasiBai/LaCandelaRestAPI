@@ -849,6 +849,65 @@ class CartModelTest(TestCase):
             + second_product.price * second_cart_item.count,
         )
 
+    def test_remove_all_products_in_cart_method_successful(self):
+        """
+        Test if cart has remove_all_products method and update total items
+        """
+        # Cart creation
+        mock_cart = {"user": self.user}
+        cart = Cart.objects.create(**mock_cart)
+
+        # Product creation
+        category = Category.objects.create(title="TestCategory")
+        mock_product = {
+            "title": "Test title",
+            "description": "Test description",
+            "price": 1111,
+            "images": [
+                "testimgurl.com/1",
+                "testimgurl.com/2",
+                "testimgurl.com/3",
+            ],
+            "stock": 11,
+            "category": category,
+            "sold": 11,
+        }
+        first_product = Product.objects.create(**mock_product)
+
+        mock_product["title"] = "Second Product"
+        second_product = Product.objects.create(**mock_product)
+
+        # Cart item creation
+        mock_cart_item = {"product": first_product, "count": 5}
+        cart.add_product(**mock_cart_item)
+
+        mock_cart_item = {"product": second_product, "count": 3}
+        cart.add_product(**mock_cart_item)
+
+        # Execution of delete method
+        cart.remove_all_products()
+
+        products = cart.get_products()
+        self.assertFalse(products)
+
+        self.assertEqual(cart.total_items, 0)
+
+    def test_remove_all_products_in_cart_method_no_products_in_cart_successful(self):
+        """
+        Test if cart has remove_all_products method and don't raise an error if is empty
+        """
+        # Cart creation
+        mock_cart = {"user": self.user}
+        cart = Cart.objects.create(**mock_cart)
+
+        # Execution of delete method
+        cart.remove_all_products()
+
+        products = cart.get_products()
+        self.assertFalse(products)
+
+        self.assertEqual(cart.total_items, 0)
+
 
 class CartItemModelTest(TestCase):
     """
