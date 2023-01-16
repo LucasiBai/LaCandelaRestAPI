@@ -1,7 +1,7 @@
 from pathlib import Path
 import environ
 import os
-from datetime import timedelta, datetime
+from datetime import timedelta
 
 env = environ.Env()
 environ.Env.read_env()

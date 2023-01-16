@@ -1,3 +1,5 @@
+from random import randint
+
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth import get_user_model
@@ -59,7 +61,7 @@ class PrivateCheckoutApiTests(TestCase):
             "email": "testemail@test.com",
             "password": "pass123"
         }
-        self.user = get_user_model().objects.create(**self.user_data)
+        self.user = get_user_model().objects.create_user(**self.user_data)
 
         res_token = self.client.post(TOKEN_URL, self.user_data)  # get user token
         self.user_token = res_token.data["token"]
@@ -87,7 +89,7 @@ class PrivateCheckoutApiTests(TestCase):
 
     def test_checkout_view_mp_method_normal_user_successful(self):
         """
-        Tests if public user can see own checkout view
+        Tests if normal user can see own checkout view
         """
         checkout_url = get_checkout_of("mp", self.cart.id)
 
@@ -98,10 +100,21 @@ class PrivateCheckoutApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-    # TODO: Test remove cart items
-    def test_checkout_view_of_other_user_mp_method_normal_user_successful(self):
+    def test_checkout_view_mp_method_normal_user_no_existing_cart_reject(self):
         """
-        Tests if public user can't see checkout view of other user
+        Tests if api rejects a no existing cart id
+        """
+        checkout_url = get_checkout_of("mp", randint(13212, 132214))
+
+        res = self.client.get(checkout_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.data["message"], "cart id is invalid.")
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_checkout_view_of_other_user_mp_method_normal_user_reject(self):
+        """
+        Tests if normal user can't see checkout view of other user
         """
         new_user = get_user_model().objects.create_user(email="newuser@test.com")
 
@@ -113,5 +126,16 @@ class PrivateCheckoutApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
+    def test_checkout_view_normal_user_no_existing_method_reject(self):
+        """
+        Tests if api rejects a no existing method
+        """
+        checkout_url = get_checkout_of("no-existing-method", self.cart.id)
 
+        res = self.client.get(checkout_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
+        self.assertEqual(res.data["message"], "method is invalid.")
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    # TODO: Test remove cart items
