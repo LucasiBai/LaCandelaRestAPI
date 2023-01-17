@@ -130,6 +130,6 @@ MERCADO_PAGO_CONFIG = {
     "ACCESS_TOKEN": env("MP_ACCESS_TOKEN"),
     "DATE_OF_EXPIRATION": timedelta(days=3),
     "BACK_URLS": {
-        "success": "http://localhost:8000/api/cart/",
+        "success": "http://localhost:8000/api/products/",
     }
 }

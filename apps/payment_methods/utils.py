@@ -1,8 +1,8 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import mercadopago
 
-from core.settings.base import MERCADO_PAGO_CONFIG
+from core.settings.base import MERCADO_PAGO_CONFIG, env
 
 from db.models import Cart, CartItem
 
@@ -85,6 +85,12 @@ class MercadoPagoMethod(PaymentState.PaymentStateInterface):
 
         return format_data
 
+    def get_expiration_date(self, timedelta):
+        """
+        Gets expiration date using entered timedelta
+        """
+        return (datetime.now() + timedelta).strftime("%Y-%m-%dT%H:%M:%S-04:00")
+
     def get_preference(self):
         """
         Gets Mercado Pago preference data
@@ -102,9 +108,11 @@ class MercadoPagoMethod(PaymentState.PaymentStateInterface):
                 "surname": user.last_name,
                 "email": user.email,
             },
-            "back_urls": MERCADO_PAGO_CONFIG["BACK_URLS"],
-            "date_of_expiration": (datetime.now() + MERCADO_PAGO_CONFIG["DATE_OF_EXPIRATION"]).strftime(
-                "%Y-%m-%dT%H:%M:%S-04:00")
+            "binary_mode": MERCADO_PAGO_CONFIG.get("binary_mode", True),
+            "statement_descriptor": env("APP_NAME"),
+            "back_urls": MERCADO_PAGO_CONFIG.get("BACK_URLS", {}),
+            "date_of_expiration": self.get_expiration_date(
+                MERCADO_PAGO_CONFIG.get("DATE_OF_EXPIRATION", timedelta(days=3)))
         }
 
         preference_response = sdk.preference().create(preference_data)

@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
 
 from apps.users.serializers import UserAccountSerializer
 
@@ -42,3 +43,17 @@ class CheckoutAPIView(APIView):
 
         return Response({"message": f"{'cart id' if not cart else 'method'} is invalid."},
                         status=status.HTTP_400_BAD_REQUEST)
+
+
+class CheckoutNotificationAPIView(APIView):
+    """
+    Checkout Notification APIView
+    """
+
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        """
+        Create Order if product pay was success
+        """
+        return Response(request.data, status=status.HTTP_200_OK)
