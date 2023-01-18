@@ -6,18 +6,18 @@ from core.settings.base import MERCADO_PAGO_CONFIG, env
 
 from db.models import Cart, CartItem
 
-from .models import PaymentState
+from .models import PaymentStrategy
 
 
 class PaymentMethod:
-    def __init__(self, cart: Cart = None, state: PaymentState.PaymentStateInterface = None):
+    def __init__(self, cart: Cart = None, method: PaymentStrategy.PaymentStrategyInterface = None):
         if not cart:
             raise ValueError("PaymentMethod must be initialized with cart")
 
-        if state:
-            self._state = state(cart)
+        if method:
+            self._method = method(cart)
         else:
-            self._state = MercadoPagoMethod(cart)
+            self._method = MercadoPagoMethod(cart)
 
         self._cart = cart
 
@@ -25,22 +25,22 @@ class PaymentMethod:
         """
         Gets preference from current Payment State
         """
-        preference = self._state.get_preference()
+        preference = self._method.get_preference()
 
         return preference
 
     def get_payment_method(self):
-        return self._state
+        return self._method
 
-    def change_payment_method(self, state: PaymentState.PaymentStateInterface):
+    def change_payment_method(self, method: PaymentStrategy.PaymentStrategyInterface):
         """
         Changes current method
         """
 
-        self._state = state(self._cart)
+        self._method = method(self._cart)
 
 
-class MercadoPagoMethod(PaymentState.PaymentStateInterface):
+class MercadoPagoMethod(PaymentStrategy.PaymentStrategyInterface):
     """
     Payment method state of mercado pago
     """
@@ -107,12 +107,14 @@ class MercadoPagoMethod(PaymentState.PaymentStateInterface):
                 "name": user.first_name,
                 "surname": user.last_name,
                 "email": user.email,
+                'identification': {'number': str(user.id)}
             },
             "binary_mode": MERCADO_PAGO_CONFIG.get("binary_mode", True),
             "statement_descriptor": env("APP_NAME"),
             "back_urls": MERCADO_PAGO_CONFIG.get("BACK_URLS", {}),
             "date_of_expiration": self.get_expiration_date(
-                MERCADO_PAGO_CONFIG.get("DATE_OF_EXPIRATION", timedelta(days=3)))
+                MERCADO_PAGO_CONFIG.get("DATE_OF_EXPIRATION", timedelta(days=3))),
+            "notification_url": MERCADO_PAGO_CONFIG.get("NOTIFICATION_URL", ""),
         }
 
         preference_response = sdk.preference().create(preference_data)

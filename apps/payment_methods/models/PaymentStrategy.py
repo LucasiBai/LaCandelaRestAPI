@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from db.models import Cart
 
 
-class PaymentStateInterface(ABC):
+class PaymentStrategyInterface(ABC):
     """
     Payment State abstract method
     """

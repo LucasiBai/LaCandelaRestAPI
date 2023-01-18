@@ -30,7 +30,7 @@ class CheckoutAPIView(APIView):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
 
             pay_method = PAYMENT_METHODS[method]
-            payment = PaymentMethod(cart=cart, state=pay_method)
+            payment = PaymentMethod(cart=cart, method=pay_method)
 
             user_serializer = UserAccountSerializer(cart.user)
 
@@ -56,4 +56,6 @@ class CheckoutNotificationAPIView(APIView):
         """
         Create Order if product pay was success
         """
-        return Response(request.data, status=status.HTTP_200_OK)
+        pay_id = request.data.get("data", {"id": None})["id"]
+
+        return Response(status=status.HTTP_200_OK)

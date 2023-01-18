@@ -98,6 +98,8 @@ class PrivateCheckoutApiTests(TestCase):
         self.assertContains(res, "user")
         self.assertContains(res, "preference")
 
+        self.assertEqual(res.data["preference"]["payer"]["identification"]["number"], str(self.user.id))
+
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
     def test_checkout_view_mp_method_normal_user_no_existing_cart_reject(self):
