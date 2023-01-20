@@ -40,6 +40,7 @@ THIRD_PARTY_APPS = [
     "simple_history",
     "rest_framework_simplejwt",
     "django_filters",
+    "mercadopago",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + PROJECT_APPS + ECOMMERCE_APPS + THIRD_PARTY_APPS
@@ -129,5 +130,5 @@ EMAIL_HOST_PASSWORD = "qhvnilqmludrrakd"
 MERCADO_PAGO_CONFIG = {
     "ACCESS_TOKEN": env("MP_ACCESS_TOKEN"),
     "DATE_OF_EXPIRATION": timedelta(days=3),
-    "NOTIFICATION_URL": f"{env('BACK_END_URL')}/api/checkout/notify/",
+    # "NOTIFICATION_URL": f"{env('BACK_END_URL')}/api/checkout/notify/",
 }

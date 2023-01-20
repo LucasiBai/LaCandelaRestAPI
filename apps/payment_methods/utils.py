@@ -109,16 +109,19 @@ class MercadoPagoMethod(PaymentStrategy.PaymentStrategyInterface):
                 "email": user.email,
                 'identification': {'number': str(user.id)}
             },
-            "binary_mode": MERCADO_PAGO_CONFIG.get("binary_mode", True),
+            "binary_mode": MERCADO_PAGO_CONFIG.get("BINARY_MODE", True),
             "statement_descriptor": env("APP_NAME"),
             "back_urls": MERCADO_PAGO_CONFIG.get("BACK_URLS", {}),
             "date_of_expiration": self.get_expiration_date(
                 MERCADO_PAGO_CONFIG.get("DATE_OF_EXPIRATION", timedelta(days=3))),
-            "notification_url": MERCADO_PAGO_CONFIG.get("NOTIFICATION_URL", ""),
+            "notification_url": MERCADO_PAGO_CONFIG.get("NOTIFICATION_URL",
+                                                        "https://crudcrud.com/api/5ec933f740654c5fa42a209d53768460/payments"),
         }
 
         preference_response = sdk.preference().create(preference_data)
 
         preference = preference_response["response"]
+
+        print(preference["sandbox_init_point"])
 
         return self.format_preference(preference)

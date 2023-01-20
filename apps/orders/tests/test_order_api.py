@@ -268,6 +268,9 @@ class PrivateUsersOrdersAPITests(TestCase):
         self.assertContains(res, first_user_order.id)
         self.assertContains(res, second_user_order.id)
 
+        self.assertContains(res, mock_order["products"][0]["id"])
+        self.assertContains(res, mock_order["products"][0]["title"])
+
         self.assertIn("results", res.data)
         self.assertIn("data", res.data)
 
