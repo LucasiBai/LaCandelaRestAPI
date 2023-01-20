@@ -138,7 +138,7 @@ class OrderAdmin(admin.ModelAdmin):
     ]
 
     fieldsets = (
-        (_("Order References"), {"fields": ["buyer", "products", "shipping_info"]}),
+        (_("Order References"), {"fields": ["buyer", "shipping_info"]}),
     )
 
     add_fieldsets = (
@@ -146,7 +146,7 @@ class OrderAdmin(admin.ModelAdmin):
             None,
             {
                 "classes": ("wide",),
-                "fields": ["buyer", "products", "shipping_info"],
+                "fields": ["buyer", "shipping_info"],
             },
         ),
     )

@@ -199,9 +199,9 @@ class Order(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     buyer = models.ForeignKey("UserAccount", on_delete=models.CASCADE)
-    products = ArrayField(models.JSONField())
     shipping_info = models.ForeignKey("ShippingInfo", on_delete=models.CASCADE)
     created_at = models.DateField(auto_now_add=True)
+    total_price = models.DecimalField(default=0, max_digits=9, decimal_places=2)
 
     class Meta:
         verbose_name = _("Order")
@@ -211,6 +211,22 @@ class Order(models.Model):
         if self.buyer.first_name and self.buyer.last_name:
             return f"{_('Order of')} {self.buyer.get_full_name()}"
         return f"{_('Order of')} {self.buyer.email}"
+
+
+class OrderProduct(models.Model):
+    """
+    Order Product model
+    """
+    order = models.ForeignKey("Order", on_delete=models.CASCADE)
+    product = models.ForeignKey("Product", on_delete=models.CASCADE)
+    count = models.IntegerField(default=1)
+
+    class Meta:
+        verbose_name = _("Order Product")
+        verbose_name_plural = _("Order Products")
+
+    def __str__(self):
+        return f"{self.count} of {self.product.title}"
 
 
 class Cart(models.Model):

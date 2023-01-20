@@ -294,7 +294,7 @@ class ShippingInfoModelTest(TestCase):
         self.assertEqual(f"Shipping Info of {new_user.email}", str(shipping_info))
 
 
-class OrderProduct(TestCase):
+class OrderProductModelTests(TestCase):
     """
     Tests order product model
     """
@@ -362,10 +362,12 @@ class OrderModelTest(TestCase):
     """
 
     def setUp(self):
+        # User creation
         self.user = get_user_model().objects.create_user(
             email="testemail@test.com", first_name="Test", last_name="Testi"
         )
 
+        # Order data creation
         self.mock_shipping_info = {
             "user": self.user,
             "address": "Test address",
@@ -380,6 +382,23 @@ class OrderModelTest(TestCase):
             "shipping_info": self.shipping_info,
         }
 
+        # Product creation
+        self.category = Category.objects.create(title="TestCategory")
+        self.mock_product = {
+            "title": "Test title",
+            "description": "Test description",
+            "price": 1111,
+            "images": [
+                "testimgurl/1.com",
+                "testimgurl/2.com",
+                "testimgurl/3.com",
+            ],
+            "stock": 11,
+            "category": self.category,
+            "sold": 11,
+        }
+        self.product = Product.objects.create(**self.mock_product)
+
     def test_create_order_successful(self):
         """
         Tests if model can create an order
@@ -390,6 +409,7 @@ class OrderModelTest(TestCase):
         self.assertEqual(order.buyer, self.user)
         self.assertEqual(order.shipping_info, self.shipping_info)
         self.assertTrue(order.created_at)
+        self.assertEqual(order.total_price, 0)
 
         self.assertEqual(f"Order of {order.buyer.get_full_name()}", str(order))
 
@@ -419,6 +439,7 @@ class OrderModelTest(TestCase):
         self.assertEqual(order.buyer, self.user)
         self.assertEqual(order.shipping_info, self.shipping_info)
         self.assertTrue(order.created_at)
+        self.assertEqual(order.total_price, 0)
 
         self.assertEqual(f"Order of {order.buyer.get_full_name()}", str(order))
 
@@ -448,7 +469,58 @@ class OrderModelTest(TestCase):
         with self.assertRaises(IntegrityError):
             Order.objects.create(**self.mock_order)
 
-    # TODO: test create order products
+    def test_order_has_create_order_products_successful(self):
+        """
+        Tests if order instance has create_order_products method
+        that receives a product list
+        """
+        mock_order = {
+            "buyer": self.user,
+            "shipping_info": self.shipping_info,
+        }
+
+        order = Order.objects.create(**mock_order)
+
+        order_product_payload = {
+            "product": self.product,
+            "count": 5,
+        }
+
+        order_product_list = order.create_order_products([order_product_payload])
+
+        self.assertEqual(order.total_price, order_product_payload["product"].price * order_product_payload["count"])
+
+        self.assertContains(order_product_list, self.product)
+
+    # TODO : test create_orders with more than one product
+
+    def test_order_has_get_order_products_successful(self):
+        """
+        Tests if order instance has get_order_products method
+        and returns products
+        """
+        mock_order = {
+            "buyer": self.user,
+            "shipping_info": self.shipping_info,
+        }
+
+        order = Order.objects.create(**mock_order)
+
+        order_product_payload = {
+            "product": self.product,
+            "count": 5,
+        }
+
+        order.create_order_products([order_product_payload])
+
+        order_product_list = order.get_order_products()
+
+        self.assertEqual(len(order_product_list), 1)
+
+        self.assertEqual(order_product_list[0].product.id, self.product.id)
+        self.assertEqual(order_product_list[0].count, order_product_payload["count"])
+
+    # TODO : test get_order_products with no products success
 
 
 class CommentModelTest(TestCase):

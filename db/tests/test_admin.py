@@ -307,6 +307,7 @@ class ShippingInfoModelAdminTest(TestCase):
         self.assertEqual(res.status_code, 200)  # Testing if status code is 200
 
 
+# TODO: create OrderProduct admin view tests
 class OrderModelAdminTest(TestCase):
     """
     Tests Order admin
@@ -319,7 +320,7 @@ class OrderModelAdminTest(TestCase):
         self.client = Client()
 
         self.super_user = get_user_model().objects.create_superuser(
-            email="testadmin@mitest.com", password="pass1234"  # Creating super user
+            email="testadmin@mitest.com", password="pass1234"  # Creating superuser
         )
         self.client.force_login(self.super_user)
 
@@ -352,9 +353,6 @@ class OrderModelAdminTest(TestCase):
         mock_order = {
             "id": uuid4(),
             "buyer": self.user,
-            "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 4}
-            ],
             "shipping_info": self.shipping_info,
         }
         self.order = Order.objects.create(**mock_order)
