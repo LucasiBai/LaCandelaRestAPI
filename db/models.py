@@ -212,6 +212,48 @@ class Order(models.Model):
             return f"{_('Order of')} {self.buyer.get_full_name()}"
         return f"{_('Order of')} {self.buyer.email}"
 
+    def get_order_products(self):
+        """
+        Search and gets order products list
+
+        Returns:
+            order products list
+        """
+        filtered_order_products = OrderProduct.objects.filter(order=self)
+
+        return filtered_order_products
+
+    def create_order_products(self, product_list: list):
+        """
+        Creates order products related with current order
+
+        Args:
+            product_list(list<dict>): products to add in the order
+
+        Returns:
+            order products list
+        """
+        order_product_list = []
+
+        for product in product_list:
+            count = product.get("count", None)
+            product = product.get("product", None)
+
+            self.total_price += product.price * count  # update order price
+
+            payload = {
+                "count": count,
+                "product": product,
+                "order": self
+            }
+            order_product = OrderProduct.objects.create(**payload)  # create order product
+
+            order_product_list.append(order_product)
+
+        self.save()  # save model changes
+
+        return order_product_list  # created order products
+
 
 class OrderProduct(models.Model):
     """

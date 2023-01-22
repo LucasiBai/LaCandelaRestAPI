@@ -461,7 +461,7 @@ class OrderModelTest(TestCase):
 
     def test_create_existing_order_reject(self):
         """
-        Tests if can't create an existing order
+        Tests if model can't create an existing order
         """
 
         Order.objects.create(**self.mock_order)
@@ -490,7 +490,7 @@ class OrderModelTest(TestCase):
 
         self.assertEqual(order.total_price, order_product_payload["product"].price * order_product_payload["count"])
 
-        self.assertContains(order_product_list, self.product)
+        self.assertEqual(order_product_list[0].product, self.product)
 
     # TODO : test create_orders with more than one product
 
@@ -520,7 +520,7 @@ class OrderModelTest(TestCase):
         self.assertEqual(order_product_list[0].product.id, self.product.id)
         self.assertEqual(order_product_list[0].count, order_product_payload["count"])
 
-    # TODO : test get_order_products with no products success
+    # TODO : test get_order_products with no products raise error
 
 
 class CommentModelTest(TestCase):
