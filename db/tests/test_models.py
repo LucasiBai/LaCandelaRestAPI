@@ -2,7 +2,7 @@ from uuid import uuid4
 
 from django.test import TestCase
 from django.contrib.auth import get_user_model
-from django.db.utils import IntegrityError
+from django.db.utils import IntegrityError, DataError
 
 from db.models import (
     Category,
@@ -492,7 +492,43 @@ class OrderModelTest(TestCase):
 
         self.assertEqual(order_product_list[0].product, self.product)
 
-    # TODO : test create_orders with more than one product
+    def test_order_create_order_products_with_multiple_products_successful(self):
+        """
+        Tests if order instance create_order_products method
+        can create multiple order products
+        """
+        # Create second product
+        mock_product = {**self.mock_product, "title": "Test second product"}
+        second_product = Product.objects.create(**mock_product)
+
+        # Create order
+        mock_order = {
+            "buyer": self.user,
+            "shipping_info": self.shipping_info,
+        }
+        order = Order.objects.create(**mock_order)
+
+        # Order products payload
+        order_products_payload = [
+            {
+                "product": self.product,
+                "count": 5,
+            },
+            {
+                "product": second_product,
+                "count": 3,
+            }
+        ]
+
+        order_products_prices = [order_product["product"].price * order_product["count"] for order_product in
+                                 order_products_payload]
+
+        order_product_list = order.create_order_products(order_products_payload)
+
+        self.assertEqual(order.total_price, sum(order_products_prices))
+
+        self.assertEqual(order_product_list[0].product, self.product)
+        self.assertEqual(order_product_list[1].product, second_product)
 
     def test_order_has_get_order_products_successful(self):
         """
@@ -520,7 +556,20 @@ class OrderModelTest(TestCase):
         self.assertEqual(order_product_list[0].product.id, self.product.id)
         self.assertEqual(order_product_list[0].count, order_product_payload["count"])
 
-    # TODO : test get_order_products with no products raise error
+    def test_order_get_order_products_no_products_reject(self):
+        """
+        Tests if order instance get_order_products method
+        raise an error when order don't have products
+        """
+        mock_order = {
+            "buyer": self.user,
+            "shipping_info": self.shipping_info,
+        }
+
+        order = Order.objects.create(**mock_order)
+
+        with self.assertRaises(DataError):
+            order_product_list = order.get_order_products()
 
 
 class CommentModelTest(TestCase):

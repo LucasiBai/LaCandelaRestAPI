@@ -4,7 +4,7 @@ from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
-from db.models import Comment, Category, Product, ShippingInfo, Order, Cart, CartItem
+from db.models import Comment, Category, Product, ShippingInfo, Order, Cart, CartItem, OrderProduct
 
 
 class UserModelAdminTest(TestCase):
@@ -307,7 +307,94 @@ class ShippingInfoModelAdminTest(TestCase):
         self.assertEqual(res.status_code, 200)  # Testing if status code is 200
 
 
-# TODO: create OrderProduct admin view tests
+class OrderProductModelAdminTest(TestCase):
+    """
+    Tests Order product admin
+    """
+
+    def setUp(self):
+        """
+        Set up method
+        """
+        self.client = Client()
+
+        self.super_user = get_user_model().objects.create_superuser(
+            email="testadmin@mitest.com", password="pass1234"  # Creating super user
+        )
+        self.client.force_login(self.super_user)
+
+        self.user = get_user_model().objects.create_user(email="test@test.com")
+
+        # Product creation
+        self.category = Category.objects.create(title="TestCategory")
+        self.mock_product = {
+            "title": "Test title",
+            "description": "Test description",
+            "price": 1111,
+            "images": [
+                "testimgurl/1.com",
+                "testimgurl/2.com",
+                "testimgurl/3.com",
+            ],
+            "stock": 11,
+            "category": self.category,
+            "sold": 11,
+        }
+        self.product = Product.objects.create(**self.mock_product)
+
+        # Order creation
+        self.mock_shipping_info = {
+            "user": self.user,
+            "address": "Test address",
+            "receiver": "test receiver name",
+            "receiver_dni": 12345678,
+        }
+        self.shipping_info = ShippingInfo.objects.create(**self.mock_shipping_info)
+
+        self.mock_order = {
+            "id": uuid4(),
+            "buyer": self.user,
+            "shipping_info": self.shipping_info,
+        }
+        self.order = Order.objects.create(**self.mock_order)
+
+        # Order product creation
+        mock_order_product = {
+            "product": self.product,
+            "count": 5,
+            "order": self.order,
+        }
+        self.order_product = OrderProduct.objects.create(**mock_order_product)
+
+    def test_order_product_listed(self):
+        """
+        Tests if order product added is listed
+        """
+        url = reverse("admin:db_orderproduct_changelist")
+        res = self.client.get(url)
+
+        self.assertContains(res, self.order_product.id)
+        self.assertContains(res, str(self.order_product))
+
+    def test_order_product_change_page(self):
+        """
+        Tests if order product added is can be edited
+        """
+        url = reverse("admin:db_orderproduct_change", args=[self.order_product.id])
+        res = self.client.get(url)
+
+        self.assertEqual(res.status_code, 200)  # Testing if status code is 200
+
+    def test_create_order_product_page(self):
+        """
+        Tests if order product added can be created
+        """
+        url = reverse("admin:db_orderproduct_add")
+        res = self.client.get(url)
+
+        self.assertEqual(res.status_code, 200)  # Testing if status code is 200
+
+
 class OrderModelAdminTest(TestCase):
     """
     Tests Order admin

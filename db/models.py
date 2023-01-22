@@ -1,6 +1,7 @@
 from uuid import uuid4
 
 from django.db import models
+from django.db.utils import DataError
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
@@ -220,6 +221,9 @@ class Order(models.Model):
             order products list
         """
         filtered_order_products = OrderProduct.objects.filter(order=self)
+
+        if not filtered_order_products:
+            raise DataError("Order instance don't have order products")
 
         return filtered_order_products
 

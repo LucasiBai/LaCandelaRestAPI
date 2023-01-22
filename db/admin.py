@@ -154,6 +154,40 @@ class OrderAdmin(admin.ModelAdmin):
     list_per_page = 10
 
 
+class OrderProductAdmin(admin.ModelAdmin):
+    """
+    Order product admin configuration
+    """
+
+    ordering = ["id"]
+    list_display = ["id", "__str__"]
+    list_display_links = ["__str__"]
+
+    search_fields = [
+        "id",
+        "order__buyer__email",
+        "order__shipping_info__address",
+        "order__shipping_info__receiver_dni",
+    ]
+
+    fieldsets = (
+        (_("Order Product References"), {"fields": ["order"]}),
+        (_("Order Product Data"), {"fields": ["product", "count"]})
+    )
+
+    add_fieldsets = (
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": ["order", "product", "count"],
+            },
+        ),
+    )
+
+    list_per_page = 10
+
+
 class ShippingInfoAdmin(admin.ModelAdmin):
     """
     Comment admin configuration
@@ -251,6 +285,7 @@ admin.site.register(models.Category, CategoryAdmin)  # category admin register
 admin.site.register(models.Product, ProductAdmin)  # product admin register
 admin.site.register(models.Comment, CommentAdmin)  # comment admin register
 admin.site.register(models.Order, OrderAdmin)  # order admin register
+admin.site.register(models.OrderProduct, OrderProductAdmin)  # order product admin register
 admin.site.register(
     models.ShippingInfo, ShippingInfoAdmin  # shipping info admin register
 )

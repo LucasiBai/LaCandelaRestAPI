@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-02 11:26-0300\n"
+"POT-Creation-Date: 2023-01-22 11:51-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,37 +18,83 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: .\apps\products\filters.py:15
-msgid "Title"
-msgstr "Título"
-
-#: .\apps\products\filters.py:19 .\db\models.py:82
-msgid "Category"
-msgstr "Categoría"
-
-#: .\apps\products\filters.py:23
-msgid "Min Price"
-msgstr "Precio Mínimo"
-
-#: .\apps\products\filters.py:26
-msgid "Max Price"
-msgstr "Precio Máximo"
-
-#: .\apps\products\filters.py:29
-msgid "Min Rate"
-msgstr "Ratio Mínimo"
-
-#: .\apps\products\filters.py:30
-msgid "Max Rate"
-msgstr "Ratio Máximo"
-
-#: .\apps\products\filters.py:32
+#: .\apps\categories\filters.py:14 .\apps\comments\filters.py:31
+#: .\apps\orders\filters.py:18 .\apps\products\filters.py:37
+#: .\apps\users\filters.py:14
 msgid "Offset"
 msgstr "Intervalo"
 
-#: .\apps\products\filters.py:34
+#: .\apps\categories\filters.py:16 .\apps\comments\filters.py:34
+#: .\apps\orders\filters.py:20 .\apps\products\filters.py:39
+#: .\apps\products\filters.py:92 .\apps\users\filters.py:17
 msgid "Limit"
 msgstr "Límite"
+
+#: .\apps\categories\filters.py:19
+#, fuzzy
+#| msgid "Category Title"
+msgid "Parent Title"
+msgstr "Título de Categoría"
+
+#: .\apps\comments\filters.py:15 .\apps\orders\filters.py:15
+#, fuzzy
+#| msgid "User"
+msgid "User Id"
+msgstr "Usuario"
+
+#: .\apps\comments\filters.py:20
+#, fuzzy
+#| msgid "Product"
+msgid "Product Id"
+msgstr "Producto"
+
+#: .\apps\comments\filters.py:24 .\apps\products\filters.py:34
+msgid "Min Rate"
+msgstr "Ratio Mínimo"
+
+#: .\apps\comments\filters.py:27 .\apps\products\filters.py:35
+msgid "Max Rate"
+msgstr "Ratio Máximo"
+
+#: .\apps\products\filters.py:20
+msgid "Title"
+msgstr "Título"
+
+#: .\apps\products\filters.py:24 .\db\models.py:89
+msgid "Category"
+msgstr "Categoría"
+
+#: .\apps\products\filters.py:28
+msgid "Min Price"
+msgstr "Precio Mínimo"
+
+#: .\apps\products\filters.py:31
+msgid "Max Price"
+msgstr "Precio Máximo"
+
+#: .\apps\products\filters.py:44
+#, fuzzy
+#| msgid "Order"
+msgid "Price Order"
+msgstr "Orden"
+
+#: .\apps\products\filters.py:48
+#, fuzzy
+#| msgid "Title"
+msgid "Title Order"
+msgstr "Título"
+
+#: .\apps\products\filters.py:52
+#, fuzzy
+#| msgid "Order"
+msgid "Sold Order"
+msgstr "Orden"
+
+#: .\apps\products\filters.py:57
+#, fuzzy
+#| msgid "Product"
+msgid "Search Product"
+msgstr "Producto"
 
 #: .\db\admin.py:23
 msgid "Personal Info"
@@ -62,90 +108,152 @@ msgstr "Permisos"
 msgid "Important Dates"
 msgstr "Fechas Importantes"
 
-#: .\db\admin.py:46
-msgid "Category Title"
-msgstr "Título de Categoría"
+#: .\db\admin.py:48
+#, fuzzy
+#| msgid "Category"
+msgid "Category Data"
+msgstr "Categoría"
 
-#: .\db\admin.py:67
+#: .\db\admin.py:69
 msgid "Product Public Data"
 msgstr "Datos Públicos del Producto"
 
-#: .\db\admin.py:68
+#: .\db\admin.py:70
 msgid "Product Images"
 msgstr "Imágenes del Producto"
 
-#: .\db\admin.py:69
+#: .\db\admin.py:71
 msgid "Product Meta Data"
 msgstr "Metadatos del Producto"
 
-#: .\db\admin.py:105
+#: .\db\admin.py:107
 msgid "Comment Public Data"
 msgstr "Datos Públicos del Comentario"
 
-#: .\db\admin.py:106
+#: .\db\admin.py:108
 msgid "Comment References"
 msgstr "Referencias del Comentario"
 
-#: .\db\admin.py:139
+#: .\db\admin.py:141
 #, fuzzy
 #| msgid "Comment References"
 msgid "Order References"
 msgstr "Referencias de la Orden"
 
-#: .\db\admin.py:168
+#: .\db\admin.py:174
+#, fuzzy
+#| msgid "Comment References"
+msgid "Order Product References"
+msgstr "Referencias de la Orden"
+
+#: .\db\admin.py:175
+#, fuzzy
+#| msgid "Product Meta Data"
+msgid "Order Product Data"
+msgstr "Metadatos del Producto"
+
+#: .\db\admin.py:204
 msgid "Shipping Private Data"
 msgstr "Información Sensible del Envío"
 
-#: .\db\admin.py:171
+#: .\db\admin.py:207
 #, fuzzy
 #| msgid "Comment References"
 msgid "Shipping References"
 msgstr "Referencias del Comentario"
 
-#: .\db\models.py:61
+#: .\db\admin.py:235
+#, fuzzy
+#| msgid "Comment References"
+msgid "Cart References"
+msgstr "Referencias del Comentario"
+
+#: .\db\admin.py:236
+msgid "Cart Data"
+msgstr "Datos del Carrito"
+
+#: .\db\admin.py:266
+#, fuzzy
+#| msgid "Comment References"
+msgid "Cart Item References"
+msgstr "Referencias de la Orden"
+
+#: .\db\admin.py:267
+msgid "Cart Item Data"
+msgstr "Datos del Item del Carrito"
+
+#: .\db\models.py:62
 msgid "User"
 msgstr "Usuario"
 
-#: .\db\models.py:62
+#: .\db\models.py:63
 msgid "Users"
 msgstr "Usuarios"
 
-#: .\db\models.py:83
+#: .\db\models.py:90
 msgid "Categories"
 msgstr "Categorías"
 
-#: .\db\models.py:102
+#: .\db\models.py:131
 msgid "Comment"
 msgstr "Comentario"
 
-#: .\db\models.py:103
+#: .\db\models.py:132
 msgid "Comments"
 msgstr "Comentarios"
 
-#: .\db\models.py:123
+#: .\db\models.py:153
 msgid "Product"
 msgstr "Producto"
 
-#: .\db\models.py:124
+#: .\db\models.py:154
 msgid "Products"
 msgstr "Productos"
 
-#: .\db\models.py:141
+#: .\db\models.py:187
 msgid "Shipping Information"
 msgstr "Información del Envío"
 
-#: .\db\models.py:142
+#: .\db\models.py:188
 msgid "Shippings Information"
 msgstr "Información del Envío"
 
-#: .\db\models.py:160 .\env\Lib\site-packages\django\forms\formsets.py:483
+#: .\db\models.py:208 .\env\Lib\site-packages\django\forms\formsets.py:483
 #: .\env\Lib\site-packages\django\forms\formsets.py:490
 msgid "Order"
 msgstr "Orden"
 
-#: .\db\models.py:161
+#: .\db\models.py:209
 msgid "Orders"
 msgstr "Ordenes"
+
+#: .\db\models.py:271
+#, fuzzy
+#| msgid "Product"
+msgid "Order Product"
+msgstr "Producto de Orden"
+
+#: .\db\models.py:272
+#, fuzzy
+#| msgid "Products"
+msgid "Order Products"
+msgstr "Productos de Orden"
+
+#: .\db\models.py:288
+msgid "Cart"
+msgstr "Carrito"
+
+#: .\db\models.py:289
+msgid "Carts"
+msgstr "Carritos"
+
+#: .\db\models.py:390
+msgid "Cart Item"
+msgstr "Item del Carrito"
+
+#: .\db\models.py:391
+msgid "Cart Items"
+msgstr "Items del Carrito"
 
 #: .\env\Lib\site-packages\django\contrib\messages\apps.py:15
 msgid "Messages"
