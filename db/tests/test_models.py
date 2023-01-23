@@ -482,13 +482,15 @@ class OrderModelTest(TestCase):
         order = Order.objects.create(**mock_order)
 
         order_product_payload = {
-            "product": self.product,
+            "product": self.product.id,
             "count": 5,
         }
 
         order_product_list = order.create_order_products([order_product_payload])
 
-        self.assertEqual(order.total_price, order_product_payload["product"].price * order_product_payload["count"])
+        self.assertEqual(order.total_price,
+                         Product.objects.get(pk=order_product_payload["product"]).price * order_product_payload[
+                             "count"])
 
         self.assertEqual(order_product_list[0].product, self.product)
 
@@ -511,16 +513,17 @@ class OrderModelTest(TestCase):
         # Order products payload
         order_products_payload = [
             {
-                "product": self.product,
+                "product": self.product.id,
                 "count": 5,
             },
             {
-                "product": second_product,
+                "product": second_product.id,
                 "count": 3,
             }
         ]
 
-        order_products_prices = [order_product["product"].price * order_product["count"] for order_product in
+        order_products_prices = [Product.objects.get(pk=order_product["product"]).price * order_product["count"] for
+                                 order_product in
                                  order_products_payload]
 
         order_product_list = order.create_order_products(order_products_payload)
@@ -543,7 +546,7 @@ class OrderModelTest(TestCase):
         order = Order.objects.create(**mock_order)
 
         order_product_payload = {
-            "product": self.product,
+            "product": self.product.id,
             "count": 5,
         }
 
@@ -569,7 +572,9 @@ class OrderModelTest(TestCase):
         order = Order.objects.create(**mock_order)
 
         with self.assertRaises(DataError):
-            order_product_list = order.get_order_products()
+            order.get_order_products()
+
+    # TODO: test update_order_product
 
 
 class CommentModelTest(TestCase):

@@ -241,7 +241,9 @@ class Order(models.Model):
 
         for product in product_list:
             count = product.get("count", None)
-            product = product.get("product", None)
+
+            product_id = product.get("product", None)
+            product = Product.objects.filter(pk=product_id).first()
 
             self.total_price += product.price * count  # update order price
 

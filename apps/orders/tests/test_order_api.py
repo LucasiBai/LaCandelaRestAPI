@@ -75,12 +75,10 @@ class PublicOrdersAPITests(TestCase):
 
         self.mock_order = {
             "buyer": self.user,
-            "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 4}
-            ],
             "shipping_info": self.shipping_info,
         }
         self.order = self.model.objects.create(**self.mock_order)
+        self.order.create_order_products([{"product": self.product.id, "count": 4}])
 
     def test_order_list_get_public_reject(self):
         """
@@ -108,7 +106,7 @@ class PublicOrdersAPITests(TestCase):
         payload = {
             "buyer": self.user.id,
             "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 4}
+                {"product": self.product.id, "count": 4}
             ],
             "shipping_info": self.shipping_info.id,
         }
@@ -126,7 +124,7 @@ class PublicOrdersAPITests(TestCase):
 
         payload = {
             "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 6}
+                {"product": self.product.id, "count": 6}
             ]
         }
 
@@ -145,7 +143,7 @@ class PublicOrdersAPITests(TestCase):
         payload = {
             "buyer": self.user,
             "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 6}
+                {"product": self.product.id, "count": 6}
             ],
             "shipping_info": self.shipping_info,
         }
@@ -221,12 +219,10 @@ class PrivateUsersOrdersAPITests(TestCase):
 
         self.mock_order = {
             "buyer": self.user,
-            "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 4}
-            ],
             "shipping_info": self.shipping_info,
         }
         self.order = self.model.objects.create(**self.mock_order)
+        self.order.create_order_products([{"product": self.product.id, "count": 4}])
 
     def test_order_list_get_normal_user_reject(self):
         """
@@ -254,13 +250,13 @@ class PrivateUsersOrdersAPITests(TestCase):
 
         mock_order = {
             "buyer": self.main_user,
-            "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 4}
-            ],
             "shipping_info": shipping_info,
         }
         first_user_order = self.model.objects.create(**mock_order)
+        first_user_order.create_order_products([{"product": self.product.id, "count": 4}])
+
         second_user_order = self.model.objects.create(**mock_order)
+        second_user_order.create_order_products([{"product": self.product.id, "count": 4}])
 
         res = self.client.get(MINE_URL, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
@@ -295,14 +291,16 @@ class PrivateUsersOrdersAPITests(TestCase):
 
         mock_order = {
             "buyer": self.main_user,
-            "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 4}
-            ],
             "shipping_info": shipping_info,
         }
         first_user_order = self.model.objects.create(**mock_order)
+        first_user_order.create_order_products([{"product": self.product.id, "count": 4}])
+
         second_user_order = self.model.objects.create(**mock_order)
+        second_user_order.create_order_products([{"product": self.product.id, "count": 4}])
+
         third_user_order = self.model.objects.create(**mock_order)
+        third_user_order.create_order_products([{"product": self.product.id, "count": 4}])
 
         offset_filter_url = MINE_URL + "?offset=2"
 
@@ -339,14 +337,16 @@ class PrivateUsersOrdersAPITests(TestCase):
 
         mock_order = {
             "buyer": self.main_user,
-            "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 4}
-            ],
             "shipping_info": shipping_info,
         }
         first_user_order = self.model.objects.create(**mock_order)
+        first_user_order.create_order_products([{"product": self.product.id, "count": 4}])
+
         second_user_order = self.model.objects.create(**mock_order)
+        second_user_order.create_order_products([{"product": self.product.id, "count": 4}])
+
         third_user_order = self.model.objects.create(**mock_order)
+        third_user_order.create_order_products([{"product": self.product.id, "count": 4}])
 
         limit_filter_url = MINE_URL + "?limit=2"
 
@@ -383,7 +383,7 @@ class PrivateUsersOrdersAPITests(TestCase):
         payload = {
             "buyer": self.main_user.id,
             "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 4}
+                {"product": self.product.id, "count": 4}
             ],
             "shipping_info": shipping_info.id,
         }
@@ -423,7 +423,7 @@ class PrivateUsersOrdersAPITests(TestCase):
         payload = {
             "buyer": self.main_user.id,
             "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 4}
+                {"product": self.product.id, "count": 4}
             ],
             "shipping_info": shipping_info.id,
         }
@@ -442,7 +442,7 @@ class PrivateUsersOrdersAPITests(TestCase):
         payload = {
             "buyer": self.user.id,
             "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 4}
+                {"product": self.product.id, "count": 4}
             ],
             "shipping_info": self.shipping_info.id,
         }
@@ -469,12 +469,12 @@ class PrivateUsersOrdersAPITests(TestCase):
 
         mock_order = {
             "buyer": self.main_user,
-            "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 4}
-            ],
             "shipping_info": shipping_info,
         }
         order = self.model.objects.create(**mock_order)
+        order.create_order_products([
+            {"product": self.product.id, "count": 4}
+        ])
 
         order_detail_url = get_order_detail_url(
             [order]  # obtain the url of created order
@@ -482,7 +482,7 @@ class PrivateUsersOrdersAPITests(TestCase):
 
         payload = {
             "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 6}
+                {"product": self.product.id, "count": 6}
             ]
         }
 
@@ -509,12 +509,10 @@ class PrivateUsersOrdersAPITests(TestCase):
 
         mock_order = {
             "buyer": self.main_user,
-            "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 4}
-            ],
             "shipping_info": shipping_info,
         }
         order = self.model.objects.create(**mock_order)
+        order.create_order_products([{"product": self.product.id, "count": 4}])
 
         order_detail_url = get_order_detail_url(
             [order]  # obtain the url of created order
@@ -523,7 +521,7 @@ class PrivateUsersOrdersAPITests(TestCase):
         payload = {
             "buyer": self.main_user,
             "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 6}
+                {"product": self.product.id, "count": 6}
             ],
             "shipping_info": shipping_info,
         }
@@ -551,12 +549,10 @@ class PrivateUsersOrdersAPITests(TestCase):
 
         mock_order = {
             "buyer": self.main_user,
-            "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 4}
-            ],
             "shipping_info": shipping_info,
         }
         order = self.model.objects.create(**mock_order)
+        order.create_order_products([{"product": self.product.id, "count": 4}])
 
         order_detail_url = get_order_detail_url(
             [order]  # obtain the url of created order
@@ -623,12 +619,10 @@ class PrivateSuperusersOrdersAPITests(TestCase):
 
         self.mock_order = {
             "buyer": self.user,
-            "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 4}
-            ],
             "shipping_info": self.shipping_info,
         }
         self.order = self.model.objects.create(**self.mock_order)
+        self.order.create_order_products([{"product": self.product.id, "count": 4}])
 
     def test_order_list_get_superuser_successful(self):
         """
@@ -655,12 +649,10 @@ class PrivateSuperusersOrdersAPITests(TestCase):
 
         mock_order = {
             "buyer": user,
-            "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 4}
-            ],
             "shipping_info": self.shipping_info,
         }
         new_order = self.model.objects.create(**mock_order)
+        new_order.create_order_products([{"product": self.product.id, "count": 4}])
 
         user_filter_url = get_filter_url("user", str(user.id))
 
@@ -681,13 +673,13 @@ class PrivateSuperusersOrdersAPITests(TestCase):
 
         mock_order = {
             "buyer": user,
-            "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 4}
-            ],
             "shipping_info": self.shipping_info,
         }
         first_new_order = self.model.objects.create(**mock_order)
+        first_new_order.create_order_products([{"product": self.product.id, "count": 4}])
+
         second_new_order = self.model.objects.create(**mock_order)
+        second_new_order.create_order_products([{"product": self.product.id, "count": 4}])
 
         user_filter_url = get_filter_url("offset", "2")
 
@@ -709,13 +701,13 @@ class PrivateSuperusersOrdersAPITests(TestCase):
 
         mock_order = {
             "buyer": user,
-            "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 4}
-            ],
             "shipping_info": self.shipping_info,
         }
         first_new_order = self.model.objects.create(**mock_order)
+        first_new_order.create_order_products([{"product": self.product.id, "count": 4}])
+
         second_new_order = self.model.objects.create(**mock_order)
+        second_new_order.create_order_products([{"product": self.product.id, "count": 4}])
 
         user_filter_url = get_filter_url("limit", "2")
 
@@ -738,13 +730,13 @@ class PrivateSuperusersOrdersAPITests(TestCase):
 
         mock_order = {
             "buyer": user,
-            "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 4}
-            ],
             "shipping_info": self.shipping_info,
         }
         first_new_order = self.model.objects.create(**mock_order)
+        first_new_order.create_order_products([{"product": self.product.id, "count": 4}])
+
         second_new_order = self.model.objects.create(**mock_order)
+        second_new_order.create_order_products([{"product": self.product.id, "count": 4}])
 
         user_filter_url = get_filter_url("offset", "2")
 
@@ -769,13 +761,13 @@ class PrivateSuperusersOrdersAPITests(TestCase):
 
         mock_order = {
             "buyer": user,
-            "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 4}
-            ],
             "shipping_info": self.shipping_info,
         }
         first_new_order = self.model.objects.create(**mock_order)
+        first_new_order.create_order_products([{"product": self.product.id, "count": 4}])
+
         second_new_order = self.model.objects.create(**mock_order)
+        second_new_order.create_order_products([{"product": self.product.id, "count": 4}])
 
         limit_filter_url = get_filter_url("limit", "2")
 
@@ -821,7 +813,7 @@ class PrivateSuperusersOrdersAPITests(TestCase):
         payload = {
             "buyer": self.main_user.id,
             "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 4}
+                {"product": self.product.id, "count": 4}
             ],
             "shipping_info": shipping_info.id,
         }
@@ -840,7 +832,7 @@ class PrivateSuperusersOrdersAPITests(TestCase):
         payload = {
             "buyer": self.user.id,
             "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 4}
+                {"product": self.product.id, "count": 4}
             ],
             "shipping_info": self.shipping_info.id,
         }
@@ -867,12 +859,10 @@ class PrivateSuperusersOrdersAPITests(TestCase):
 
         mock_order = {
             "buyer": self.main_user,
-            "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 4}
-            ],
             "shipping_info": shipping_info,
         }
         order = self.model.objects.create(**mock_order)
+        order.create_order_products([{"product": self.product.id, "count": 4}])
 
         order_detail_url = get_order_detail_url(
             [order]  # obtain the url of created order
@@ -880,7 +870,7 @@ class PrivateSuperusersOrdersAPITests(TestCase):
 
         payload = {
             "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 6}
+                {"product": self.product.id, "count": 6}
             ]
         }
 
@@ -900,7 +890,7 @@ class PrivateSuperusersOrdersAPITests(TestCase):
 
         payload = {
             "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 6}
+                {"product": self.product.id, "count": 6}
             ]
         }
 
@@ -927,12 +917,10 @@ class PrivateSuperusersOrdersAPITests(TestCase):
 
         mock_order = {
             "buyer": self.main_user,
-            "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 4}
-            ],
             "shipping_info": shipping_info,
         }
         order = self.model.objects.create(**mock_order)
+        order.create_order_products([{"product": self.product.id, "count": 4}])
 
         order_detail_url = get_order_detail_url(
             [order]  # obtain the url of created order
@@ -941,7 +929,7 @@ class PrivateSuperusersOrdersAPITests(TestCase):
         payload = {
             "buyer": self.main_user.id,
             "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 6}
+                {"product": self.product.id, "count": 6}
             ],
             "shipping_info": shipping_info.id,
         }
@@ -963,7 +951,7 @@ class PrivateSuperusersOrdersAPITests(TestCase):
         payload = {
             "buyer": self.user.id,
             "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 6}
+                {"product": self.product.id, "count": 6}
             ],
             "shipping_info": self.shipping_info.id,
         }
@@ -991,12 +979,10 @@ class PrivateSuperusersOrdersAPITests(TestCase):
 
         mock_order = {
             "buyer": self.main_user,
-            "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 4}
-            ],
             "shipping_info": shipping_info,
         }
         order = self.model.objects.create(**mock_order)
+        order.create_order_products([{"product": self.product.id, "count": 4}])
 
         order_detail_url = get_order_detail_url(
             [order]  # obtain the url of created order

@@ -7,16 +7,30 @@ class OrderSerializer(serializers.ModelSerializer):
     """
     Order model serializer
     """
+    products = serializers.ListField(allow_null=False, allow_empty=False)
 
     class Meta:
         model = get_app_model()
         fields = [
             "id",
             "buyer",
-            "products",
             "shipping_info",
+            "products",
             "created_at",
         ]
+
+    def validate_products(self, value: list):
+        """
+        Validates product data
+
+        Args:
+            value(list): value to validate
+
+        Returns:
+            validated data
+        """
+
+        return value
 
     def validate(self, attrs):
         user = self.context.get("user", None)
@@ -32,7 +46,7 @@ class OrderSerializer(serializers.ModelSerializer):
             shipping_info = attrs.get("shipping_info", None)
 
             if (
-                shipping_info.user.id == user.id and buyer.id == user.id
+                    shipping_info.user.id == user.id and buyer.id == user.id
             ) or user.is_superuser:
                 return attrs
 
@@ -42,3 +56,28 @@ class OrderSerializer(serializers.ModelSerializer):
 
         else:
             return attrs
+
+    def create(self, validated_data):
+        """
+        Create order with entered products
+
+        Args:
+            validated_data: entered data
+
+        Returns:
+            created instance
+        """
+        products = validated_data
+        return super().create(validated_data)
+
+    def to_representation(self, instance):
+        """
+        Sets the order representation
+
+        Args:
+            instance: instance to format
+
+        Returns:
+            formatted instance
+        """
+        return super().to_representation(instance)
