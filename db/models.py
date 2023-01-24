@@ -253,6 +253,7 @@ class Order(models.Model):
                 "order": self
             }
             order_product = OrderProduct.objects.create(**payload)  # create order product
+            order_product.save()
 
             order_product_list.append(order_product)
 

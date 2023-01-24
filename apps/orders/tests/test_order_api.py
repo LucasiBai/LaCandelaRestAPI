@@ -824,6 +824,7 @@ class PrivateSuperusersOrdersAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
+    # TODO: Test post no products reject
     def test_order_list_post_superuser_for_other_user_successful(self):
         """
         Tests if superuser can post in order list for other user
