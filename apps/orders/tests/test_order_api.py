@@ -252,11 +252,13 @@ class PrivateUsersOrdersAPITests(TestCase):
             "buyer": self.main_user,
             "shipping_info": shipping_info,
         }
+        mock_order_products = [{"product": self.product.id, "count": 4}]
+
         first_user_order = self.model.objects.create(**mock_order)
-        first_user_order.create_order_products([{"product": self.product.id, "count": 4}])
+        first_user_order.create_order_products(mock_order_products)
 
         second_user_order = self.model.objects.create(**mock_order)
-        second_user_order.create_order_products([{"product": self.product.id, "count": 4}])
+        second_user_order.create_order_products(mock_order_products)
 
         res = self.client.get(MINE_URL, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
@@ -264,8 +266,8 @@ class PrivateUsersOrdersAPITests(TestCase):
         self.assertContains(res, first_user_order.id)
         self.assertContains(res, second_user_order.id)
 
-        self.assertContains(res, mock_order["products"][0]["id"])
-        self.assertContains(res, mock_order["products"][0]["title"])
+        self.assertContains(res, mock_order_products[0]["product"])
+        self.assertContains(res, mock_order_products[0]["count"])
 
         self.assertIn("results", res.data)
         self.assertIn("data", res.data)
@@ -824,7 +826,32 @@ class PrivateSuperusersOrdersAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
-    # TODO: Test post no products reject
+    def test_own_order_list_post_superuser_no_products_reject(self):
+        """
+        Tests if superuser can't post order list with empty products
+        """
+        mock_shipping_info = {
+            "user": self.main_user,
+            "address": "Test address",
+            "receiver": "test receiver name",
+            "receiver_dni": 12345678,
+        }
+        shipping_info = ShippingInfo.objects.create(
+            **mock_shipping_info  # create shipping info for order
+        )
+
+        payload = {
+            "buyer": self.main_user.id,
+            "products": [],
+            "shipping_info": shipping_info.id,
+        }
+
+        res = self.client.post(
+            ORDER_LIST_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_order_list_post_superuser_for_other_user_successful(self):
         """
         Tests if superuser can post in order list for other user

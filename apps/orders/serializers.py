@@ -1,10 +1,8 @@
-import json
+from json import loads
 
 from rest_framework import serializers
 
 from .meta import get_app_model, get_secondary_model
-
-from db.models import Product
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -22,18 +20,6 @@ class OrderSerializer(serializers.ModelSerializer):
             "created_at",
             "products"
         ]
-
-    def validate_products(self, value: list):
-        """
-        Validates product data
-
-        Args:
-            value(list): value to validate
-
-        Returns:
-            validated data
-        """
-        return value
 
     def validate(self, attrs):
         user = self.context.get("user", None)
@@ -73,13 +59,10 @@ class OrderSerializer(serializers.ModelSerializer):
         products = validated_data.get("products", None)
 
         parsed_products = []
-        for product in products:
-            print(product)
-            serializer = OrderProductSerializer(data=product)
-            if serializer.is_valid():
-                parsed_products.append(serializer.data)
 
-        print(parsed_products)
+        for product in products:
+            parsed_product = loads(product.replace("'", '"'))
+            parsed_products.append(parsed_product)
 
         buyer = validated_data.get("buyer", None)
         shipping_info = validated_data.get("shipping_info")
@@ -100,13 +83,22 @@ class OrderSerializer(serializers.ModelSerializer):
             formatted instance
         """
 
-        order_products = get_secondary_model().objects.filter(order=instance)
+        order_products = instance.get_order_products()
+        order_products_serializer = OrderProductSerializer(order_products, many=True)
 
         format_data = {
             "id": instance.id,
-            "buyer": instance.buyer.id,
-            "shipping_info": instance.shipping_info.id,
-            "created_at": instance.created_at
+            "buyer": {
+                "id": instance.buyer.id,
+                "email": instance.buyer.email,
+            },
+            "shipping_info": {
+                "address": instance.shipping_info.address,
+                "receiver": instance.shipping_info.receiver,
+                "receiver_dni": instance.shipping_info.receiver_dni,
+            },
+            "created_at": instance.created_at,
+            "products": order_products_serializer.data
         }
 
         return format_data
@@ -120,11 +112,3 @@ class OrderProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_secondary_model()
         fields = ["product", "count"]
-
-    def validated_product(self, value):
-        print(value)
-        return value
-
-    def validated_count(self, value):
-        print(value)
-        return value

@@ -122,6 +122,4 @@ class MercadoPagoMethod(PaymentStrategy.PaymentStrategyInterface):
 
         preference = preference_response["response"]
 
-        print(preference["sandbox_init_point"])
-
         return self.format_preference(preference)
