@@ -3,10 +3,10 @@ from django.utils.translation import gettext_lazy as _
 from django_filters import rest_framework as filters
 
 from .serializers import CommentSerializer
-from apps.api_root.utils import FilterMethods, FilterResultsFilterset
+from apps.api_root.utils import FilterMixins, FilterResultsFilterset
 
 
-class CommentFilterset(FilterResultsFilterset, FilterMethods):
+class CommentFilterset(FilterResultsFilterset, FilterMixins):
     """
     Comments Api Filterset
     """

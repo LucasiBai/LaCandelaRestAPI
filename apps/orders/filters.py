@@ -3,10 +3,10 @@ from django.utils.translation import gettext_lazy as _
 from django_filters import rest_framework as filters
 
 from .serializers import OrderSerializer
-from apps.api_root.utils import FilterMethods, FilterResultsFilterset
+from apps.api_root.utils import FilterMixins, FilterResultsFilterset
 
 
-class OrderFilterset(FilterResultsFilterset, FilterMethods):
+class OrderFilterset(FilterResultsFilterset, FilterMixins):
     """
     Order Filterset
     """

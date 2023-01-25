@@ -8,7 +8,6 @@ from rest_framework.test import APIClient
 from apps.comments.meta import get_app_model
 from db.models import Product, Category, Order, ShippingInfo
 
-
 COMMENT_LIST_URL = reverse("api:comment-list")  # comment list API url
 
 TOKEN_URL = reverse("users:user_token_obtain")  # user token API url
@@ -467,12 +466,9 @@ class PrivateUserCommentAPITest(TestCase):
 
         mock_order = {
             "buyer": self.main_user,
-            "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 4}
-            ],
             "shipping_info": shipping_info,
         }
-        Order.objects.create(**mock_order)
+        Order.objects.create(**mock_order).create_order_products([{"product": self.product.id, "count": 4}])
 
         payload = {
             "user": self.main_user.id,
@@ -502,12 +498,9 @@ class PrivateUserCommentAPITest(TestCase):
 
         mock_order = {
             "buyer": self.main_user,
-            "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 4}
-            ],
             "shipping_info": shipping_info,
         }
-        Order.objects.create(**mock_order)
+        Order.objects.create(**mock_order).create_order_products([{"product": self.product.id, "count": 4}])
 
         payload = {
             "user": self.main_user.id,
@@ -537,12 +530,9 @@ class PrivateUserCommentAPITest(TestCase):
 
         mock_order = {
             "buyer": self.main_user,
-            "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 4}
-            ],
             "shipping_info": shipping_info,
         }
-        Order.objects.create(**mock_order)
+        Order.objects.create(**mock_order).create_order_products([{"product": self.product.id, "count": 4}])
 
         payload = {
             "user": self.main_user.id,
@@ -571,13 +561,10 @@ class PrivateUserCommentAPITest(TestCase):
         shipping_info = ShippingInfo.objects.create(**mock_shipping_info)
 
         mock_order = {
-            "buyer": self.user,
-            "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 4}
-            ],
+            "buyer": self.main_user,
             "shipping_info": shipping_info,
         }
-        Order.objects.create(**mock_order)
+        Order.objects.create(**mock_order).create_order_products([{"product": self.product.id, "count": 4}])
 
         payload = {
             "user": self.user.id,
@@ -834,12 +821,9 @@ class PrivateSuperuserCommentAPITest(TestCase):
 
         mock_order = {
             "buyer": self.main_user,
-            "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 4}
-            ],
             "shipping_info": shipping_info,
         }
-        Order.objects.create(**mock_order)
+        Order.objects.create(**mock_order).create_order_products([{"product": self.product.id, "count": 4}])
 
         payload = {
             "user": self.main_user.id,
@@ -869,12 +853,9 @@ class PrivateSuperuserCommentAPITest(TestCase):
 
         mock_order = {
             "buyer": self.main_user,
-            "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 4}
-            ],
             "shipping_info": shipping_info,
         }
-        Order.objects.create(**mock_order)
+        Order.objects.create(**mock_order).create_order_products([{"product": self.product.id, "count": 4}])
 
         payload = {
             "user": self.main_user.id,
@@ -904,12 +885,9 @@ class PrivateSuperuserCommentAPITest(TestCase):
 
         mock_order = {
             "buyer": self.main_user,
-            "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 4}
-            ],
             "shipping_info": shipping_info,
         }
-        Order.objects.create(**mock_order)
+        Order.objects.create(**mock_order).create_order_products([{"product": self.product.id, "count": 4}])
 
         payload = {
             "user": self.main_user.id,
@@ -939,12 +917,9 @@ class PrivateSuperuserCommentAPITest(TestCase):
 
         mock_order = {
             "buyer": self.user,
-            "products": [
-                {"id": self.product.id, "title": self.product.title, "count": 4}
-            ],
             "shipping_info": shipping_info,
         }
-        Order.objects.create(**mock_order)
+        Order.objects.create(**mock_order).create_order_products([{"product": self.product.id, "count": 4}])
 
         payload = {
             "user": self.user.id,

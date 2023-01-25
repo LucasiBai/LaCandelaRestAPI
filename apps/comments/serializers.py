@@ -59,10 +59,14 @@ class CommentSerializer(serializers.ModelSerializer):
             bought_product = False
 
             for order in user_orders:
-                for order_product in order.products:
-                    if order_product["title"] == product.title:
-                        bought_product = True
-
+                try:
+                    order_products = order.get_order_products()
+                    for order_product in order_products:
+                        if order_product.product.id == product.id:
+                            bought_product = True
+                except:
+                    bought_product = False
+                    
             if bought_product:
                 return attrs
             raise serializers.ValidationError("User must have bought the product")

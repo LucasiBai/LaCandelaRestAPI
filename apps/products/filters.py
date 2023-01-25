@@ -4,10 +4,10 @@ from django.db.models import Q
 import django_filters.rest_framework as filters
 
 from .serializers import ProductSerializer
-from apps.api_root.utils import FilterMethods, FilterResultsFilterset
+from apps.api_root.utils import FilterMixins, FilterResultsFilterset
 
 
-class ProductsFilterSet(FilterResultsFilterset, FilterMethods):
+class ProductsFilterSet(FilterResultsFilterset, FilterMixins):
     """
     Filterset of Product model
     """
