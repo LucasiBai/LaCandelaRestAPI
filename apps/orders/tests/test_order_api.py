@@ -1,11 +1,12 @@
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.orders.meta import get_app_model
+from apps.orders.meta import get_app_model, get_secondary_model
 from db.models import Category, Product, ShippingInfo
 
 ORDER_LIST_URL = reverse("api:order-list")  # order list url
@@ -624,7 +625,7 @@ class PrivateSuperusersOrdersAPITests(TestCase):
             "shipping_info": self.shipping_info,
         }
         self.order = self.model.objects.create(**self.mock_order)
-        self.order.create_order_products([{"product": self.product.id, "count": 4}])
+        self.order_products = self.order.create_order_products([{"product": self.product.id, "count": 4}])
 
     def test_order_list_get_superuser_successful(self):
         """
@@ -909,6 +910,8 @@ class PrivateSuperusersOrdersAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
+        self.assertEqual(res.data["products"][0]["count"], payload["products"][0]["count"])
+
     def test_order_detail_patch_superuser_from_other_user_successful(self):
         """
         Tests if superuser can patch order detail from other user
@@ -928,6 +931,8 @@ class PrivateSuperusersOrdersAPITests(TestCase):
         self.order.refresh_from_db()
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(res.data["products"][0]["count"], payload["products"][0]["count"])
 
     def test_own_order_detail_put_superuser_successful(self):
         """
@@ -969,6 +974,8 @@ class PrivateSuperusersOrdersAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
+        self.assertEqual(res.data["products"][0]["count"], payload["products"][0]["count"])
+
     def test_order_detail_put_superuser_from_other_user_successful(self):
         """
         Tests if superuser can put own order detail
@@ -991,6 +998,8 @@ class PrivateSuperusersOrdersAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
+        self.assertEqual(res.data["products"][0]["count"], payload["products"][0]["count"])
+
     def test_own_order_detail_delete_super_user_successful(self):
         """
         Tests if superuser can delete own order detail
@@ -1010,7 +1019,7 @@ class PrivateSuperusersOrdersAPITests(TestCase):
             "shipping_info": shipping_info,
         }
         order = self.model.objects.create(**mock_order)
-        order.create_order_products([{"product": self.product.id, "count": 4}])
+        order_products = order.create_order_products([{"product": self.product.id, "count": 4}])
 
         order_detail_url = get_order_detail_url(
             [order]  # obtain the url of created order
@@ -1021,6 +1030,12 @@ class PrivateSuperusersOrdersAPITests(TestCase):
         )
 
         self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+
+        with self.assertRaises(ObjectDoesNotExist):
+            get_app_model().objects.get(id=order.id)
+
+        with self.assertRaises(ObjectDoesNotExist):
+            get_secondary_model().objects.get(id=order_products[0].id)
 
     def test_order_detail_delete_superuser_from_other_user_successful(self):
         """
@@ -1034,3 +1049,9 @@ class PrivateSuperusersOrdersAPITests(TestCase):
         )
 
         self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+
+        with self.assertRaises(ObjectDoesNotExist):
+            get_app_model().objects.get(id=self.order.id)
+
+        with self.assertRaises(ObjectDoesNotExist):
+            get_secondary_model().objects.get(id=self.order_products[0].id)

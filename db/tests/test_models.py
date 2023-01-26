@@ -3,6 +3,7 @@ from uuid import uuid4
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.db.utils import IntegrityError, DataError
+from django.core.exceptions import ObjectDoesNotExist
 
 from db.models import (
     Category,
@@ -574,9 +575,52 @@ class OrderModelTest(TestCase):
         with self.assertRaises(DataError):
             order.get_order_products()
 
-    # TODO: test update_order_product
+    def test_order_update_order_product_successful(self):
+        """
+        Tests if order instance has update_order_product
+        and returns updated order product instance
+        """
+        mock_order = {
+            "buyer": self.user,
+            "shipping_info": self.shipping_info,
+        }
+        order = Order.objects.create(**mock_order)
+
+        order_product_payload = {
+            "product": self.product.id,
+            "count": 5,
+        }
+        order_products = order.create_order_products([order_product_payload])
+
+        order_product_payload["count"] = 2
+        updated_product = order.update_order_product(**order_product_payload)
+
+        order_products[0].refresh_from_db()
+
+        self.assertEqual(order_products[0].count, updated_product.count)
+        self.assertEqual(order_products[0].count, order_product_payload["count"])
+
+    def test_order_update_order_product_no_product_reject(self):
+        """
+        Tests if order instance update_order_product
+        raise an error when order product doesn't exist
+        """
+        mock_order = {
+            "buyer": self.user,
+            "shipping_info": self.shipping_info,
+        }
+        order = Order.objects.create(**mock_order)
+
+        order_product_payload = {
+            "product": self.product.id,
+            "count": 5,
+        }
+
+        with self.assertRaises(ObjectDoesNotExist):
+            order.update_order_product(**order_product_payload)
 
 
+#     TODO: Test order has update_order_products
 class CommentModelTest(TestCase):
     """
     Tests Comment model

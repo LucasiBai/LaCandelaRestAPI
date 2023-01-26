@@ -261,6 +261,27 @@ class Order(models.Model):
 
         return order_product_list  # created order products
 
+    def update_order_product(self, product, count: int):
+        """
+        Updates an order product
+
+        Args:
+            product(int): order product instance
+            count(int): new count of order product
+
+        Returns:
+            Updated order product
+        """
+        order_product = OrderProduct.objects.filter(order=self, product=product).first()
+
+        if not order_product:
+            raise self.DoesNotExist("Order product doesn't exist")
+
+        order_product.count = count
+        order_product.save()
+
+        return order_product
+
 
 class OrderProduct(models.Model):
     """
@@ -282,7 +303,7 @@ class Cart(models.Model):
     """
     Cart model
     """
-
+    # TODO: update with ship amount
     user = models.OneToOneField(UserAccount, on_delete=models.CASCADE)
     total_items = models.IntegerField(default=0)
     last_modification = models.DateField(auto_now=True)

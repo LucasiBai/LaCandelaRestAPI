@@ -72,6 +72,32 @@ class OrderSerializer(serializers.ModelSerializer):
 
         return order
 
+    def update(self, instance, validated_data):
+        """
+        Update order and order product
+
+        Args:
+            instance(Order): instance to update
+            validated_data(dict): data to update instance
+
+        Returns:
+            Updated instance
+        """
+        products = validated_data.get("products", None)
+
+        parsed_products = []
+
+        # TODO: refactor in utils
+        for product in products:
+            parsed_product = loads(product.replace("'", '"'))
+            parsed_products.append(parsed_product)
+
+        # TODO : update with update_order_products
+        for product in parsed_products:
+            instance.update_order_product(**product)
+
+        return instance
+
     def to_representation(self, instance):
         """
         Sets the order representation
