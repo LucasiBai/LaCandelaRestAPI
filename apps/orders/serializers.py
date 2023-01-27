@@ -1,8 +1,8 @@
-from json import loads
-
 from rest_framework import serializers
 
 from .meta import get_app_model, get_secondary_model
+
+from apps.api_root.utils import parse_json
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -25,7 +25,7 @@ class OrderSerializer(serializers.ModelSerializer):
         user = self.context.get("user", None)
         action = self.context.get("action", None)
 
-        if action == "create":
+        if action and action.lower() == "create":
             if not user:
                 raise serializers.ValidationError(
                     "User must be authenticated to post data"
@@ -57,18 +57,13 @@ class OrderSerializer(serializers.ModelSerializer):
             created instance
         """
         products = validated_data.get("products", None)
-
-        parsed_products = []
-
-        for product in products:
-            parsed_product = loads(product.replace("'", '"'))
-            parsed_products.append(parsed_product)
+        products = [parse_json(product) for product in products]
 
         buyer = validated_data.get("buyer", None)
         shipping_info = validated_data.get("shipping_info")
 
         order = self.Meta.model.objects.create(buyer=buyer, shipping_info=shipping_info)
-        order.create_order_products(parsed_products)
+        order.create_order_products(products)
 
         return order
 
@@ -83,18 +78,25 @@ class OrderSerializer(serializers.ModelSerializer):
         Returns:
             Updated instance
         """
+        # Update order products
         products = validated_data.get("products", None)
 
-        parsed_products = []
+        products = [parse_json(product) for product in products]
 
-        # TODO: refactor in utils
-        for product in products:
-            parsed_product = loads(product.replace("'", '"'))
-            parsed_products.append(parsed_product)
+        instance.update_order_products(products)
 
-        # TODO : update with update_order_products
-        for product in parsed_products:
-            instance.update_order_product(**product)
+        # Update shipping info
+        shipping_info = validated_data.get("shipping_info", None)
+
+        if shipping_info:
+            instance.shipping_info = shipping_info
+            instance.save()
+
+        # Update buyer reject
+        buyer = validated_data.get("buyer", None)
+
+        if buyer and buyer.id != instance.buyer.id:
+            raise serializers.ValidationError("Created order can't update buyer.")
 
         return instance
 

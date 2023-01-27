@@ -282,6 +282,24 @@ class Order(models.Model):
 
         return order_product
 
+    def update_order_products(self, order_product_list: list):
+        """
+        Update the entered order product list
+
+        Args:
+            order_product_list(list<OrderProduct>): list of order products to update
+
+        Returns:
+            Updated order products
+        """
+        updated_order_products = []
+
+        for product in order_product_list:
+            updated = self.update_order_product(**product)
+            updated_order_products.append(updated)
+
+        return updated_order_products
+
 
 class OrderProduct(models.Model):
     """

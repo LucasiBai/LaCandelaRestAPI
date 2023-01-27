@@ -1,3 +1,5 @@
+import json
+
 from rest_framework.viewsets import ModelViewSet
 
 from django_filters.rest_framework import FilterSet
@@ -84,3 +86,22 @@ class FilterMethodsViewset(ModelViewSet):
 
             self.results = backend_data["results"]
         return queryset
+
+
+def parse_json(json_data: str) -> dict:
+    """
+    Parses entered json with two or one quotes
+    Args:
+        json_data(str): json data to parse
+
+    Returns:
+        Parsed json
+    """
+    try:
+        parsed_data = json.loads(json_data)
+    except json.decoder.JSONDecodeError:
+        parsed_data = json.loads(json_data.replace("'", '"'))
+    except:
+        raise Exception("Unexpected error.")
+
+    return parsed_data

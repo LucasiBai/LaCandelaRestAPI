@@ -619,8 +619,73 @@ class OrderModelTest(TestCase):
         with self.assertRaises(ObjectDoesNotExist):
             order.update_order_product(**order_product_payload)
 
+    def test_order_update_order_products_successful(self):
+        """
+        Tests if order instance has update_order_products
+        and returns updated order products
+        """
+        mock_order = {
+            "buyer": self.user,
+            "shipping_info": self.shipping_info,
+        }
+        order = Order.objects.create(**mock_order)
 
-#     TODO: Test order has update_order_products
+        new_product = Product.objects.create(**{**self.mock_product, "title": "Test new Product"})
+
+        order_products_payload = [
+            {
+                "product": self.product.id,
+                "count": 5,
+            },
+            {
+                "product": new_product.id,
+                "count": 6,
+            }
+        ]
+        order_products = order.create_order_products(order_products_payload)
+
+        order_products_payload[0]["count"] = 2
+        order_products_payload[1]["count"] = 1
+
+        updated_products = order.update_order_products(order_products_payload)
+
+        order_products[0].refresh_from_db()
+        order_products[1].refresh_from_db()
+
+        self.assertEqual(order_products[0].count, updated_products[0].count)
+        self.assertEqual(order_products[0].count, order_products_payload[0]["count"])
+
+        self.assertEqual(order_products[1].count, updated_products[1].count)
+        self.assertEqual(order_products[1].count, order_products_payload[1]["count"])
+
+    def test_order_update_order_products_no_product_reject(self):
+        """
+        Tests if order instance has update_order_products
+        and returns updated order products
+        """
+        mock_order = {
+            "buyer": self.user,
+            "shipping_info": self.shipping_info,
+        }
+        order = Order.objects.create(**mock_order)
+
+        new_product = Product.objects.create(**{**self.mock_product, "title": "Test new Product"})
+
+        order_products_payload = [
+            {
+                "product": self.product.id,
+                "count": 5,
+            },
+        ]
+        order.create_order_products(order_products_payload)
+
+        order_products_payload[0]["product"] = new_product.id
+        order_products_payload[0]["count"] = 2
+
+        with self.assertRaises(ObjectDoesNotExist):
+            order.update_order_products(order_products_payload)
+
+
 class CommentModelTest(TestCase):
     """
     Tests Comment model

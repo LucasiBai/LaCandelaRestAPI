@@ -938,6 +938,7 @@ class PrivateSuperusersOrdersAPITests(TestCase):
         """
         Tests if superuser can put own order detail
         """
+        # Shipping Info create
         mock_shipping_info = {
             "user": self.main_user,
             "address": "Test address",
@@ -948,6 +949,7 @@ class PrivateSuperusersOrdersAPITests(TestCase):
             **mock_shipping_info  # create shipping info for order
         )
 
+        # Order and Order Products create
         mock_order = {
             "buyer": self.main_user,
             "shipping_info": shipping_info,
@@ -957,6 +959,12 @@ class PrivateSuperusersOrdersAPITests(TestCase):
 
         order_detail_url = get_order_detail_url(
             [order]  # obtain the url of created order
+        )
+
+        # New Shipping Info create
+        mock_shipping_info["receiver_dni"] = 87654321
+        shipping_info = ShippingInfo.objects.create(
+            **mock_shipping_info  # create new shipping info for order
         )
 
         payload = {
@@ -975,6 +983,85 @@ class PrivateSuperusersOrdersAPITests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
         self.assertEqual(res.data["products"][0]["count"], payload["products"][0]["count"])
+        self.assertEqual(res.data["shipping_info"]["receiver_dni"], mock_shipping_info["receiver_dni"])
+
+    def test_own_order_detail_put_superuser_change_buyer_reject(self):
+        """
+        Tests if superuser can't change buyer with put
+        """
+        # Shipping Info create
+        mock_shipping_info = {
+            "user": self.main_user,
+            "address": "Test address",
+            "receiver": "test receiver name",
+            "receiver_dni": 12345678,
+        }
+        shipping_info = ShippingInfo.objects.create(
+            **mock_shipping_info  # create shipping info for order
+        )
+
+        # Order and Order Products create
+        mock_order = {
+            "buyer": self.main_user,
+            "shipping_info": shipping_info,
+        }
+        order = self.model.objects.create(**mock_order)
+        order.create_order_products([{"product": self.product.id, "count": 4}])
+
+        order_detail_url = get_order_detail_url(
+            [order]  # obtain the url of created order
+        )
+
+        payload = {
+            "buyer": self.user.id,
+            "products": [
+                {"product": self.product.id, "count": 6}
+            ],
+            "shipping_info": shipping_info.id,
+        }
+
+        res = self.client.put(
+            order_detail_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_own_order_detail_patch_superuser_change_buyer_reject(self):
+        """
+        Tests if superuser can't change buyer with put
+        """
+        # Shipping Info create
+        mock_shipping_info = {
+            "user": self.main_user,
+            "address": "Test address",
+            "receiver": "test receiver name",
+            "receiver_dni": 12345678,
+        }
+        shipping_info = ShippingInfo.objects.create(
+            **mock_shipping_info  # create shipping info for order
+        )
+
+        # Order and Order Products create
+        mock_order = {
+            "buyer": self.main_user,
+            "shipping_info": shipping_info,
+        }
+        order = self.model.objects.create(**mock_order)
+        order.create_order_products([{"product": self.product.id, "count": 4}])
+
+        order_detail_url = get_order_detail_url(
+            [order]  # obtain the url of created order
+        )
+
+        payload = {
+            "buyer": self.user.id,
+        }
+
+        res = self.client.put(
+            order_detail_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}"
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_order_detail_put_superuser_from_other_user_successful(self):
         """
