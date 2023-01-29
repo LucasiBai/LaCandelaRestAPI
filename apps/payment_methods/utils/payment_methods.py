@@ -1,12 +1,12 @@
 from datetime import datetime, timedelta
 
-import mercadopago
-
 from core.settings.base import MERCADO_PAGO_CONFIG, env
 
 from db.models import Cart, CartItem
 
-from .models import PaymentStrategy
+from apps.payment_methods.utils.services.mp_service import MPService
+
+from apps.payment_methods.models import PaymentStrategy
 
 
 class PaymentMethod:
@@ -99,7 +99,7 @@ class MercadoPagoMethod(PaymentStrategy.PaymentStrategyInterface):
 
         user = self._cart.user
 
-        sdk = mercadopago.SDK(MERCADO_PAGO_CONFIG["ACCESS_TOKEN"])
+        service = MPService()
 
         preference_data = {
             "items": cart_items,
@@ -118,7 +118,7 @@ class MercadoPagoMethod(PaymentStrategy.PaymentStrategyInterface):
                                                         "https://crudcrud.com/api/5ec933f740654c5fa42a209d53768460/payments"),
         }
 
-        preference_response = sdk.preference().create(preference_data)
+        preference_response = service.get_preference(preference_data)
 
         preference = preference_response["response"]
 

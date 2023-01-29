@@ -7,7 +7,7 @@ from apps.users.serializers import UserAccountSerializer
 
 from db.models import Cart
 
-from .utils import PaymentMethod, MercadoPagoMethod
+from .utils.payment_methods import PaymentMethod, MercadoPagoMethod
 
 PAYMENT_METHODS = {
     "mp": MercadoPagoMethod

@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 
-from apps.payment_methods.utils import PaymentMethod, MercadoPagoMethod
+from apps.payment_methods.utils.payment_methods import PaymentMethod, MercadoPagoMethod
 
 from db.models import Cart, Product, Category
 
