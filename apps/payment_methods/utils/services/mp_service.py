@@ -29,3 +29,17 @@ class MPService:
         preference: dict = self.sdk.preference().create(pref_config)
 
         return preference
+
+    def check_payment(self, pay_id: int):
+        """
+        Checks if payment was done successfully
+
+        Args:
+            pay_id(int): payment id
+
+        Returns:
+            True if payment is approved or False otherwise
+        """
+        payment = self.sdk.payment().get(pay_id)
+
+        return payment["response"]["status"] == "approved"

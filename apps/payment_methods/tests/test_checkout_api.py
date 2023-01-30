@@ -102,6 +102,21 @@ class PrivateCheckoutApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
+    def test_checkout_view_mp_method_normal_user_no_case_sensitive_successful(self):
+        """
+        Tests if normal user can see own checkout view
+        """
+        checkout_url = get_checkout_of("mP", self.cart.id)
+
+        res = self.client.get(checkout_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertContains(res, "user")
+        self.assertContains(res, "preference")
+
+        self.assertEqual(res.data["preference"]["payer"]["identification"]["number"], str(self.user.id))
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
     def test_checkout_view_mp_method_normal_user_no_existing_cart_reject(self):
         """
         Tests if api rejects a no existing cart id

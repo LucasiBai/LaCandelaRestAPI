@@ -8,11 +8,13 @@ class MPServiceTests(TestCase):
     Tests Mp service
     """
 
+    def setUp(self):
+        self.service = MPService()
+
     def test_get_preference_successful(self):
         """
         Tests if service has get preference method
         """
-        service = MPService()
 
         preference_data = {
             "items": [{
@@ -45,7 +47,7 @@ class MPServiceTests(TestCase):
             },
         }
 
-        preference_response = service.get_preference(preference_data)
+        preference_response = self.service.get_preference(preference_data)
 
         preference = preference_response["response"]
 
@@ -55,3 +57,17 @@ class MPServiceTests(TestCase):
         self.assertEqual(preference_data["items"][0]["id"], preference["items"][0]["id"])
         self.assertEqual(preference_data["payer"]["identification"]["number"],
                          preference["payer"]["identification"]["number"])
+
+    def test_check_payment_successful(self):
+        """
+        Tests if check_payment method returns true if payment was approved
+        """
+        pay_id = 1311430300
+
+        check_payment = self.service.check_payment(pay_id)
+
+        self.assertTrue(check_payment)
+
+    # TODO : Test No approved payment
+
+    # TODO : Test No existing payment

@@ -8,9 +8,14 @@ from apps.users.serializers import UserAccountSerializer
 from db.models import Cart
 
 from .utils.payment_methods import PaymentMethod, MercadoPagoMethod
+from .utils.services.mp_service import MPService
 
 PAYMENT_METHODS = {
     "mp": MercadoPagoMethod
+}
+
+PAYMENT_SERVICES = {
+    "mp": MPService
 }
 
 
@@ -25,11 +30,11 @@ class CheckoutAPIView(APIView):
         """
         cart = Cart.objects.filter(id=cart_id).first()
 
-        if cart and method in PAYMENT_METHODS:
+        if cart and method.lower() in PAYMENT_METHODS:
             if cart.user.id != request.user.id:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
 
-            pay_method = PAYMENT_METHODS[method]
+            pay_method = PAYMENT_METHODS[method.lower()]
             payment = PaymentMethod(cart=cart, method=pay_method)
 
             user_serializer = UserAccountSerializer(cart.user)
@@ -52,10 +57,15 @@ class CheckoutNotificationAPIView(APIView):
 
     permission_classes = [AllowAny]
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request, method, *args, **kwargs):
         """
         Create Order if product pay was success
         """
         pay_id = request.data.get("data", {"id": None})["id"]
 
-        return Response(status=status.HTTP_200_OK)
+        if method.lower() in PAYMENT_METHODS:
+            service = PAYMENT_SERVICES[method.lower()]
+
+            return Response(status=status.HTTP_200_OK)
+
+        return Response(status=status.HTTP_400_BAD_REQUEST)

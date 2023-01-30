@@ -44,6 +44,7 @@ class MercadoPagoMethod(PaymentStrategy.PaymentStrategyInterface):
     """
     Payment method state of mercado pago
     """
+    service = MPService()
 
     def __init__(self, cart: Cart):
         self._cart: Cart = cart
@@ -99,8 +100,6 @@ class MercadoPagoMethod(PaymentStrategy.PaymentStrategyInterface):
 
         user = self._cart.user
 
-        service = MPService()
-
         preference_data = {
             "items": cart_items,
             "payer": {
@@ -115,11 +114,13 @@ class MercadoPagoMethod(PaymentStrategy.PaymentStrategyInterface):
             "date_of_expiration": self.get_expiration_date(
                 MERCADO_PAGO_CONFIG.get("DATE_OF_EXPIRATION", timedelta(days=3))),
             "notification_url": MERCADO_PAGO_CONFIG.get("NOTIFICATION_URL",
-                                                        "https://crudcrud.com/api/5ec933f740654c5fa42a209d53768460/payments"),
+                                                        "https://52ad-2803-9800-988a-930d-30fc-24a3-aa0b-d7e0.sa.ngrok.io/api/checkout/notify/mp/"),
         }
 
-        preference_response = service.get_preference(preference_data)
+        preference_response = self.service.get_preference(preference_data)
 
         preference = preference_response["response"]
+
+        print(preference["init_point"])
 
         return self.format_preference(preference)
