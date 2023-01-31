@@ -15,7 +15,7 @@ PAYMENT_METHODS = {
 }
 
 PAYMENT_SERVICES = {
-    "mp": MPService
+    "mp": MPService()
 }
 
 
@@ -61,10 +61,21 @@ class CheckoutNotificationAPIView(APIView):
         """
         Create Order if product pay was success
         """
+
         pay_id = request.data.get("data", {"id": None})["id"]
 
         if method.lower() in PAYMENT_METHODS:
-            service = PAYMENT_SERVICES[method.lower()]
+            if pay_id:
+
+                try:
+                    service = PAYMENT_SERVICES[method.lower()]
+                    is_approved = service.check_payment(pay_id)
+
+                    if is_approved:
+                        return Response(status=status.HTTP_200_OK)
+
+                except ValueError:
+                    return Response(status=status.HTTP_400_BAD_REQUEST)
 
             return Response(status=status.HTTP_200_OK)
 

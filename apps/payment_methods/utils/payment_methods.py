@@ -114,13 +114,11 @@ class MercadoPagoMethod(PaymentStrategy.PaymentStrategyInterface):
             "date_of_expiration": self.get_expiration_date(
                 MERCADO_PAGO_CONFIG.get("DATE_OF_EXPIRATION", timedelta(days=3))),
             "notification_url": MERCADO_PAGO_CONFIG.get("NOTIFICATION_URL",
-                                                        "https://52ad-2803-9800-988a-930d-30fc-24a3-aa0b-d7e0.sa.ngrok.io/api/checkout/notify/mp/"),
+                                                        "https://de8d-2803-9800-988a-930d-85eb-d1d4-4b8c-d1b3.sa.ngrok.io/api/checkout/notify/mp/"),
         }
 
         preference_response = self.service.get_preference(preference_data)
 
         preference = preference_response["response"]
-
-        print(preference["init_point"])
 
         return self.format_preference(preference)

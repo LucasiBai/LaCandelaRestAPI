@@ -68,6 +68,21 @@ class MPServiceTests(TestCase):
 
         self.assertTrue(check_payment)
 
-    # TODO : Test No approved payment
+    def test_check_payment_rejected_payment_reject(self):
+        """
+        Tests if check_payment method returns false if payment was rejected
+        """
+        pay_id = 1312160969
 
-    # TODO : Test No existing payment
+        check_payment = self.service.check_payment(pay_id)
+
+        self.assertFalse(check_payment)
+
+    def test_check_payment_no_existing_payment_reject(self):
+        """
+        Tests if check_payment method raise an error with no existing payment
+        """
+        pay_id = 41235521
+
+        with self.assertRaises(ValueError):
+            self.service.check_payment(pay_id)

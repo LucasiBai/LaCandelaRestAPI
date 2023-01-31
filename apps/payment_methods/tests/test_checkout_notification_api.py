@@ -30,7 +30,7 @@ class PublicCheckoutNotificationApiTests(TestCase):
             "api_version": "v1",
             "action": "payment.created",
             "data": {
-                "id": "999999999"
+                "id": 1311430300
             }
         }
 
@@ -46,7 +46,7 @@ class PublicCheckoutNotificationApiTests(TestCase):
         payload = {
             'action': 'payment.created',
             'api_version': 'v1',
-            'data': {'id': '1311430300'},
+            'data': {'id': 1311430300},
             'date_created': '2023-01-30T11:40:20Z',
             'id': 104791905287,
             'live_mode': False,
@@ -57,6 +57,31 @@ class PublicCheckoutNotificationApiTests(TestCase):
         res = self.client.post(CHECKOUT_NOTIFICATION_URLS["mp"], payload, format="json")
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        # TODO: Test if api create order
 
-    # TODO: Test unexpected method
+        self.assertTrue(res.data)
+
+        self.assertEqual(res.data["user"]["email"], "test_user_80507629@testuser.com")
+
+        # TODO : search order
+
+    # TODO : Test rejected payment
+    def test_checkout_notification_unexpected_method_reject(self):
+        """
+        Tests if public user can't post with unexpected method
+        """
+        payload = {
+            'action': 'payment.created',
+            'api_version': 'v1',
+            'data': {'id': 1311430300},
+            'date_created': '2023-01-30T11:40:20Z',
+            'id': 104791905287,
+            'live_mode': False,
+            'type': 'payment',
+            'user_id': '643565524'
+        }
+
+        url = reverse("api:checkout_notify", kwargs={"method": "invalid-method"})
+
+        res = self.client.post(url, payload, format="json")
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)

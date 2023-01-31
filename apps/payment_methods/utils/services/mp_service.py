@@ -42,4 +42,9 @@ class MPService:
         """
         payment = self.sdk.payment().get(pay_id)
 
+        status = payment.get("status", None)
+        
+        if status != 200:
+            raise ValueError("Payment id do not exist.")
+
         return payment["response"]["status"] == "approved"
