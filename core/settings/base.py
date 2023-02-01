@@ -130,5 +130,5 @@ EMAIL_HOST_PASSWORD = "qhvnilqmludrrakd"
 MERCADO_PAGO_CONFIG = {
     "ACCESS_TOKEN": env("MP_ACCESS_TOKEN"),
     "DATE_OF_EXPIRATION": timedelta(days=3),
-    # "NOTIFICATION_URL": f"{env('BACK_END_URL')}/api/checkout/notify/",
+    "NOTIFICATION_URL": f"{env('BACK_END_URL')}/api/checkout/notify/mp/",
 }

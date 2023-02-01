@@ -64,19 +64,22 @@ class CheckoutNotificationAPIView(APIView):
 
         pay_id = request.data.get("data", {"id": None})["id"]
 
-        if method.lower() in PAYMENT_METHODS:
-            if pay_id:
+        topic = request.data.get("topic", None)
 
-                try:
-                    service = PAYMENT_SERVICES[method.lower()]
-                    is_approved = service.check_payment(pay_id)
+        if pay_id and method.lower() in PAYMENT_METHODS:
+            try:
+                service = PAYMENT_SERVICES[method.lower()]
+                is_approved, data = service.check_payment(pay_id)
 
-                    if is_approved:
-                        return Response(status=status.HTTP_200_OK)
+                if is_approved:
+                    order = service.create_order(data)
+                    print(order)
+                    return Response(status=status.HTTP_200_OK)
 
-                except ValueError:
-                    return Response(status=status.HTTP_400_BAD_REQUEST)
+            except ValueError:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
 
+        elif topic == 'merchant_order':
             return Response(status=status.HTTP_200_OK)
 
         return Response(status=status.HTTP_400_BAD_REQUEST)

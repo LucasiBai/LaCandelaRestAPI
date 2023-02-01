@@ -113,8 +113,7 @@ class MercadoPagoMethod(PaymentStrategy.PaymentStrategyInterface):
             "back_urls": MERCADO_PAGO_CONFIG.get("BACK_URLS", {}),
             "date_of_expiration": self.get_expiration_date(
                 MERCADO_PAGO_CONFIG.get("DATE_OF_EXPIRATION", timedelta(days=3))),
-            "notification_url": MERCADO_PAGO_CONFIG.get("NOTIFICATION_URL",
-                                                        "https://de8d-2803-9800-988a-930d-85eb-d1d4-4b8c-d1b3.sa.ngrok.io/api/checkout/notify/mp/"),
+            "notification_url": MERCADO_PAGO_CONFIG.get("NOTIFICATION_URL", None),
         }
 
         preference_response = self.service.get_preference(preference_data)

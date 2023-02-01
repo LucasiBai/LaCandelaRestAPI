@@ -1,6 +1,10 @@
+from django.contrib.auth import get_user_model
+
 import mercadopago
 
 from core.settings.base import MERCADO_PAGO_CONFIG
+
+from db.models import Order, ShippingInfo
 
 
 class MPService:
@@ -43,8 +47,41 @@ class MPService:
         payment = self.sdk.payment().get(pay_id)
 
         status = payment.get("status", None)
-        
+
         if status != 200:
             raise ValueError("Payment id do not exist.")
 
-        return payment["response"]["status"] == "approved"
+        return (payment["response"]["status"] == "approved", payment["response"])
+
+    def create_order(self, data: dict):
+        """
+        Creates an order with entered data
+
+        Args:
+            data(dict): data with order data
+
+        Returns:
+            order created
+        """
+        payer_data = data.get("payer", None)
+
+        user = get_user_model().objects.filter(email=payer_data["email"]).first()
+
+        user_ship_info = ShippingInfo.objects.filter(user=user).last()
+
+        products = data.get("additional_info", {"items": None})["items"]
+
+        parsed_products = []
+        for product in products:
+            data = {
+                "product": product["id"],
+                "count": int(product["quantity"])
+            }
+            parsed_products.append(data)
+
+        order = Order.objects.create(buyer=user, shipping_info=user_ship_info)
+        order.save()
+
+        order.create_order_products(parsed_products)
+
+        return order
