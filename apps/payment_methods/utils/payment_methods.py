@@ -6,48 +6,48 @@ from db.models import Cart, CartItem
 
 from apps.payment_methods.utils.services.mp_service import MPService
 
-from apps.payment_methods.models import PaymentStrategy
+from apps.payment_methods.utils.models import payment_strategy
 
 
 class PaymentMethod:
-    def __init__(self, cart: Cart = None, method: PaymentStrategy.PaymentStrategyInterface = None):
+    def __init__(self, cart: Cart = None, method: payment_strategy.PaymentStrategyInterface = None):
         if not cart:
             raise ValueError("PaymentMethod must be initialized with cart")
 
         if method:
-            self._method = method(cart)
+            self.__method = method(cart)
         else:
-            self._method = MercadoPagoMethod(cart)
+            self.__method = MercadoPagoMethod(cart)
 
-        self._cart = cart
+        self.__cart = cart
 
     def get_preference(self):
         """
         Gets preference from current Payment State
         """
-        preference = self._method.get_preference()
+        preference = self.__method.get_preference()
 
         return preference
 
     def get_payment_method(self):
-        return self._method
+        return self.__method
 
-    def change_payment_method(self, method: PaymentStrategy.PaymentStrategyInterface):
+    def change_payment_method(self, method: payment_strategy.PaymentStrategyInterface):
         """
         Changes current method
         """
 
-        self._method = method(self._cart)
+        self._method = method(self.__cart)
 
 
-class MercadoPagoMethod(PaymentStrategy.PaymentStrategyInterface):
+class MercadoPagoMethod(payment_strategy.PaymentStrategyInterface):
     """
     Payment method state of mercado pago
     """
     service = MPService()
 
     def __init__(self, cart: Cart):
-        self._cart: Cart = cart
+        self.__cart: Cart = cart
 
     def __str__(self):
         return "MercadoPago Payment Method"
@@ -96,9 +96,9 @@ class MercadoPagoMethod(PaymentStrategy.PaymentStrategyInterface):
         """
         Gets Mercado Pago preference data
         """
-        cart_items = [self.format_cart_item(item) for item in self._cart.get_products()]
+        cart_items = [self.format_cart_item(item) for item in self.__cart.get_products()]
 
-        user = self._cart.user
+        user = self.__cart.user
 
         preference_data = {
             "items": cart_items,

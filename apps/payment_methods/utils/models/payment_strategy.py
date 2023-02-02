@@ -10,7 +10,7 @@ class PaymentStrategyInterface(ABC):
 
     @abstractmethod
     def __init__(self, cart: Cart):
-        self._cart: Cart = cart
+        self.__cart: Cart = cart
 
     @abstractmethod
     def get_preference(self):

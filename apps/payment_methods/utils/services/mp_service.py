@@ -4,7 +4,7 @@ import mercadopago
 
 from core.settings.base import MERCADO_PAGO_CONFIG
 
-from db.models import Order, ShippingInfo
+from db.models import Order, ShippingInfo, Product
 
 
 class MPService:
@@ -73,8 +73,9 @@ class MPService:
 
         parsed_products = []
         for product in products:
+            found_product = Product.objects.filter(title=product["title"]).first()
             data = {
-                "product": product["id"],
+                "product": found_product.id,
                 "count": int(product["quantity"])
             }
             parsed_products.append(data)

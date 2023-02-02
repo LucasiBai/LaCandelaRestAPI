@@ -1,8 +1,11 @@
 from django.test import TestCase
 from django.urls import reverse
+from django.contrib.auth import get_user_model
 
 from rest_framework.test import APIClient
 from rest_framework import status
+
+from db.models import Category, Product, ShippingInfo
 
 CHECKOUT_NOTIFICATION_URLS = {"mp": reverse("api:checkout_notify", kwargs={"method": "mP"})}
 
@@ -14,6 +17,35 @@ class PublicCheckoutNotificationApiTests(TestCase):
 
     def setUp(self):
         self.client = APIClient()
+
+        # User creation
+        self.user = get_user_model().objects.create(email="test_user_80507629@testuser.com")
+
+        mock_user_shipping_info = {
+            "user": self.user,
+            "address": "Test address",
+            "receiver": "test receiver name",
+            "receiver_dni": 12345678,
+        }
+        ShippingInfo.objects.create(**mock_user_shipping_info)
+
+        # Product creation
+        category = Category.objects.create(title="TestCategory")
+
+        mock_product = {
+            "title": "Test title",
+            "description": "Test description",
+            "price": 11,
+            "images": [
+                "testimgurl.com/1",
+                "testimgurl.com/2",  # Mock product data
+                "testimgurl.com/3",
+            ],
+            "stock": 11,
+            "category": category,
+            "sold": 11,
+        }
+        self.product = Product.objects.create(**mock_product)
 
     def test_checkout_notification_mp_post_format_successful(self):
         """

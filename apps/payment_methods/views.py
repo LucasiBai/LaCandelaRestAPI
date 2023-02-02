@@ -61,6 +61,7 @@ class CheckoutNotificationAPIView(APIView):
         """
         Create Order if product pay was success
         """
+        # TODO: Refactor to strategy patron
 
         pay_id = request.data.get("data", {"id": None})["id"]
 
@@ -73,7 +74,7 @@ class CheckoutNotificationAPIView(APIView):
 
                 if is_approved:
                     order = service.create_order(data)
-                    print(order)
+
                     return Response(status=status.HTTP_200_OK)
 
             except ValueError:
