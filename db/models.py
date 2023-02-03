@@ -225,7 +225,7 @@ class Order(models.Model):
         if not filtered_order_products:
             raise DataError("Order instance don't have order products")
 
-        return filtered_order_products
+        return list(filtered_order_products)
 
     def create_order_products(self, product_list: list):
         """

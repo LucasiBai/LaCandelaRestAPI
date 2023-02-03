@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework import status
 
-from db.models import Category, Product, ShippingInfo
+from db.models import Category, Product, ShippingInfo, Order
 
 CHECKOUT_NOTIFICATION_URLS = {"mp": reverse("api:checkout_notify", kwargs={"method": "mP"})}
 
@@ -94,7 +94,11 @@ class PublicCheckoutNotificationApiTests(TestCase):
 
         self.assertEqual(res.data["user"]["email"], "test_user_80507629@testuser.com")
 
-        # TODO : search order
+        order = Order.objects.filter(buyer__email=res.data["user"]["email"]).last()
+
+        order_product = order.get_order_products()[-1]
+
+        self.assertEqual(order_product.product, self.product)
 
     # TODO : Test rejected payment
     def test_checkout_notification_unexpected_method_reject(self):

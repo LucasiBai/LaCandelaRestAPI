@@ -8,14 +8,14 @@ from apps.users.serializers import UserAccountSerializer
 from db.models import Cart
 
 from .utils.payment_methods import PaymentMethod, MercadoPagoMethod
-from .utils.services.mp_service import MPService
+from .utils.order_creation import OrderCreation
 
 PAYMENT_METHODS = {
     "mp": MercadoPagoMethod
 }
 
-PAYMENT_SERVICES = {
-    "mp": MPService()
+ORDER_CREATORS = {
+    "mp": OrderCreation
 }
 
 
@@ -61,26 +61,11 @@ class CheckoutNotificationAPIView(APIView):
         """
         Create Order if product pay was success
         """
-        # TODO: Refactor to strategy patron
+        if method.lower() in ORDER_CREATORS:
+            order_creator_method = ORDER_CREATORS[method.lower()]
 
-        pay_id = request.data.get("data", {"id": None})["id"]
+            order_creator = order_creator_method()
 
-        topic = request.data.get("topic", None)
+            return order_creator.get_response(request.data)
 
-        if pay_id and method.lower() in PAYMENT_METHODS:
-            try:
-                service = PAYMENT_SERVICES[method.lower()]
-                is_approved, data = service.check_payment(pay_id)
-
-                if is_approved:
-                    order = service.create_order(data)
-
-                    return Response(status=status.HTTP_200_OK)
-
-            except ValueError:
-                return Response(status=status.HTTP_400_BAD_REQUEST)
-
-        elif topic == 'merchant_order':
-            return Response(status=status.HTTP_200_OK)
-
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response({"message": "method is invalid."}, status=status.HTTP_400_BAD_REQUEST)
