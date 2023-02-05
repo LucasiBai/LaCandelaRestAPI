@@ -4,23 +4,12 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 
 from apps.payment_methods.utils.order_creation import OrderCreation, MercadoPagoMethod
-from db.models import ShippingInfo, Category, Product, Order
+from db.models import ShippingInfo, Category, Product, Order, Cart
 
 
 class OrderMercadoPagoMethodTests(TestCase):
     def setUp(self):
         self.order_creation_model = OrderCreation
-
-        # User creation
-        self.user = get_user_model().objects.create(email="test_user_80507629@testuser.com")
-
-        mock_user_shipping_info = {
-            "user": self.user,
-            "address": "Test address",
-            "receiver": "test receiver name",
-            "receiver_dni": 12345678,
-        }
-        ShippingInfo.objects.create(**mock_user_shipping_info)
 
         # Product creation
         category = Category.objects.create(title="TestCategory")
@@ -39,6 +28,20 @@ class OrderMercadoPagoMethodTests(TestCase):
             "sold": 11,
         }
         self.product = Product.objects.create(**mock_product)
+
+        # User creation
+        self.user = get_user_model().objects.create(email="test_user_80507629@testuser.com")
+
+        self.user_cart = Cart.objects.create(user=self.user)
+        self.user_cart.add_product(product=self.product, count=5)
+
+        mock_user_shipping_info = {
+            "user": self.user,
+            "address": "Test address",
+            "receiver": "test receiver name",
+            "receiver_dni": 12345678,
+        }
+        ShippingInfo.objects.create(**mock_user_shipping_info)
 
     def test_auto_mercado_pago_order_creation_successful(self):
         """

@@ -154,5 +154,3 @@ class PrivateCheckoutApiTests(TestCase):
         self.assertEqual(res.data["message"], "method is invalid.")
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-
-    # TODO: Test remove cart items

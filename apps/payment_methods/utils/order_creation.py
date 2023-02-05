@@ -4,7 +4,7 @@ from rest_framework import status
 from .models import order_strategy
 from .services.mp_service import MPService
 
-from db.models import Order
+from db.models import Order, Cart
 
 
 class OrderCreation:
@@ -79,9 +79,14 @@ class MercadoPagoMethod(order_strategy.OrderStrategyInterface):
             if is_approved:
                 order = service.create_order(data)
 
+                user_cart = Cart.objects.filter(user=order.buyer).first()
+                user_cart.remove_all_products()
+
                 res_data = self.format_response_data(order)
 
                 return Response(res_data, status=status.HTTP_200_OK)
+
+            return Response(status=status.HTTP_200_OK)
 
         except ValueError:
             return Response(status=status.HTTP_400_BAD_REQUEST)

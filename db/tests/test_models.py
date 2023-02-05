@@ -992,7 +992,7 @@ class CartModelTest(TestCase):
 
         # Cart item creation
         mock_cart_item = {"product": product, "count": 5}
-        new_product = cart.add_product(**mock_cart_item)
+        cart.add_product(**mock_cart_item)
 
         # Execution of delete method
         cart.remove_product(product)
