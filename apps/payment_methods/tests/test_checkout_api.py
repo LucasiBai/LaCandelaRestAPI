@@ -102,6 +102,23 @@ class PrivateCheckoutApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
+    def test_checkout_view_mp_method_normal_user_insufficient_stock_update_successful(self):
+        """
+        Tests if normal user can see own checkout view
+        """
+        checkout_url = get_checkout_of("mp", self.cart.id)
+
+        # updating product stock
+        self.product.stock = 4
+        self.product.save()
+
+        res = self.client.get(checkout_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.cart_item.refresh_from_db()
+        self.assertEqual(self.cart_item.count, 4)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_checkout_view_mp_method_normal_user_no_case_sensitive_successful(self):
         """
         Tests if normal user can see own checkout view

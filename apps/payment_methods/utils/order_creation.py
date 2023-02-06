@@ -60,6 +60,23 @@ class MercadoPagoMethod(order_strategy.OrderStrategyInterface):
 
         return response
 
+    def discount_stock_of(self, order: Order):
+        """
+        Discount stock of each product in order
+
+        Args:
+            order(Order): order to iterate
+
+        Returns:
+            None
+        """
+        order_products = order.get_order_products()
+
+        for order_product in order_products:
+            product = order_product.product
+            product.stock = product.stock - order_product.count
+            product.save()
+
     def get_response(self, data):
         """
         Creates order response with mp payment
@@ -81,6 +98,8 @@ class MercadoPagoMethod(order_strategy.OrderStrategyInterface):
 
                 user_cart = Cart.objects.filter(user=order.buyer).first()
                 user_cart.remove_all_products()
+
+                self.discount_stock_of(order)
 
                 res_data = self.format_response_data(order)
 

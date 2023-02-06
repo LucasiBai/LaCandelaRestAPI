@@ -229,6 +229,30 @@ class PrivateUserCartApiTests(TestCase):
         self.assertEqual(res_get.data["data"]["total_items"], payload["count"])
         self.assertEqual(res_get.data["data"]["items"][0]["count"], payload["count"])
 
+    def test_cart_view_post_cart_item_insufficient_stock_normal_user_reject(self):
+        """
+        Tests if normal user can't post an item in cart with insufficient stock
+        """
+        # updating stock
+        self.product.stock = 4
+        self.product.save()
+
+        payload = {
+            "product": self.product.id,  # cart payload
+            "count": 5,
+        }
+
+        res_post = self.client.post(MY_CART_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res_post.data["data"]["product"]["id"], self.product.id)
+
+        self.assertEqual(res_post.data["message"], "Item has insufficient stock.")
+        self.assertEqual(res_post.status_code, status.HTTP_400_BAD_REQUEST)
+
+        res_get = self.client.get(MY_CART_URL, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(len(res_get.data["data"]["items"]), 0)
+
     def test_cart_view_delete_cart_item_normal_user_successful(self):
         """
         Tests if normal user can delete product in cart api view

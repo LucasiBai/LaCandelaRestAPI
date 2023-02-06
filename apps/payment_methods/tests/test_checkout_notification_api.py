@@ -93,6 +93,10 @@ class PublicCheckoutNotificationApiTests(TestCase):
         user_cart_items = self.user_cart.get_products()
         self.assertEqual(user_cart_items[0].product, self.product)
 
+        # check product stock
+        self.product.refresh_from_db()
+        product_stock = self.product.stock
+
         res = self.client.post(CHECKOUT_NOTIFICATION_URLS["mp"], payload, format="json")
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)  # check status code
@@ -113,6 +117,13 @@ class PublicCheckoutNotificationApiTests(TestCase):
         user_cart_items = self.user_cart.get_products()
         self.assertTrue(len(user_cart_items) == 0)
 
+        # check product stock discounted
+        self.product.refresh_from_db()
+        updated_product_stock = self.product.stock
+
+        self.assertNotEqual(product_stock, updated_product_stock)
+        self.assertEqual(updated_product_stock, product_stock - order_product.count)
+
     def test_checkout_notification_mp_post_rejected_payment_successful(self):
         """
         Tests if public client can post in checkout notification Api
@@ -132,6 +143,10 @@ class PublicCheckoutNotificationApiTests(TestCase):
         user_cart_items = self.user_cart.get_products()
         self.assertEqual(user_cart_items[0].product, self.product)
 
+        # check product stock
+        self.product.refresh_from_db()
+        product_stock = self.product.stock
+
         res = self.client.post(CHECKOUT_NOTIFICATION_URLS["mp"], payload, format="json")
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
@@ -141,6 +156,12 @@ class PublicCheckoutNotificationApiTests(TestCase):
         # check not cleaned cart
         user_cart_items = self.user_cart.get_products()
         self.assertTrue(len(user_cart_items) > 0)
+
+        # check product stock not discounted
+        self.product.refresh_from_db()
+        updated_product_stock = self.product.stock
+
+        self.assertEqual(product_stock, updated_product_stock)
 
     def test_checkout_notification_unexpected_method_reject(self):
         """
