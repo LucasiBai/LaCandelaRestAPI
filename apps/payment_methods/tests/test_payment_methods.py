@@ -16,7 +16,7 @@ class PaymentMethodsTests(TestCase):
 
         self.cart = Cart.objects.create(user=self.user)
 
-        category = Category.objects.create(title="TestCategory")
+        self.category = Category.objects.create(title="TestCategory")
 
         mock_product = {
             "title": "Test title",
@@ -28,7 +28,7 @@ class PaymentMethodsTests(TestCase):
                 "testimgurl.com/3",
             ],
             "stock": 11,
-            "category": category,
+            "category": self.category,
             "sold": 11,
         }
         self.product = Product.objects.create(**mock_product)
@@ -73,6 +73,46 @@ class PaymentMethodsTests(TestCase):
 
         self.assertEquals(preference_items[0]["id"], str(self.product.id))
         self.assertEquals(preference_items[0]["quantity"], self.cart_item.count)
+
+    def test_mercado_pago_get_preference_insufficient_stock_update_stock_reject(self):
+        """
+        Tests if method raise an error when product has insufficient stock
+        and update all
+        """
+        # Product creation
+        mock_product = {
+            "title": "New Test title",
+            "description": "Test description",
+            "price": 11,
+            "images": [
+                "testimgurl.com/1",
+                "testimgurl.com/2",  # Mock product data
+                "testimgurl.com/3",
+            ],
+            "stock": 6,
+            "category": self.category,
+            "sold": 11,
+        }
+        new_product = Product.objects.create(**mock_product)
+
+        self.cart.add_product(new_product, 5)  # adding new product to cart
+
+        # stock updating
+        self.product.stock = 4
+        self.product.save()
+
+        new_product.stock = 3
+        new_product.save()
+
+        payment_method = self.payment_model(self.cart, MercadoPagoMethod)
+
+        with self.assertRaises(ValueError):
+            payment_method.get_preference()
+
+        cart_products = self.cart.get_products()
+
+        self.assertEqual(cart_products[0].count, 4)
+        self.assertEqual(cart_products[1].count, 3)
 
     def test_mercado_pago_get_preference_date_of_expiration_successful(self):
         """

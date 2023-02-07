@@ -73,6 +73,15 @@ class MercadoPagoMethod(payment_strategy.PaymentStrategyInterface):
         """
         Formats cart item for preference data
         """
+        product = item.product
+        product.refresh_from_db()
+
+        if product.stock < item.count:
+            item.count = product.stock
+            item.save()
+
+            return ValueError
+
         format_data = {
             "id": item.product.id,
             "currency_id": "ARS",
@@ -97,6 +106,9 @@ class MercadoPagoMethod(payment_strategy.PaymentStrategyInterface):
         Gets Mercado Pago preference data
         """
         cart_items = [self.format_cart_item(item) for item in self.__cart.get_products()]
+
+        if ValueError in cart_items:
+            raise ValueError("Item has insufficient stock.")
 
         user = self.__cart.user
 

@@ -685,6 +685,33 @@ class OrderModelTest(TestCase):
         with self.assertRaises(ObjectDoesNotExist):
             order.update_order_products(order_products_payload)
 
+    def test_order_model_manager_discount_stock_of_successful(self):
+        """
+        Tests order model manager discount_stock_of method
+        """
+        mock_order = {
+            "buyer": self.user,
+            "shipping_info": self.shipping_info,
+        }
+        order = Order.objects.create(**mock_order)
+
+        order_products_payload = [
+            {
+                "product": self.product.id,
+                "count": 5,
+            },
+        ]
+        order.create_order_products(order_products_payload)
+
+        product_stock = self.product.stock
+
+        Order.objects.discount_stock_of(order)
+
+        self.product.refresh_from_db()
+        updated_stock = self.product.stock
+
+        self.assertEqual(updated_stock, product_stock - order_products_payload[0]["count"])
+
 
 class CommentModelTest(TestCase):
     """

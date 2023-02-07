@@ -193,6 +193,29 @@ class ShippingInfo(models.Model):
         return f"{_('Shipping Info of')} {self.user.email}"
 
 
+class OrderManager(models.Manager):
+    """
+    Order Model manager
+    """
+
+    def discount_stock_of(self, order):
+        """
+        Discount stock of each product in order
+
+        Args:
+            order(Order): order to iterate
+
+        Returns:
+            None
+        """
+        order_products = order.get_order_products()
+
+        for order_product in order_products:
+            product = order_product.product
+            product.stock = product.stock - order_product.count
+            product.save()
+
+
 class Order(models.Model):
     """
     Order model
@@ -203,6 +226,8 @@ class Order(models.Model):
     shipping_info = models.ForeignKey("ShippingInfo", on_delete=models.CASCADE)
     created_at = models.DateField(auto_now_add=True)
     total_price = models.DecimalField(default=0, max_digits=9, decimal_places=2)
+
+    objects = OrderManager()
 
     class Meta:
         verbose_name = _("Order")

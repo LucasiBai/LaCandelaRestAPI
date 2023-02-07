@@ -39,12 +39,16 @@ class CheckoutAPIView(APIView):
 
             user_serializer = UserAccountSerializer(cart.user)
 
-            export_data = {
-                "user": user_serializer.data,
-                "preference": payment.get_preference()
-            }
+            try:
+                export_data = {
+                    "user": user_serializer.data,
+                    "preference": payment.get_preference()
+                }
 
-            return Response(export_data, status=status.HTTP_200_OK)
+                return Response(export_data, status=status.HTTP_200_OK)
+
+            except ValueError:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
 
         return Response({"message": f"{'cart id' if not cart else 'method'} is invalid."},
                         status=status.HTTP_400_BAD_REQUEST)
