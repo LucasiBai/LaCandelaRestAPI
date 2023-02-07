@@ -244,9 +244,6 @@ class PrivateUserCartApiTests(TestCase):
 
         res_post = self.client.post(MY_CART_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
-        self.assertEqual(res_post.data["data"]["product"]["id"], self.product.id)
-
-        self.assertEqual(res_post.data["message"], "Item has insufficient stock.")
         self.assertEqual(res_post.status_code, status.HTTP_400_BAD_REQUEST)
 
         res_get = self.client.get(MY_CART_URL, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")

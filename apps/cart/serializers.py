@@ -18,6 +18,20 @@ class CartSerializer(serializers.ModelSerializer):
             "count"
         ]
 
+    def validate(self, attrs):
+        """
+        Validates if product stock is sufficient
+        """
+        product_pk = attrs.get("product", None)
+        product = Product.objects.filter(pk=product_pk).first()
+
+        count = attrs.get("count", None)
+
+        if count > product.stock:
+            raise serializers.ValidationError("Item has insufficient stock.")
+
+        return attrs
+
     def to_representation(self, instance):
         method = self.context.get("method", None)
 

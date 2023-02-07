@@ -1253,3 +1253,18 @@ class CartItemModelTest(TestCase):
             str(cart_item),
             f"{cart_item.product.title} to {cart_item.cart.user.email}'s Cart",
         )
+
+    def test_update_cart_item_count(self):
+        """
+        Tests if cart item has update_item_count and updates
+        item count to product stock when is insufficient
+        """
+        mock_cart_item = {"cart": self.cart, "product": self.product, "count": 5}
+        cart_item = CartItem.objects.create(**mock_cart_item)
+
+        self.product.stock = 3
+        self.product.save()
+
+        cart_item.update_item_count()
+
+        self.assertEqual(cart_item.count, 3)

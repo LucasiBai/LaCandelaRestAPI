@@ -462,3 +462,19 @@ class CartItem(models.Model):
 
     def set_count(self, count: int):
         self.count = count
+        self.save()
+
+    def update_item_count(self):
+        """
+        Updates item count if stock is insufficient
+
+        Returns:
+            updated item
+        """
+        product = self.product
+        product.refresh_from_db()
+
+        if product.stock < self.count:
+            self.set_count(product.stock)
+
+        return self

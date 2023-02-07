@@ -77,8 +77,7 @@ class MercadoPagoMethod(payment_strategy.PaymentStrategyInterface):
         product.refresh_from_db()
 
         if product.stock < item.count:
-            item.count = product.stock
-            item.save()
+            item.update_item_count()
 
             return ValueError
 
