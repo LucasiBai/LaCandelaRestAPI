@@ -117,7 +117,7 @@ class PrivateUserCartApiTests(TestCase):
 
         self.category = Category.objects.create(title="TestCategory")
 
-        mock_product = {
+        self.mock_product = {
             "title": "Test title",
             "description": "Test description",
             "price": 1111,
@@ -130,7 +130,7 @@ class PrivateUserCartApiTests(TestCase):
             "category": self.category,
             "sold": 11,
         }
-        self.product = Product.objects.create(**mock_product)
+        self.product = Product.objects.create(**self.mock_product)
 
         # Cart creation
 
@@ -234,10 +234,37 @@ class PrivateUserCartApiTests(TestCase):
         Tests if normal user can't post an item in cart with insufficient stock
         """
         # updating stock
-        self.product.stock = 4
+        self.product.stock = 5
         self.product.save()
 
         cart_products = self.cart.get_products()
+
+        payload = {
+            "product": self.product.id,  # cart payload
+            "count": 1,
+        }
+
+        res_post = self.client.post(MY_CART_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res_post.status_code, status.HTTP_400_BAD_REQUEST)
+
+        res_get = self.client.get(MY_CART_URL, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(len(res_get.data["data"]["items"]), len(cart_products))
+
+    def test_cart_view_post_cart_item_insufficient_stock_and_update_current_cart_items_normal_user_reject(self):
+        """
+        Tests if normal user can't post an item in cart with insufficient stock and
+        update current cart item in every post if it is necesary
+        """
+        mock_new_product = {**self.mock_product, "title": "New Test Product"}
+        new_product = Product.objects.create(**mock_new_product)  # new product creation
+
+        self.cart.add_product(new_product, 11)
+
+        # updating stock
+        self.product.stock = 4
+        self.product.save()
 
         payload = {
             "product": self.product.id,  # cart payload
@@ -250,7 +277,8 @@ class PrivateUserCartApiTests(TestCase):
 
         res_get = self.client.get(MY_CART_URL, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
-        self.assertEqual(len(res_get.data["data"]["items"]), len(cart_products))
+        self.assertEqual(res_get.data["data"]["items"][0]["count"], 4)
+        self.assertEqual(res_get.data["data"]["items"][1]["count"], 11)
 
     def test_cart_view_delete_cart_item_normal_user_successful(self):
         """

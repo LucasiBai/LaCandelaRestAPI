@@ -18,17 +18,39 @@ class CartSerializer(serializers.ModelSerializer):
             "count"
         ]
 
+    def get_instance(self):
+        """
+        Gets cart instance
+
+        Returns:
+            current cart instance
+        """
+        return self.context.get("instance", None)
+
     def validate(self, attrs):
         """
         Validates if product stock is sufficient
         """
+        # TODO: Refactor
         product_pk = attrs.get("product", None)
         product = Product.objects.filter(pk=product_pk).first()
 
         count = attrs.get("count", None)
 
-        if count > product.stock:
+        cart_instance = self.get_instance()
+
+        cart_item = get_secondary_model().objects.filter(cart=cart_instance, product=product).first()
+
+        if not cart_item and count > product.stock:
             raise serializers.ValidationError("Item has insufficient stock.")
+
+        if cart_item:
+            if cart_item.count > product.stock:
+                cart_item.count = product.stock
+                cart_item.save()
+
+            if cart_item.count + count > product.stock:
+                raise serializers.ValidationError("Item has insufficient stock.")
 
         return attrs
 
@@ -65,7 +87,7 @@ class CartSerializer(serializers.ModelSerializer):
 
         count = validated_data.get("count", None)
 
-        instance = self.context.get("instance", None)
+        instance = self.get_instance()
 
         payload = {
             "product": product,

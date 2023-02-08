@@ -1,8 +1,8 @@
-from db.models import Cart, CartItem
+from db.models import Cart
 
 main_model = Cart
 
-secondary_model = CartItem
+secondary_model = Cart.get_cart_item_model()
 
 
 def get_app_model():
