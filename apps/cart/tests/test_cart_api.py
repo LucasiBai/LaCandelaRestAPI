@@ -237,6 +237,8 @@ class PrivateUserCartApiTests(TestCase):
         self.product.stock = 4
         self.product.save()
 
+        cart_products = self.cart.get_products()
+
         payload = {
             "product": self.product.id,  # cart payload
             "count": 5,
@@ -248,7 +250,7 @@ class PrivateUserCartApiTests(TestCase):
 
         res_get = self.client.get(MY_CART_URL, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
-        self.assertEqual(len(res_get.data["data"]["items"]), 0)
+        self.assertEqual(len(res_get.data["data"]["items"]), len(cart_products))
 
     def test_cart_view_delete_cart_item_normal_user_successful(self):
         """

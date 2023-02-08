@@ -38,7 +38,9 @@ https://lacandelabaigorria.vercel.app/
 - Django
 - Django Rest Framework
 - Django Tests
+- Unit Test
 
 ## Example:
+
 ![screen2](https://user-images.githubusercontent.com/99888705/199101529-93555998-36da-4787-ac13-7f4fe1d4784c.gif)
 

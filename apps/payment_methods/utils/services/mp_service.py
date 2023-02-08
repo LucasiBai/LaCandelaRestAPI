@@ -63,13 +63,20 @@ class MPService:
         Returns:
             order created
         """
+
         payer_data = data.get("payer", None)
+
+        products = data.get("additional_info", {"items": None})["items"]
+
+        if not payer_data or not products:
+            raise ValueError("Invalid data.")
 
         user = get_user_model().objects.filter(email=payer_data["email"]).first()
 
         user_ship_info = ShippingInfo.objects.filter(user=user).last()
 
-        products = data.get("additional_info", {"items": None})["items"]
+        if not user_ship_info:
+            raise ShippingInfo.DoesNotExist
 
         parsed_products = []
         for product in products:
