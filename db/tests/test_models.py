@@ -956,6 +956,84 @@ class CartModelTest(TestCase):
         with self.assertRaises(ValueError):
             cart.add_product()
 
+    def test_add_product_in_cart_method_insufficient_stock_reject(self):
+        """
+        Test if cart has add_product method and rejects when product has insufficient stock
+        """
+        # Cart creation
+        mock_cart = {"user": self.user}
+        cart = Cart.objects.create(**mock_cart)
+
+        # Product creation
+        category = Category.objects.create(title="TestCategory")
+        mock_product = {
+            "title": "Test title",
+            "description": "Test description",
+            "price": 1111,
+            "images": [
+                "testimgurl.com/1",
+                "testimgurl.com/2",
+                "testimgurl.com/3",
+            ],
+            "stock": 4,
+            "category": category,
+            "sold": 11,
+        }
+        product = Product.objects.create(**mock_product)
+
+        # Cart item creation
+        mock_cart_item = {"product": product, "count": 5}
+
+        with self.assertRaises(ValueError):
+            cart.add_product(**mock_cart_item)
+
+    def test_add_product_in_cart_method_insufficient_stock_in_created_cart_item_reject(self):
+        """
+        Test if cart has add_product method and rejects when product has insufficient stock
+        and updates created cart_products if it is necesary
+        """
+        # Cart creation
+        mock_cart = {"user": self.user}
+        cart = Cart.objects.create(**mock_cart)
+
+        # Product creation
+        category = Category.objects.create(title="TestCategory")
+        mock_product = {
+            "title": "Test title",
+            "description": "Test description",
+            "price": 1111,
+            "images": [
+                "testimgurl.com/1",
+                "testimgurl.com/2",
+                "testimgurl.com/3",
+            ],
+            "stock": 5,
+            "category": category,
+            "sold": 11,
+        }
+        first_product = Product.objects.create(**mock_product)
+
+        mock_product["title"] = "Second Test Product"
+        second_product = Product.objects.create(**mock_product)
+
+        # Cart item creation
+        mock_cart_item = {"product": first_product, "count": 5}
+        first_cart_item = cart.add_product(**mock_cart_item)  # first cart product creation
+
+        first_product.stock = 3  # updating first_product stock
+        first_product.save()
+
+        mock_cart_item["product"] = second_product
+        cart.add_product(**mock_cart_item)  # second cart product creation
+
+        with self.assertRaises(ValueError):
+            mock_cart_item["count"] = 1
+            cart.add_product(**mock_cart_item)  # second product insufficient stock
+
+        first_cart_item.refresh_from_db()
+
+        self.assertEqual(first_cart_item.count, 3)  # check if cart item was updated
+
     def test_add_product_in_cart_method_no_duplication_successful(self):
         """
         Test if cart has add_product method and update total items
@@ -1207,6 +1285,55 @@ class CartModelTest(TestCase):
         self.assertFalse(products)
 
         self.assertEqual(cart.total_items, 0)
+
+    def test_refresh_products_method_in_cart_successful(self):
+        """
+        Tests if model has a refresh_products method and refresh their count if it is necesary
+        """
+        # Cart creation
+        mock_cart = {"user": self.user}
+        cart = Cart.objects.create(**mock_cart)
+
+        # Product creation
+        category = Category.objects.create(title="TestCategory")
+        mock_product = {
+            "title": "Test title",
+            "description": "Test description",
+            "price": 1111,
+            "images": [
+                "testimgurl.com/1",
+                "testimgurl.com/2",
+                "testimgurl.com/3",
+            ],
+            "stock": 5,
+            "category": category,
+            "sold": 11,
+        }
+        first_product = Product.objects.create(**mock_product)
+
+        mock_product["title"] = "Second Test Product"
+        second_product = Product.objects.create(**mock_product)
+
+        # Cart item creation
+        mock_cart_item = {"product": first_product, "count": 5}
+        first_cart_item = cart.add_product(**mock_cart_item)  # first cart product creation
+
+        mock_cart_item["product"] = second_product
+        second_cart_item = cart.add_product(**mock_cart_item)  # second cart product creation
+
+        first_product.stock = 2  # updating first_product stock
+        first_product.save()
+
+        second_product.stock = 2  # updating second_product stock
+        second_product.save()
+
+        cart.refresh_products()
+
+        first_cart_item.refresh_from_db()
+        second_cart_item.refresh_from_db()
+
+        self.assertEqual(first_cart_item.count, 2)
+        self.assertEqual(second_cart_item.count, 2)
 
 
 class CartItemModelTest(TestCase):

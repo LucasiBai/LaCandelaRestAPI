@@ -393,17 +393,21 @@ class Cart(models.Model):
         """
         Creates a cart item and update total_items
         """
+        self.refresh_products()  # refresh cart items stock
+
         if not product and not count:
             raise ValueError("Method must receive 'product' and 'count'")
 
-        self.total_items += count
+        self.total_items += count  # updates total_item
         self.save()
 
         item_find = self.get_cart_item_model().objects.filter(cart=self, product=product).first()
 
+        if count > product.stock or item_find and item_find.count + count > product.stock:
+            raise ValueError("Item has insufficient stock")
+
         if item_find:
             item_find.set_count(item_find.count + count)
-            item_find.save()
             return item_find
 
         payload = {"cart": self, "product": product, "count": count}
@@ -442,6 +446,15 @@ class Cart(models.Model):
 
         self.total_items = 0
         self.save()
+
+    def refresh_products(self):
+        """
+        Refreshes all cart items in cart if is necesary
+        """
+
+        cart_items = self.get_products()
+
+        [cart_item.update_item_count() for cart_item in cart_items]
 
 
 class CartItem(models.Model):
