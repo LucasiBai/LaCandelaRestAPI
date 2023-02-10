@@ -117,7 +117,7 @@ class Comment(models.Model):
     """
     Comment model
     """
-
+    # TODO : convert id to uuid type to test comment better
     user = models.ForeignKey("UserAccount", on_delete=models.CASCADE)
     product = models.ForeignKey("Product", on_delete=models.CASCADE)
     subject = models.CharField(max_length=255)

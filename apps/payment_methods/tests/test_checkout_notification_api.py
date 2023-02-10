@@ -21,7 +21,7 @@ class PublicCheckoutNotificationApiTests(TestCase):
         # Product creation
         category = Category.objects.create(title="TestCategory")
 
-        mock_product = {
+        self.mock_product = {
             "title": "Test title",
             "description": "Test description",
             "price": 11,
@@ -34,7 +34,7 @@ class PublicCheckoutNotificationApiTests(TestCase):
             "category": category,
             "sold": 11,
         }
-        self.product = Product.objects.create(**mock_product)
+        self.product = Product.objects.create(**self.mock_product)
 
         # User creation
         self.user = get_user_model().objects.create(email="test_user_80507629@testuser.com")
