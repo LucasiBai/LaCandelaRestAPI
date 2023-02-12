@@ -73,7 +73,7 @@ class MPService:
 
         user = get_user_model().objects.filter(email=payer_data["email"]).first()
 
-        user_ship_info = ShippingInfo.objects.filter(user=user).last()
+        user_ship_info = ShippingInfo.objects.get_selected_shipping_info(user=user)
 
         if not user_ship_info:
             raise ShippingInfo.DoesNotExist

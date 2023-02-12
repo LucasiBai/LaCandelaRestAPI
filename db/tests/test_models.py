@@ -279,6 +279,8 @@ class ShippingInfoModelTest(TestCase):
         self.assertEqual(shipping_info.user, self.user)
         self.assertEqual(shipping_info.address, self.mock_shipping_info["address"])
 
+        self.assertTrue(shipping_info.is_selected)  # shipping info auto select
+
         self.assertEqual(
             f"Shipping Info of {self.user.get_full_name()}", str(shipping_info)
         )
@@ -293,6 +295,32 @@ class ShippingInfoModelTest(TestCase):
         shipping_info = ShippingInfo.objects.create(**new_mock_shipping_info)
 
         self.assertEqual(f"Shipping Info of {new_user.email}", str(shipping_info))
+        self.assertTrue(shipping_info.is_selected)  # shipping info auto select
+
+    def test_manager_select_shipping_info_successful(self):
+        """
+        Tests if manager can select a shipping info and deselect selected
+        """
+        first_shipping_info = ShippingInfo.objects.create(**self.mock_shipping_info)
+        second_shipping_info = ShippingInfo.objects.create(**self.mock_shipping_info)
+
+        self.assertTrue(first_shipping_info.is_selected)
+
+        ShippingInfo.objects.select_shipping_info(second_shipping_info)
+
+        first_shipping_info.refresh_from_db()
+        self.assertFalse(first_shipping_info.is_selected)
+        self.assertTrue(second_shipping_info.is_selected)
+
+    def test_manager_get_select_shipping_info_successful(self):
+        """
+        Tests if manager can return selected shipping info of entered user
+        """
+        shipping_info = ShippingInfo.objects.create(**self.mock_shipping_info)
+
+        selected_ship_info = ShippingInfo.objects.get_selected_shipping_info(self.user)
+
+        self.assertEqual(selected_ship_info.id, shipping_info.id)
 
 
 class OrderProductModelTests(TestCase):

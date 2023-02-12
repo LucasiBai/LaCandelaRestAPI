@@ -173,6 +173,61 @@ class Product(models.Model):
         return comment
 
 
+class ShippingInfoManager(models.Manager):
+    """
+    Shipping Info custom manager
+    """
+
+    def create(self, *args, **kwargs):
+        ship_info = super(ShippingInfoManager, self).create(*args, **kwargs)
+
+        user = kwargs.get("user", None)
+
+        selected = self.get_selected_shipping_info(user)
+
+        if not selected:
+            ship_info.is_selected = True
+            ship_info.save(using=self._db)
+
+    def select_shipping_info(self, ship_info):
+        """
+        Selects a shipping info for user
+
+        Args:
+            ship_info: instance to select
+
+        Returns:
+            updated shipping info
+        """
+        user = ship_info.user
+
+        current_selected = self.filter(user=user, is_selected=True).first()
+
+        if current_selected:
+            if ship_info.id == current_selected.id:
+                return ship_info
+
+            current_selected.is_selected = False
+            current_selected.save(using=self._db)
+
+        ship_info.is_selected = True
+        ship_info.save(using=self._db)
+
+        return ship_info
+
+    def get_selected_shipping_info(self, user: UserAccount):
+        """
+        Gets the selected shipping info o entered user
+
+        Args:
+            user: user from which takes the shipping info
+
+        Returns:
+            selected shipping info
+        """
+        return self.filter(user=user, is_selected=True).first()
+
+
 class ShippingInfo(models.Model):
     """
     ShippingInfo model
@@ -182,6 +237,9 @@ class ShippingInfo(models.Model):
     address = models.CharField(max_length=255)
     receiver = models.CharField(max_length=255)
     receiver_dni = models.IntegerField()
+    is_selected = models.BooleanField(default=False)
+
+    objects = ShippingInfoManager()
 
     class Meta:
         verbose_name = _("Shipping Information")

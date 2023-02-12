@@ -429,5 +429,3 @@ class MPServiceTests(TestCase):
 
         with self.assertRaises(ValueError):
             self.service.create_order(payload)
-
-
