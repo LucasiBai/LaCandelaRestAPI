@@ -178,7 +178,33 @@ class ShippingInfoManager(models.Manager):
     Shipping Info custom manager
     """
 
+    def __set_is_selected_to(self, ship_info, is_selected: bool):
+        """
+        Changes entered shipping info state
+
+        Args:
+            ship_info(ShippingInfo): shipping info instance to update
+            is_selected(bool): new state to instance
+
+        Returns:
+            updated instance
+        """
+        if not isinstance(is_selected, bool):
+            raise ValueError("is_selected must be bool type")
+
+        if ship_info.is_selected != is_selected:
+            ship_info.is_selected = is_selected
+            ship_info.save(using=self._db)
+
+        return ship_info
+
     def create(self, *args, **kwargs):
+        """
+        Custom create instance method
+
+        Returns:
+            instance
+        """
         ship_info = super().create(*args, **kwargs)
 
         user = kwargs.get("user", None)
@@ -186,7 +212,7 @@ class ShippingInfoManager(models.Manager):
         selected = self.get_selected_shipping_info(user)
 
         if not selected:
-            self.select_shipping_info(ship_info)
+            self.__set_is_selected_to(ship_info, True)
 
         return ship_info
 
@@ -208,11 +234,9 @@ class ShippingInfoManager(models.Manager):
             if ship_info.id == current_selected.id:
                 return ship_info
 
-            current_selected.is_selected = False
-            current_selected.save(using=self._db)
+            self.__set_is_selected_to(current_selected, False)
 
-        ship_info.is_selected = True
-        ship_info.save(using=self._db)
+        self.__set_is_selected_to(ship_info, True)
 
         return ship_info
 
