@@ -179,15 +179,16 @@ class ShippingInfoManager(models.Manager):
     """
 
     def create(self, *args, **kwargs):
-        ship_info = super(ShippingInfoManager, self).create(*args, **kwargs)
+        ship_info = super().create(*args, **kwargs)
 
         user = kwargs.get("user", None)
 
         selected = self.get_selected_shipping_info(user)
 
         if not selected:
-            ship_info.is_selected = True
-            ship_info.save(using=self._db)
+            self.select_shipping_info(ship_info)
+
+        return ship_info
 
     def select_shipping_info(self, ship_info):
         """
