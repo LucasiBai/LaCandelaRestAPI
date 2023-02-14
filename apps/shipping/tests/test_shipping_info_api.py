@@ -7,7 +7,7 @@ from rest_framework import status
 
 from apps.shipping.meta import get_app_model
 
-SHIPPING_INFO_URL = reverse("api:shipping_info")  # shipping info API url
+SHIPPING_INFO_URL = reverse("api:shipping_info-list")  # shipping info API url
 
 TOKEN_URL = reverse("users:user_token_obtain")  # user token API url
 
@@ -68,7 +68,7 @@ class PublicShippingInfoAPITests(TestCase):
         """
         Tests if public user can't post in list shipping info api
         """
-        payload = self.mock_shipping_info = {
+        payload = {
             "user": self.user.id,
             "address": "Test address",
             "receiver": "test receiver name",
@@ -85,7 +85,7 @@ class PublicShippingInfoAPITests(TestCase):
         """
         retrieve_url = get_shipping_info_url(self.shipping_info)
 
-        payload = self.mock_shipping_info = {
+        payload = {
             "user": self.user.id,
             "address": "Updated Test address",
             "receiver": "test receiver name",
@@ -102,7 +102,7 @@ class PublicShippingInfoAPITests(TestCase):
         """
         retrieve_url = get_shipping_info_url(self.shipping_info)
 
-        payload = self.mock_shipping_info = {
+        payload = {
             "address": "Updated Test address",
             "receiver_dni": 87654321,
         }
@@ -150,29 +150,29 @@ class PrivateUserShippingInfoAPITests(TestCase):
         }
         self.shipping_info = self.model(**self.mock_shipping_info)
 
-    def test_ship_info_list_view_public_user_get_reject(self):
+    def test_ship_info_list_view_normal_user_get_reject(self):
         """
-        Tests if public user can't list shipping info api
+        Tests if normal user can't list shipping info api
         """
         res = self.client.get(SHIPPING_INFO_URL, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_ship_info_retrieve_view_public_user_get_reject(self):
+    def test_ship_info_retrieve_view_normal_user_get_reject(self):
         """
-        Tests if public user can't retrieve shipping info api
+        Tests if normal user can't retrieve shipping info api
         """
         retrieve_url = get_shipping_info_url(self.shipping_info)
 
         res = self.client.get(retrieve_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_ship_info_list_view_public_user_post_reject(self):
+    def test_ship_info_list_view_normal_user_post_successful(self):
         """
-        Tests if public user can't post in list shipping info api
+        Tests if normal user can post in list shipping info api
         """
-        payload = self.mock_shipping_info = {
+        payload = {
             "user": self.user.id,
             "address": "Test address",
             "receiver": "test receiver name",
@@ -183,13 +183,135 @@ class PrivateUserShippingInfoAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
-    def test_ship_info_retrieve_view_public_user_put_reject(self):
+        self.assertEqual(res.data["user"]["id"], payload["user"])
+        self.assertEqual(res.data["receiver_dni"], payload["receiver_dni"])
+
+    # TODO: Test normal user post to other user reject
+
+    def test_ship_info_retrieve_view_normal_user_put_reject(self):
         """
-        Tests if public user can't put retrieve shipping info api
+        Tests if normal user can't put retrieve shipping info api
+        """
+        retrieve_url = get_shipping_info_url(self.shipping_info)
+
+        payload = {
+            "user": self.user.id,
+            "address": "Updated Test address",
+            "receiver": "test receiver name",
+            "receiver_dni": 87654321,
+        }
+
+        res = self.client.put(retrieve_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_ship_info_retrieve_view_normal_user_patch_reject(self):
+        """
+        Tests if normal user can't patch retrieve shipping info api
         """
         retrieve_url = get_shipping_info_url(self.shipping_info)
 
         payload = self.mock_shipping_info = {
+            "address": "Updated Test address",
+            "receiver_dni": 87654321,
+        }
+
+        res = self.client.patch(retrieve_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_ship_info_retrieve_view_normal_user_delete_reject(self):
+        """
+        Tests if normal user can't delete retrieve shipping info api
+        """
+        retrieve_url = get_shipping_info_url(self.shipping_info)
+
+        res = self.client.delete(retrieve_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+
+    # TODO: Test mine api
+
+
+class PrivateSuperuserShippingInfoAPITests(TestCase):
+    """
+    Tests Shipping Info Api with private superuser
+    """
+
+    def setUp(self):
+        self.client = APIClient()
+        self.model = get_app_model()
+
+        # superuser credential creation
+        superuser_data = {
+            "email": "testemail@superuser.com",
+            "password": "testPassword123"
+        }
+
+        self.super_user = get_user_model().objects.create_superuser(**superuser_data)
+
+        res_token = self.client.post(TOKEN_URL, superuser_data)  # get user token
+        self.user_token = res_token.data["token"]
+
+        self.user = get_user_model().objects.create_user(
+            email="testemail@test.com", first_name="Test", last_name="Testi"
+        )
+
+        self.mock_shipping_info = {
+            "user": self.user,
+            "address": "Test address",
+            "receiver": "test receiver name",
+            "receiver_dni": 12345678,
+        }
+        self.shipping_info = self.model(**self.mock_shipping_info)
+
+    def test_ship_info_list_view_superuser_get_successful(self):
+        """
+        Tests if superuser can list shipping info api
+        """
+        res = self.client.get(SHIPPING_INFO_URL, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(len(res.data["data"]), 1)
+
+    def test_ship_info_retrieve_view_superuser_get_successful(self):
+        """
+        Tests if superuser can retrieve shipping info api
+        """
+        retrieve_url = get_shipping_info_url(self.shipping_info)
+
+        res = self.client.get(retrieve_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(res.data["id"], self.shipping_info.id)
+
+    def test_ship_info_list_view_superuser_post_to_other_user_successful(self):
+        """
+        Tests if superuser can post to other user in list shipping info api
+        """
+        payload = {
+            "user": self.user.id,
+            "address": "Test address",
+            "receiver": "test receiver name",
+            "receiver_dni": 12345678,
+        }
+
+        res = self.client.post(SHIPPING_INFO_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        self.assertEqual(res.data["user"]["id"], payload["user"])
+        self.assertEqual(res.data["receiver_dni"], payload["receiver_dni"])
+
+    def test_ship_info_retrieve_view_superuser_put_to_other_user_successful(self):
+        """
+        Tests if superuser can put retrieve to other user shipping info api
+        """
+        retrieve_url = get_shipping_info_url(self.shipping_info)
+
+        payload = {
             "user": self.user.id,
             "address": "Updated Test address",
             "receiver": "test receiver name",
@@ -200,9 +322,15 @@ class PrivateUserShippingInfoAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-    def test_ship_info_retrieve_view_public_user_patch_reject(self):
+        self.assertEqual(res.data["receiver_dni"], payload["receiver_dni"])
+
+        self.shipping_info.refresh_from_db()
+        self.assertEqual(self.shipping_info.receiver_dni, payload["receiver_dni"])
+        self.assertEqual(self.shipping_info.address, payload["address"])
+
+    def test_ship_info_retrieve_view_superuser_patch_to_other_user_successful(self):
         """
-        Tests if public user can't patch retrieve shipping info api
+        Tests if superuser can patch retrieve to other user shipping info api
         """
         retrieve_url = get_shipping_info_url(self.shipping_info)
 
@@ -215,12 +343,18 @@ class PrivateUserShippingInfoAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-    def test_ship_info_retrieve_view_public_user_delete_reject(self):
+        self.assertEqual(res.data["receiver_dni"], payload["receiver_dni"])
+
+        self.shipping_info.refresh_from_db()
+        self.assertEqual(self.shipping_info.receiver_dni, payload["receiver_dni"])
+        self.assertEqual(self.shipping_info.address, payload["address"])
+
+    def test_ship_info_retrieve_view_superuser_delete_reject(self):
         """
-        Tests if public user can't delete retrieve shipping info api
+        Tests if superuser can't delete retrieve shipping info api
         """
         retrieve_url = get_shipping_info_url(self.shipping_info)
 
         res = self.client.delete(retrieve_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
-        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
