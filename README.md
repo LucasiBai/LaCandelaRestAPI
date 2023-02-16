@@ -26,12 +26,16 @@ This is the backend of an ecommerce maded for "La Candela" ilumination shop in M
 
 https://lacandelabaigorria.vercel.app/
 
-## Roots:
+## Api Roots:
 
-- Home: `/`
-- Category: `/category/:categoryName`
-- Products: `/item/:itemId`
-- Cart: `/cart`
+### List:
+- Cart: `api/cart/`
+- Products: `api/products/`
+- Orders: `api/orders/`
+
+### Detail:
+- Products: `api/products/:product_id/`
+- Checkout: `api/checkout/:pay_method/:cart_id`
 
 ## Tools:
 
