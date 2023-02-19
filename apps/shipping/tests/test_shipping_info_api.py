@@ -22,7 +22,7 @@ def get_shipping_info_url(shipping_instance: get_app_model()):
     Returns:
         obtained url
     """
-    return reverse("api:shipping_info", kwargs={"id": shipping_instance.id})
+    return reverse("api:shipping_info-detail", kwargs={"pk": shipping_instance.id})
 
 
 class PublicShippingInfoAPITests(TestCase):
@@ -148,7 +148,7 @@ class PrivateUserShippingInfoAPITests(TestCase):
             "receiver": "test receiver name",
             "receiver_dni": 12345678,
         }
-        self.shipping_info = self.model(**self.mock_shipping_info)
+        self.shipping_info = self.model.objects.create(**self.mock_shipping_info)
 
     def test_ship_info_list_view_normal_user_get_reject(self):
         """
@@ -228,9 +228,10 @@ class PrivateUserShippingInfoAPITests(TestCase):
 
         res = self.client.delete(retrieve_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
-        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     # TODO: Test mine api
+    # TODO: Test mine api filters
 
 
 class PrivateSuperuserShippingInfoAPITests(TestCase):
@@ -263,7 +264,7 @@ class PrivateSuperuserShippingInfoAPITests(TestCase):
             "receiver": "test receiver name",
             "receiver_dni": 12345678,
         }
-        self.shipping_info = self.model(**self.mock_shipping_info)
+        self.shipping_info = self.model.objects.create(**self.mock_shipping_info)
 
     def test_ship_info_list_view_superuser_get_successful(self):
         """
@@ -274,6 +275,9 @@ class PrivateSuperuserShippingInfoAPITests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
         self.assertEqual(len(res.data["data"]), 1)
+        self.assertEqual(res.data["results"], 1)
+
+    # TODO: Test shipping info list filters
 
     def test_ship_info_retrieve_view_superuser_get_successful(self):
         """
@@ -357,4 +361,4 @@ class PrivateSuperuserShippingInfoAPITests(TestCase):
 
         res = self.client.delete(retrieve_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
-        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
