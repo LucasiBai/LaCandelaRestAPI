@@ -9,6 +9,8 @@ from apps.shipping.meta import get_app_model
 
 SHIPPING_INFO_URL = reverse("api:shipping_info-list")  # shipping info API url
 
+MY_INFO_URL = reverse("api:shipping_info-my-info")  # my shipping info API url
+
 TOKEN_URL = reverse("users:user_token_obtain")  # user token API url
 
 
@@ -186,7 +188,22 @@ class PrivateUserShippingInfoAPITests(TestCase):
         self.assertEqual(res.data["user"]["id"], payload["user"])
         self.assertEqual(res.data["receiver_dni"], payload["receiver_dni"])
 
-    # TODO: Test normal user post to other user reject
+    def test_ship_info_list_view_normal_user_post_to_other_user_reject(self):
+        """
+        Tests if normal user can't post to other user in list shipping info api
+        """
+        new_user = get_user_model().objects.create_user(email="newusertest@test.com")
+
+        payload = {
+            "user": new_user.id,
+            "address": "Test address",
+            "receiver": "test receiver name",
+            "receiver_dni": 12345678,
+        }
+
+        res = self.client.post(SHIPPING_INFO_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_ship_info_retrieve_view_normal_user_put_reject(self):
         """
@@ -230,8 +247,31 @@ class PrivateUserShippingInfoAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    # TODO: Test mine api
-    # TODO: Test mine api filters
+    def test_my_info_action_view_normal_user_get_successful(self):
+        """
+        Tests if api has my info action and list current user shipping info
+        """
+        # creation of own shipping info
+        mock_ship_info = {**self.mock_shipping_info, "receiver_dni": 87654321}
+        own_ship_info = self.model.objects.create(**mock_ship_info)
+
+        # creation of ship info from other
+        new_user = get_user_model().objects.create_user(email="newusertest@test.com")
+        mock_ship_info["user"] = new_user
+        other_user_ship_info = self.model.objects.create(**mock_ship_info)
+
+        res = self.client.get(MY_INFO_URL, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(res.data["results"], 2)
+
+        self.assertContains(res, self.shipping_info.id)
+        self.assertContains(res, own_ship_info.id)
+        self.assertNotContains(res, other_user_ship_info.id)
+
+    # TODO: Test my info api select shipping info
+    # TODO: Test my info api filters
 
 
 class PrivateSuperuserShippingInfoAPITests(TestCase):

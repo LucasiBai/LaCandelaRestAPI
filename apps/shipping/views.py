@@ -1,6 +1,7 @@
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
+from rest_framework.decorators import action
 from rest_framework import status
 
 from .serializers import ShippingInfoSerializer
@@ -18,7 +19,7 @@ class ShippingInfoViewset(ModelViewSet):
         """
         Gets custom permission for the view
         """
-        if self.action == "create" or self.action == "destroy":
+        if self.action == "create" or self.action == "destroy" or self.action == "my_info":
             permission_classes = [IsAuthenticated]
         else:
             permission_classes = [IsAuthenticated, IsAdminUser]
@@ -47,3 +48,39 @@ class ShippingInfoViewset(ModelViewSet):
             return Response(response_data, status=status.HTTP_200_OK)
 
         return Response({"results": 0, "message": "Not found shipping info."}, status=status.HTTP_404_NOT_FOUND)
+
+    def create(self, request, *args, **kwargs):
+        """
+        Creates shipping info view
+        """
+        context = {
+            "user": request.user
+        }
+        serializer = self.serializer_class(data=request.data, context=context)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="my-info",
+    )
+    def my_info(self, request, *args, **kwargs):
+        """
+        Gets current user shipping info list
+        """
+        if request.method == "GET":
+            user_ship_info = self.filter_queryset(self.get_queryset().filter(user=request.user))
+
+            if user_ship_info:
+                serializer = self.serializer_class(user_ship_info, many=True)
+
+                response_data = {
+                    "results": len(user_ship_info),
+                    "data": serializer.data
+                }
+                return Response(response_data, status=status.HTTP_200_OK)
+            return Response({"message": "User has not shipping info."}, status=status.HTTP_404_NOT_FOUND)

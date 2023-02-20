@@ -19,6 +19,17 @@ class ShippingInfoSerializer(serializers.ModelSerializer):
             "is_selected",
         ]
 
+    def validate_user(self, value):
+        """
+        Validates if user is creating own shipping info or is superuser
+        """
+        current_user = self.context.get("user", None)
+
+        if current_user and current_user.id != value.id and not current_user.is_superuser:
+            raise serializers.ValidationError("The shipping info must contain the owner user.")
+
+        return value
+
     def to_representation(self, instance: get_app_model()):
         """
         Formats instance data
