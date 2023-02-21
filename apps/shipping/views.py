@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework import status
 
-from .serializers import ShippingInfoSerializer
+from .serializers import ShippingInfoSerializer, MyInfoSerializer
 
 
 class ShippingInfoViewset(ModelViewSet):
@@ -14,6 +14,7 @@ class ShippingInfoViewset(ModelViewSet):
     model = ShippingInfoSerializer.Meta.model
     queryset = model.objects.all()
     serializer_class = ShippingInfoSerializer
+    my_info_serializer_class = MyInfoSerializer
 
     def get_permissions(self):
         """
@@ -65,7 +66,7 @@ class ShippingInfoViewset(ModelViewSet):
 
     @action(
         detail=False,
-        methods=["get"],
+        methods=["get", "post"],
         url_path="my-info",
     )
     def my_info(self, request, *args, **kwargs):
@@ -84,3 +85,10 @@ class ShippingInfoViewset(ModelViewSet):
                 }
                 return Response(response_data, status=status.HTTP_200_OK)
             return Response({"message": "User has not shipping info."}, status=status.HTTP_404_NOT_FOUND)
+
+        elif request.method == "POST":
+            serializer = self.my_info_serializer_class(data=request.data)
+            if serializer.is_valid():
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            
+            return Response(status=status.HTTP_400_BAD_REQUEST)

@@ -66,6 +66,14 @@ class PublicShippingInfoAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
+    def test_my_info_list_view_public_user_get_reject(self):
+        """
+        Tests if public user can't list my info api
+        """
+        res = self.client.get(MY_INFO_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
     def test_ship_info_list_view_public_user_post_reject(self):
         """
         Tests if public user can't post in list shipping info api
@@ -172,11 +180,11 @@ class PrivateUserShippingInfoAPITests(TestCase):
 
     def test_ship_info_list_view_normal_user_post_successful(self):
         """
-        Tests if normal user can post in list shipping info api
+        Tests if normal user can post in list shipping info api and is selected
         """
         payload = {
             "user": self.user.id,
-            "address": "Test address",
+            "address": "New Test address",
             "receiver": "test receiver name",
             "receiver_dni": 12345678,
         }
@@ -187,6 +195,11 @@ class PrivateUserShippingInfoAPITests(TestCase):
 
         self.assertEqual(res.data["user"]["id"], payload["user"])
         self.assertEqual(res.data["receiver_dni"], payload["receiver_dni"])
+
+        self.assertTrue(res.data["is_selected"])
+
+        self.shipping_info.refresh_from_db()
+        self.assertFalse(self.shipping_info.is_selected)
 
     def test_ship_info_list_view_normal_user_post_to_other_user_reject(self):
         """
@@ -270,7 +283,34 @@ class PrivateUserShippingInfoAPITests(TestCase):
         self.assertContains(res, own_ship_info.id)
         self.assertNotContains(res, other_user_ship_info.id)
 
-    # TODO: Test my info api select shipping info
+        self.assertTrue(res.data["data"][0]["is_selected"])
+
+    def test_my_info_action_view_normal_user_select_ship_info_successful(self):
+        """
+        Tests if api has my info action and list current user shipping info
+        """
+        # creation of own shipping info
+        mock_ship_info = {**self.mock_shipping_info, "receiver_dni": 87654321}
+        own_ship_info = self.model.objects.create(**mock_ship_info)
+
+        self.assertFalse(own_ship_info.is_selected)
+
+        payload = {
+            "select": own_ship_info.id
+        }
+
+        res = self.client.post(MY_INFO_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        own_ship_info.refresh_from_db()
+        self.assertEqual(res.data["id"], own_ship_info.id)
+        self.assertEqual(res.data["is_selected"], own_ship_info.is_selected)
+
+        self.shipping_info.refresh_from_db()
+        self.assertFalse(self.shipping_info.is_selected)
+        
+    # TODO: Test my info select to other user
     # TODO: Test my info api filters
 
 
