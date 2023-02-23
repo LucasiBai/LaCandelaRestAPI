@@ -287,7 +287,7 @@ class PrivateUserShippingInfoAPITests(TestCase):
 
     def test_my_info_action_view_normal_user_select_ship_info_successful(self):
         """
-        Tests if api has my info action and list current user shipping info
+        Tests if api has my info action and selects entered ship_info
         """
         # creation of own shipping info
         mock_ship_info = {**self.mock_shipping_info, "receiver_dni": 87654321}
@@ -306,11 +306,41 @@ class PrivateUserShippingInfoAPITests(TestCase):
         own_ship_info.refresh_from_db()
         self.assertEqual(res.data["id"], own_ship_info.id)
         self.assertEqual(res.data["is_selected"], own_ship_info.is_selected)
+        self.assertTrue(own_ship_info.is_selected)
+
+        self.assertEqual(self.shipping_info.user.id, own_ship_info.user.id)
 
         self.shipping_info.refresh_from_db()
         self.assertFalse(self.shipping_info.is_selected)
-        
-    # TODO: Test my info select to other user
+
+    def test_my_info_action_view_normal_user_select_ship_info_to_other_user_reject(self):
+        """
+        Tests if api has my info action and can't select entered ship_info if it is from other user
+        """
+        new_user = get_user_model().objects.create_user(email="newtest_user@test.com")  # new user creation
+
+        # creation of new user shipping info
+        mock_ship_info = {
+            **self.mock_shipping_info,
+            "receiver_dni": 87654321,
+            "user": new_user
+        }
+        self.model.objects.create(**mock_ship_info)
+        second_ship_info = self.model.objects.create(**mock_ship_info)
+
+        self.assertFalse(second_ship_info.is_selected)
+
+        payload = {
+            "select": second_ship_info.id
+        }
+
+        res = self.client.post(MY_INFO_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+        second_ship_info.refresh_from_db()
+        self.assertFalse(second_ship_info.is_selected)
+
     # TODO: Test my info api filters
 
 

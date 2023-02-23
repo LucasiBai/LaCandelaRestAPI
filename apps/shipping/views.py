@@ -87,8 +87,12 @@ class ShippingInfoViewset(ModelViewSet):
             return Response({"message": "User has not shipping info."}, status=status.HTTP_404_NOT_FOUND)
 
         elif request.method == "POST":
-            serializer = self.my_info_serializer_class(data=request.data)
+            context = {
+                "user": request.user
+            }
+            serializer = self.my_info_serializer_class(data=request.data, context=context)
             if serializer.is_valid():
+                serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
-            
+
             return Response(status=status.HTTP_400_BAD_REQUEST)

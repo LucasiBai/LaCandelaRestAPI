@@ -91,21 +91,23 @@ class MyInfoSerializer(serializers.ModelSerializer):
         Returns:
             value if it exists
         """
+        user = self.context.get("user", None)
+
         query = self.Meta.model.objects.filter(id=value)
 
         if not query.exists():
             raise serializers.ValidationError("Shipping info does not exist.")
 
+        if query.first().user.id != user.id:
+            raise serializers.ValidationError("Can't update shipping info that is not yours.")
+
         self.instance = query.first()
 
         return value
 
-    def create(self, validated_data):
+    def select_instance(self):
         """
         Selects shipping info in validated data
-
-        Args:
-            validated_data: shipping info id
 
         Returns:
             selected instance
@@ -115,6 +117,12 @@ class MyInfoSerializer(serializers.ModelSerializer):
         selected_instance = self.Meta.model.objects.select_shipping_info(ship_instance)
 
         return selected_instance
+
+    def save(self, **kwargs):
+        """
+        Selects entered instance
+        """
+        self.select_instance()
 
     def to_representation(self, validated_data):
         """
