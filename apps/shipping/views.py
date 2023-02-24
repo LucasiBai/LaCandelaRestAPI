@@ -5,6 +5,7 @@ from rest_framework.decorators import action
 from rest_framework import status
 
 from .serializers import ShippingInfoSerializer, MyInfoSerializer
+from .filters import ShippingInfoFilterset
 
 
 class ShippingInfoViewset(ModelViewSet):
@@ -13,8 +14,11 @@ class ShippingInfoViewset(ModelViewSet):
     """
     model = ShippingInfoSerializer.Meta.model
     queryset = model.objects.all()
+
     serializer_class = ShippingInfoSerializer
     my_info_serializer_class = MyInfoSerializer
+    
+    filterset_class = ShippingInfoFilterset
 
     def get_permissions(self):
         """

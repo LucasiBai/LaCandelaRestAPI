@@ -27,6 +27,13 @@ def get_shipping_info_url(shipping_instance: get_app_model()):
     return reverse("api:shipping_info-detail", kwargs={"pk": shipping_instance.id})
 
 
+def get_filter_url(filter_name, value):
+    """
+    Gets the filter url
+    """
+    return SHIPPING_INFO_URL + f"?{filter_name}={value}"
+
+
 class PublicShippingInfoAPITests(TestCase):
     """
     Tests Shipping Info Api with public client
@@ -386,6 +393,66 @@ class PrivateSuperuserShippingInfoAPITests(TestCase):
 
         self.assertEqual(len(res.data["data"]), 1)
         self.assertEqual(res.data["results"], 1)
+
+    def test_ship_info_list_view_superuser_filter_limit_successful(self):
+        """
+        Tests if superuser can list shipping info api with limit filter
+        """
+        first_ship_info = self.model.objects.create(**self.mock_shipping_info)
+        second_ship_info = self.model.objects.create(**self.mock_shipping_info)
+
+        filter_url = get_filter_url("limit", 2)
+
+        res = self.client.get(filter_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        self.assertContains(res, self.shipping_info.id)
+        self.assertContains(res, first_ship_info.id)
+        self.assertNotContains(res, second_ship_info.id)
+
+        self.assertEqual(res.data["results"], 3)
+
+    def test_ship_info_list_view_superuser_filter_offset_successful(self):
+        """
+        Tests if superuser can list shipping info api with offset filter
+        """
+        first_ship_info = self.model.objects.create(**self.mock_shipping_info)
+        second_ship_info = self.model.objects.create(**self.mock_shipping_info)
+
+        filter_url = get_filter_url("offset", 2)
+
+        res = self.client.get(filter_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        self.assertNotContains(res, self.shipping_info.id)
+        self.assertContains(res, first_ship_info.id)
+        self.assertContains(res, second_ship_info.id)
+
+        self.assertEqual(res.data["results"], 3)
+
+    def test_ship_info_list_view_superuser_filter_user_id_successful(self):
+        """
+        Tests if superuser can list shipping info api with user_id filter
+        """
+        first_ship_info = self.model.objects.create(**self.mock_shipping_info)
+
+        # new user data creation
+        new_user = get_user_model().objects.create_user(email="testnewuser@test.com")
+        mock_ship_info = {**self.mock_shipping_info, "user": new_user}
+        new_user_ship_info = self.model.objects.create(**mock_ship_info)
+
+        filter_url = get_filter_url("user_id", self.user.id)
+
+        res = self.client.get(filter_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        self.assertContains(res, self.shipping_info.id)
+        self.assertContains(res, first_ship_info.id)
+        self.assertNotContains(res, new_user_ship_info.id)
+
+        self.assertEqual(res.data["results"], 2)
 
     # TODO: Test shipping info list filters
 
