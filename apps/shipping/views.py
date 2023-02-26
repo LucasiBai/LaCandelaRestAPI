@@ -1,14 +1,15 @@
-from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework import status
 
+from apps.api_root.utils import FilterMethodsViewset
+
 from .serializers import ShippingInfoSerializer, MyInfoSerializer
-from .filters import ShippingInfoFilterset
+from .filters import ShippingInfoFilterset, MyInfoFilterset
 
 
-class ShippingInfoViewset(ModelViewSet):
+class ShippingInfoViewset(FilterMethodsViewset):
     """
     Shipping Info Viewset
     """
@@ -17,7 +18,7 @@ class ShippingInfoViewset(ModelViewSet):
 
     serializer_class = ShippingInfoSerializer
     my_info_serializer_class = MyInfoSerializer
-    
+
     filterset_class = ShippingInfoFilterset
 
     def get_permissions(self):
@@ -46,7 +47,7 @@ class ShippingInfoViewset(ModelViewSet):
             ship_info_serializer = self.serializer_class(ship_info_list, many=True)
 
             response_data = {
-                "results": len(ship_info_serializer.data),
+                "results": self.get_query_results(),
                 "data": ship_info_serializer.data
             }
 
@@ -72,6 +73,7 @@ class ShippingInfoViewset(ModelViewSet):
         detail=False,
         methods=["get", "post"],
         url_path="my-info",
+        filterset_class=MyInfoFilterset
     )
     def my_info(self, request, *args, **kwargs):
         """
@@ -84,7 +86,7 @@ class ShippingInfoViewset(ModelViewSet):
                 serializer = self.serializer_class(user_ship_info, many=True)
 
                 response_data = {
-                    "results": len(user_ship_info),
+                    "results": self.get_query_results(),
                     "data": serializer.data
                 }
                 return Response(response_data, status=status.HTTP_200_OK)

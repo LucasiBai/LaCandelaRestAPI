@@ -40,7 +40,7 @@ class CategoryViewset(FilterMethodsViewset):
             serializer = self.serializer_class(categories, context=context, many=True)
 
             export_data = {
-                "results": self.results,
+                "results": self.get_query_results(),
                 "data": serializer.data,
             }
 

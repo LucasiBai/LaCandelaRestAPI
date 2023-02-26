@@ -23,9 +23,9 @@ class ProductsViewSet(FilterMethodsViewset):
         Gets custom permission for the view
         """
         if (
-            self.action == "list"
-            or self.action == "retrieve"
-            or self.action == "get_related_products"
+                self.action == "list"
+                or self.action == "retrieve"
+                or self.action == "get_related_products"
         ):
             permission_classes = [AllowAny]
         else:
@@ -42,7 +42,7 @@ class ProductsViewSet(FilterMethodsViewset):
             serializer = self.serializer_class(products, many=True)
 
             export_data = {
-                "results": self.results,
+                "results": self.get_query_results(),
                 "data": serializer.data,
             }
 

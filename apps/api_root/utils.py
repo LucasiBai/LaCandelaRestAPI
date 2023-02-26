@@ -87,6 +87,10 @@ class FilterMethodsViewset(ModelViewSet):
             self.results = backend_data["results"]
         return queryset
 
+    def get_query_results(self):
+        """Gets query results"""
+        return self.results
+
 
 def parse_json(json_data: str) -> dict:
     """

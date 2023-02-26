@@ -292,6 +292,98 @@ class PrivateUserShippingInfoAPITests(TestCase):
 
         self.assertTrue(res.data["data"][0]["is_selected"])
 
+    def test_my_info_action_view_normal_user_filter_limit_successful(self):
+        """
+        Tests if api has my info action and list current user shipping info filtered with limit
+        """
+        # creation of own shipping info
+        mock_ship_info = {**self.mock_shipping_info, "receiver_dni": 87654321}
+        first_ship_info = self.model.objects.create(**mock_ship_info)
+
+        mock_ship_info["receiver_dni"] = 11223344
+        second_ship_info = self.model.objects.create(**mock_ship_info)
+
+        filter_url = MY_INFO_URL + "?limit=2"
+
+        res = self.client.get(filter_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(res.data["results"], 3)
+
+        self.assertContains(res, self.shipping_info.receiver_dni)
+        self.assertContains(res, first_ship_info.receiver_dni)
+        self.assertNotContains(res, second_ship_info.receiver_dni)
+
+    def test_my_info_action_view_normal_user_filter_offset_successful(self):
+        """
+        Tests if api has my info action and list current user shipping info filtered with offset
+        """
+        # creation of own shipping info
+        mock_ship_info = {**self.mock_shipping_info, "receiver_dni": 87654321}
+        first_ship_info = self.model.objects.create(**mock_ship_info)
+
+        mock_ship_info["receiver_dni"] = 11223344
+        second_ship_info = self.model.objects.create(**mock_ship_info)
+
+        filter_url = MY_INFO_URL + "?offset=2"
+
+        res = self.client.get(filter_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(res.data["results"], 3)
+
+        self.assertNotContains(res, self.shipping_info.receiver_dni)
+        self.assertContains(res, first_ship_info.receiver_dni)
+        self.assertContains(res, second_ship_info.receiver_dni)
+
+    def test_my_info_action_view_normal_user_filter_is_selected_true_successful(self):
+        """
+        Tests if api has my info action and list current user shipping info filtered with is_selected true
+        """
+        # creation of own shipping info
+        mock_ship_info = {**self.mock_shipping_info, "receiver_dni": 87654321}
+        first_ship_info = self.model.objects.create(**mock_ship_info)
+
+        mock_ship_info["receiver_dni"] = 11223344
+        second_ship_info = self.model.objects.create(**mock_ship_info)
+
+        filter_url = MY_INFO_URL + "?is_selected=true"
+
+        res = self.client.get(filter_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(res.data["results"], 1)
+
+        self.assertContains(res, self.shipping_info.receiver_dni)
+        self.assertNotContains(res, first_ship_info.receiver_dni)
+        self.assertNotContains(res, second_ship_info.receiver_dni)
+
+    def test_my_info_action_view_normal_user_filter_is_selected_false_successful(self):
+        """
+        Tests if api has my info action and list current user shipping info filtered with is_selected false
+        """
+        # creation of own shipping info
+        mock_ship_info = {**self.mock_shipping_info, "receiver_dni": 87654321}
+        first_ship_info = self.model.objects.create(**mock_ship_info)
+
+        mock_ship_info["receiver_dni"] = 11223344
+        second_ship_info = self.model.objects.create(**mock_ship_info)
+
+        filter_url = MY_INFO_URL + "?is_selected=false"
+
+        res = self.client.get(filter_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(res.data["results"], 2)
+
+        self.assertNotContains(res, self.shipping_info.receiver_dni)
+        self.assertContains(res, first_ship_info.receiver_dni)
+        self.assertContains(res, second_ship_info.receiver_dni)
+
     def test_my_info_action_view_normal_user_select_ship_info_successful(self):
         """
         Tests if api has my info action and selects entered ship_info
@@ -348,8 +440,6 @@ class PrivateUserShippingInfoAPITests(TestCase):
         second_ship_info.refresh_from_db()
         self.assertFalse(second_ship_info.is_selected)
 
-    # TODO: Test my info api filters
-
 
 class PrivateSuperuserShippingInfoAPITests(TestCase):
     """
@@ -398,8 +488,11 @@ class PrivateSuperuserShippingInfoAPITests(TestCase):
         """
         Tests if superuser can list shipping info api with limit filter
         """
-        first_ship_info = self.model.objects.create(**self.mock_shipping_info)
-        second_ship_info = self.model.objects.create(**self.mock_shipping_info)
+        mock_info = {**self.mock_shipping_info, "receiver_dni": 87654321}
+        first_ship_info = self.model.objects.create(**mock_info)
+
+        mock_info["receiver_dni"] = 11223344
+        second_ship_info = self.model.objects.create(**mock_info)
 
         filter_url = get_filter_url("limit", 2)
 
@@ -407,9 +500,9 @@ class PrivateSuperuserShippingInfoAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-        self.assertContains(res, self.shipping_info.id)
-        self.assertContains(res, first_ship_info.id)
-        self.assertNotContains(res, second_ship_info.id)
+        self.assertContains(res, self.shipping_info.receiver_dni)
+        self.assertContains(res, first_ship_info.receiver_dni)
+        self.assertNotContains(res, second_ship_info.receiver_dni)
 
         self.assertEqual(res.data["results"], 3)
 
@@ -417,17 +510,20 @@ class PrivateSuperuserShippingInfoAPITests(TestCase):
         """
         Tests if superuser can list shipping info api with offset filter
         """
-        first_ship_info = self.model.objects.create(**self.mock_shipping_info)
-        second_ship_info = self.model.objects.create(**self.mock_shipping_info)
+        mock_info = {**self.mock_shipping_info, "receiver_dni": 87654321}
+        first_ship_info = self.model.objects.create(**mock_info)
+
+        mock_info["receiver_dni"] = 11223344
+        second_ship_info = self.model.objects.create(**mock_info)
 
         filter_url = get_filter_url("offset", 2)
 
         res = self.client.get(filter_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-        self.assertNotContains(res, self.shipping_info.id)
-        self.assertContains(res, first_ship_info.id)
-        self.assertContains(res, second_ship_info.id)
+        self.assertNotContains(res, self.shipping_info.receiver_dni)
+        self.assertContains(res, first_ship_info.receiver_dni)
+        self.assertContains(res, second_ship_info.receiver_dni)
 
         self.assertEqual(res.data["results"], 3)
 
@@ -453,8 +549,6 @@ class PrivateSuperuserShippingInfoAPITests(TestCase):
         self.assertNotContains(res, new_user_ship_info.id)
 
         self.assertEqual(res.data["results"], 2)
-
-    # TODO: Test shipping info list filters
 
     def test_ship_info_retrieve_view_superuser_get_successful(self):
         """

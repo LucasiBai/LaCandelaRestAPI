@@ -40,7 +40,7 @@ class CommentViewset(FilterMethodsViewset):
             serializer = self.serializer_class(comments, many=True)
 
             export_data = {
-                "results": self.results,
+                "results": self.get_query_results(),
                 "data": serializer.data,
             }
 

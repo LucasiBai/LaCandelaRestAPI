@@ -82,7 +82,7 @@ class OrderViewset(FilterMethodsViewset):
                 serializer = self.serializer_class(user_orders, many=True)
 
                 export_data = {
-                    "results": self.results,
+                    "results": self.get_query_results(),
                     "data": serializer.data,
                 }
 

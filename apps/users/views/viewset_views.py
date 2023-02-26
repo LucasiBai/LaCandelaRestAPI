@@ -26,15 +26,15 @@ class UserAccountViewset(FilterMethodsViewset):
         elif self.action == "destroy" or self.action == "list":
             permission_classes = [IsAuthenticated, IsAdminUser]
         elif self.request.user.is_superuser and (
-            self.action == "partial_update"
-            or self.action == "update"
-            or self.action == "retrieve"
+                self.action == "partial_update"
+                or self.action == "update"
+                or self.action == "retrieve"
         ):
             permission_classes = [IsAuthenticated, IsAdminUser]
         elif (
-            self.action == "partial_update"
-            or self.action == "update"
-            or self.action == "retrieve"
+                self.action == "partial_update"
+                or self.action == "update"
+                or self.action == "retrieve"
         ):
             permission_classes = [IsAuthenticated, IsOwnData]
         else:
@@ -61,7 +61,7 @@ class UserAccountViewset(FilterMethodsViewset):
             serializer = self.serializer_class(users, many=True)
 
             export_data = {
-                "results": self.results,
+                "results": self.get_query_results(),
                 "data": serializer.data,
             }
 
