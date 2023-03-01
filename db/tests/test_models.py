@@ -285,6 +285,15 @@ class ShippingInfoModelTest(TestCase):
             f"Shipping Info of {self.user.get_full_name()}", str(shipping_info)
         )
 
+    # TODO: test ship_price
+    def test_create_shipping_info_auto_ship_price_successful(self):
+        """
+        Tests if model updates shipping price when creates an instance
+        """
+        shipping_info = ShippingInfo.objects.create(**self.mock_shipping_info)
+
+        self.assertEqual(shipping_info.ship_price, 1400)
+
     def test_create_shipping_info_no_name_user_successful(self):
         """
         Tests if model can create shipping info

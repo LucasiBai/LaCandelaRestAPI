@@ -429,7 +429,6 @@ class Cart(models.Model):
     """
     Cart model
     """
-    # TODO: update with ship amount
     user = models.OneToOneField(UserAccount, on_delete=models.CASCADE)
     total_items = models.IntegerField(default=0)
     last_modification = models.DateField(auto_now=True)
