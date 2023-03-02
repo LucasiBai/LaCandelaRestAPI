@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework import status
 
-from db.models import Cart, Category, Product
+from db.models import Cart, Category, Product, ShippingInfo
 
 TOKEN_URL = reverse("users:user_token_obtain")  # user token API url
 
@@ -62,6 +62,14 @@ class PrivateCheckoutApiTests(TestCase):
             "password": "pass123"
         }
         self.user = get_user_model().objects.create_user(**self.user_data)
+
+        mock_user_shipping_info = {
+            "user": self.user,
+            "address": "Test address",
+            "receiver": "test receiver name",
+            "receiver_dni": 12345678,
+        }
+        self.ship_info = ShippingInfo.objects.create(**mock_user_shipping_info)
 
         res_token = self.client.post(TOKEN_URL, self.user_data)  # get user token
         self.user_token = res_token.data["token"]

@@ -11,6 +11,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.utils.translation import gettext_lazy as _
 
 from simple_history.models import HistoricalRecords
+from apps.shipping.utils.services.shipping_price_service import ShippingPriceService
 
 
 class UserAccountManager(BaseUserManager):
@@ -177,6 +178,7 @@ class ShippingInfoManager(models.Manager):
     """
     Shipping Info custom manager
     """
+    ship_service = ShippingPriceService()
 
     def __set_is_selected_to(self, ship_info, is_selected: bool):
         """
@@ -213,6 +215,11 @@ class ShippingInfoManager(models.Manager):
 
         if not selected:
             self.__set_is_selected_to(ship_info, True)
+
+        address_zip_code = self.ship_service.get_zip_code_of(ship_info.address)
+
+        ship_info.ship_price = self.ship_service.get_price_from_zip_code(address_zip_code)
+        ship_info.save(using=self._db)
 
         return ship_info
 
@@ -263,6 +270,7 @@ class ShippingInfo(models.Model):
     receiver = models.CharField(max_length=255)
     receiver_dni = models.IntegerField()
     is_selected = models.BooleanField(default=False)
+    ship_price = models.DecimalField(default=0, max_digits=9, decimal_places=2)
 
     objects = ShippingInfoManager()
 

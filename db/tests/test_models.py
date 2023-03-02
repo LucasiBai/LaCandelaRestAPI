@@ -5,6 +5,8 @@ from django.contrib.auth import get_user_model
 from django.db.utils import IntegrityError, DataError
 from django.core.exceptions import ObjectDoesNotExist
 
+from apps.shipping.utils.services.shipping_price_service import ShippingPriceService
+
 from db.models import (
     Category,
     Product,
@@ -285,14 +287,17 @@ class ShippingInfoModelTest(TestCase):
             f"Shipping Info of {self.user.get_full_name()}", str(shipping_info)
         )
 
-    # TODO: test ship_price
     def test_create_shipping_info_auto_ship_price_successful(self):
         """
         Tests if model updates shipping price when creates an instance
         """
         shipping_info = ShippingInfo.objects.create(**self.mock_shipping_info)
 
-        self.assertEqual(shipping_info.ship_price, 1400)
+        service = ShippingPriceService()
+        zip_code = service.get_zip_code_of(self.mock_shipping_info["address"])
+        ship_price = service.get_price_from_zip_code(zip_code)
+
+        self.assertEqual(shipping_info.ship_price, ship_price)
 
     def test_create_shipping_info_no_name_user_successful(self):
         """

@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 
 from core.settings.base import MERCADO_PAGO_CONFIG, env
 
-from db.models import Cart, CartItem
+from db.models import Cart, CartItem, ShippingInfo
 
 from apps.payment_methods.utils.services.mp_service import MPService
 
@@ -65,6 +65,7 @@ class MercadoPagoMethod(payment_strategy.PaymentStrategyInterface):
             "payer": data["payer"],
             "date_of_expiration": data["date_of_expiration"],
             "init_point": data["init_point"],
+            "total_price": data["total_price"]
         }
 
         return format_data
@@ -110,7 +111,8 @@ class MercadoPagoMethod(payment_strategy.PaymentStrategyInterface):
             raise ValueError("Item has insufficient stock.")
 
         user = self.__cart.user
-
+        ship_info = ShippingInfo.objects.get_selected_shipping_info(user=user)
+        # TODO : Sum ship price
         preference_data = {
             "items": cart_items,
             "payer": {
@@ -131,4 +133,5 @@ class MercadoPagoMethod(payment_strategy.PaymentStrategyInterface):
 
         preference = preference_response["response"]
 
-        return self.format_preference(preference)
+        return self.format_preference(
+            {**preference, "total_price": self.__cart.get_total_price() + ship_info.ship_price})

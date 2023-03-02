@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 
 from apps.payment_methods.utils.payment_methods import PaymentMethod, MercadoPagoMethod
 
-from db.models import Cart, Product, Category
+from db.models import Cart, Product, Category, ShippingInfo
 
 
 class PaymentMethodsTests(TestCase):
@@ -13,6 +13,14 @@ class PaymentMethodsTests(TestCase):
         self.payment_model = PaymentMethod
 
         self.user = get_user_model().objects.create_user(email="testuser@test.com")
+
+        mock_user_shipping_info = {
+            "user": self.user,
+            "address": "Test address",
+            "receiver": "test receiver name",
+            "receiver_dni": 12345678,
+        }
+        self.ship_info = ShippingInfo.objects.create(**mock_user_shipping_info)
 
         self.cart = Cart.objects.create(user=self.user)
 
@@ -68,11 +76,13 @@ class PaymentMethodsTests(TestCase):
         self.assertIn("payer", preference)
         self.assertIn("init_point", preference)
         self.assertIn("date_of_expiration", preference)
+        self.assertIn("total_price", preference)
 
         preference_items = preference["items"]
 
         self.assertEquals(preference_items[0]["id"], str(self.product.id))
         self.assertEquals(preference_items[0]["quantity"], self.cart_item.count)
+        self.assertEqual(preference["total_price"], self.cart.get_total_price() + self.ship_info.ship_price)
 
     def test_mercado_pago_get_preference_insufficient_stock_update_stock_reject(self):
         """
