@@ -727,6 +727,23 @@ class OrderModelTest(TestCase):
         with self.assertRaises(ObjectDoesNotExist):
             order.update_order_products(order_products_payload)
 
+    def test_order_updates_total_price_with_entered_ship_price(self):
+        """
+        Tests if order instance has a set_ship_amount method
+        """
+        mock_order = {
+            "buyer": self.user,
+            "shipping_info": self.shipping_info,
+        }
+        order = Order.objects.create(**mock_order)
+
+        self.assertEqual(order.total_price, 0)
+
+        order.set_ship_amount(1400)
+
+        self.assertEqual(order.total_price, 1400)
+
+    # TODO: test update ship price
     def test_order_model_manager_discount_stock_of_successful(self):
         """
         Tests order model manager discount_stock_of method

@@ -112,9 +112,13 @@ class MercadoPagoMethod(payment_strategy.PaymentStrategyInterface):
 
         user = self.__cart.user
         ship_info = ShippingInfo.objects.get_selected_shipping_info(user=user)
-        # TODO : Sum ship price
+
         preference_data = {
             "items": cart_items,
+            "shipments": {
+                "cost": float(ship_info.ship_price),
+                "mode": "not_specified",
+            },
             "payer": {
                 "name": user.first_name,
                 "surname": user.last_name,

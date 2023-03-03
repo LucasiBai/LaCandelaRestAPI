@@ -416,6 +416,22 @@ class Order(models.Model):
 
         return updated_order_products
 
+    def set_ship_amount(self, ship_amount: int):
+        """
+        Updates total price with entered ship amount
+
+        Args:
+            ship_amount(int):
+
+        Returns:
+            Updated order
+        """
+        self.total_price += ship_amount
+
+        self.save()
+
+        return self
+
 
 class OrderProduct(models.Model):
     """

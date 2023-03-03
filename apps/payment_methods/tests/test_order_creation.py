@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 
 from rest_framework import status
 
+from apps.payment_methods.utils.services.mp_service import MPService
 from apps.payment_methods.utils.order_creation import OrderCreation, MercadoPagoMethod
 from db.models import ShippingInfo, Category, Product, Order, Cart
 
@@ -82,5 +83,42 @@ class OrderMercadoPagoMethodTests(TestCase):
         order_product = order.get_order_products()[-1]
 
         self.assertEqual(order_product.product, self.product)
+
+    def test_mercado_pago_get_response_valid_order_with_ship_amount_successful(self):
+        """
+        Tests if order creation can create a response with ship amount with Mercado Pago Method
+        """
+        order_creation = self.order_creation_model()  # creates order creation
+
+        payload = {
+            'action': 'payment.created',
+            'api_version': 'v1',
+            'data': {'id': '1312962371'},
+            'date_created': '2023-03-03T12:14:21Z',
+            'id': 105119766845,
+            'live_mode': False,
+            'type': 'payment',
+            'user_id': '643565524'
+        }
+
+        response = order_creation.get_response(payload)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertTrue(response.data)
+
+        self.assertEqual(response.data["user"]["email"], "test_user_80507629@testuser.com")
+
+        order = Order.objects.filter(buyer__email=response.data["user"]["email"]).last()
+
+        order_product = order.get_order_products()[-1]
+
+        self.assertEqual(order_product.product, self.product)
+
+        service = MPService()
+
+        payed, response = service.check_payment(1312962371)
+
+        self.assertEqual(float(order.total_price), response["transaction_details"]["total_paid_amount"])
 
     # TODO: Create test of change_order_method

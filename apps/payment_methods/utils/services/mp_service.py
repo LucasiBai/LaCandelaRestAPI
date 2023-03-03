@@ -91,5 +91,6 @@ class MPService:
         order.save()
 
         order.create_order_products(parsed_products)
+        order.set_ship_amount(user_ship_info.ship_price)
 
         return order
