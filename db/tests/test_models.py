@@ -423,6 +423,7 @@ class OrderModelTest(TestCase):
             "id": uuid4(),
             "buyer": self.user,
             "shipping_info": self.shipping_info,
+            "ship_price": 1
         }
 
         # Product creation
@@ -452,7 +453,7 @@ class OrderModelTest(TestCase):
         self.assertEqual(order.buyer, self.user)
         self.assertEqual(order.shipping_info, self.shipping_info)
         self.assertTrue(order.created_at)
-        self.assertEqual(order.total_price, 0)
+        self.assertEqual(order.total_price, 1)
 
         self.assertEqual(f"Order of {order.buyer.get_full_name()}", str(order))
 
@@ -474,6 +475,7 @@ class OrderModelTest(TestCase):
         mock_order = {
             "buyer": self.user,
             "shipping_info": self.shipping_info,
+            "ship_price": 1
         }
 
         order = Order.objects.create(**mock_order)
@@ -482,7 +484,7 @@ class OrderModelTest(TestCase):
         self.assertEqual(order.buyer, self.user)
         self.assertEqual(order.shipping_info, self.shipping_info)
         self.assertTrue(order.created_at)
-        self.assertEqual(order.total_price, 0)
+        self.assertEqual(order.total_price, 1)
 
         self.assertEqual(f"Order of {order.buyer.get_full_name()}", str(order))
 
@@ -502,6 +504,89 @@ class OrderModelTest(TestCase):
         self.assertNotEqual(first_order.id, second_order)
         self.assertNotEqual(thirst_order.id, second_order)
 
+    def test_order_create_order_with_products_and_ship_price_successful(self):
+        """
+        Tests if model can create an order with products and ship_price as parameters
+        """
+        # Create second product
+        mock_product = {**self.mock_product, "title": "Test second product"}
+        second_product = Product.objects.create(**mock_product)
+
+        # Order products payload
+        order_products_payload = [
+            {
+                "product": self.product.id,
+                "count": 5,
+            },
+            {
+                "product": second_product.id,
+                "count": 3,
+            }
+        ]
+
+        # Create order
+        mock_order = {
+            "buyer": self.user,
+            "shipping_info": self.shipping_info,
+            "ship_price": 1400,
+            "products": order_products_payload
+        }
+        order = Order.objects.create(**mock_order)
+
+        order_products_prices = [Product.objects.get(pk=order_product["product"]).price * order_product["count"] for
+                                 order_product in
+                                 order_products_payload]
+
+        order_product_list = order.get_order_products()
+
+        self.assertEqual(order_product_list[0].product, self.product)
+        self.assertEqual(order_product_list[1].product, second_product)
+
+        self.assertEqual(order.total_price, sum(order_products_prices) + mock_order["ship_price"])
+
+    def test_order_create_order_with_products_and_shipping_info_price_successful(self):
+        """
+        Tests if model can create an order with products and updates shipping info price as parameters
+        """
+        # Create second product
+        mock_product = {**self.mock_product, "title": "Test second product"}
+        second_product = Product.objects.create(**mock_product)
+
+        # Order products payload
+        order_products_payload = [
+            {
+                "product": self.product.id,
+                "count": 5,
+            },
+            {
+                "product": second_product.id,
+                "count": 3,
+            }
+        ]
+
+        # Updates ship_price of created shipping info
+        self.shipping_info.ship_price = 1400
+        self.shipping_info.save()
+
+        # Create order
+        mock_order = {
+            "buyer": self.user,
+            "shipping_info": self.shipping_info,
+            "products": order_products_payload
+        }
+        order = Order.objects.create(**mock_order)
+
+        order_products_prices = [Product.objects.get(pk=order_product["product"]).price * order_product["count"] for
+                                 order_product in
+                                 order_products_payload]
+
+        order_product_list = order.get_order_products()
+
+        self.assertEqual(order_product_list[0].product, self.product)
+        self.assertEqual(order_product_list[1].product, second_product)
+
+        self.assertEqual(order.total_price, sum(order_products_prices) + 1400)
+
     def test_create_existing_order_reject(self):
         """
         Tests if model can't create an existing order
@@ -520,6 +605,7 @@ class OrderModelTest(TestCase):
         mock_order = {
             "buyer": self.user,
             "shipping_info": self.shipping_info,
+            "ship_price": 1
         }
 
         order = Order.objects.create(**mock_order)
@@ -533,7 +619,7 @@ class OrderModelTest(TestCase):
 
         self.assertEqual(order.total_price,
                          Product.objects.get(pk=order_product_payload["product"]).price * order_product_payload[
-                             "count"])
+                             "count"] + 1)
 
         self.assertEqual(order_product_list[0].product, self.product)
 
@@ -550,6 +636,7 @@ class OrderModelTest(TestCase):
         mock_order = {
             "buyer": self.user,
             "shipping_info": self.shipping_info,
+            "ship_price": 1
         }
         order = Order.objects.create(**mock_order)
 
@@ -571,7 +658,7 @@ class OrderModelTest(TestCase):
 
         order_product_list = order.create_order_products(order_products_payload)
 
-        self.assertEqual(order.total_price, sum(order_products_prices))
+        self.assertEqual(order.total_price, sum(order_products_prices) + 1)
 
         self.assertEqual(order_product_list[0].product, self.product)
         self.assertEqual(order_product_list[1].product, second_product)
@@ -734,16 +821,16 @@ class OrderModelTest(TestCase):
         mock_order = {
             "buyer": self.user,
             "shipping_info": self.shipping_info,
+            "ship_price": 1
         }
         order = Order.objects.create(**mock_order)
 
-        self.assertEqual(order.total_price, 0)
+        self.assertEqual(order.total_price, 1)
 
         order.set_ship_amount(1400)
 
-        self.assertEqual(order.total_price, 1400)
+        self.assertEqual(order.total_price, 1400 + 1)
 
-    # TODO: test update ship price
     def test_order_model_manager_discount_stock_of_successful(self):
         """
         Tests order model manager discount_stock_of method

@@ -87,10 +87,13 @@ class MPService:
             }
             parsed_products.append(data)
 
-        order = Order.objects.create(buyer=user, shipping_info=user_ship_info)
-        order.save()
+        order_data = {
+            "buyer": user,
+            "shipping_info": user_ship_info,
+            "products": parsed_products
+        }
 
-        order.create_order_products(parsed_products)
-        order.set_ship_amount(user_ship_info.ship_price)
+        order = Order.objects.create(**order_data)
+        order.save()
 
         return order

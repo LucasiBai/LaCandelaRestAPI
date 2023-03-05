@@ -289,6 +289,33 @@ class OrderManager(models.Manager):
     Order Model manager
     """
 
+    def create(self, *args, **kwargs):
+        """
+        Custom order creation
+
+        Returns:
+            order instance
+        """
+        id = kwargs.get("id", None)
+        buyer = kwargs.get("buyer", None)
+        shipping_info = kwargs.get("shipping_info", None)
+
+        instance = super().create(*args, id=id, buyer=buyer, shipping_info=shipping_info)
+
+        products = kwargs.get("products", None)
+
+        if products:
+            instance.create_order_products(products)
+
+        ship_price = kwargs.get("ship_price", None)
+
+        if ship_price:
+            instance.set_ship_amount(ship_price)
+        elif shipping_info.ship_price > 0:
+            instance.set_ship_amount(shipping_info.ship_price)
+
+        return instance
+
     def discount_stock_of(self, order):
         """
         Discount stock of each product in order
@@ -421,11 +448,12 @@ class Order(models.Model):
         Updates total price with entered ship amount
 
         Args:
-            ship_amount(int):
+            ship_amount(int): ship price amount
 
         Returns:
             Updated order
         """
+
         self.total_price += ship_amount
 
         self.save()
