@@ -141,7 +141,7 @@ class PublicCommentAPITest(TestCase):
 
     def test_comment_list_min_rate_filter_successful(self):
         """
-        Tests if comment list can be filter by min rate
+        Tests if comment list can be filtered by min rate
         """
         mock_comment = {
             "user": self.user,
@@ -163,7 +163,7 @@ class PublicCommentAPITest(TestCase):
 
     def test_comment_list_min_rate_filter_equal_value_successful(self):
         """
-        Tests if comment list can be filter by min rate with equal value
+        Tests if comment list can be filtered by min rate with equal value
         """
         mock_comment = {
             "user": self.user,
@@ -185,7 +185,7 @@ class PublicCommentAPITest(TestCase):
 
     def test_comment_list_max_rate_filter_successful(self):
         """
-        Tests if comment list can be filter by max rate
+        Tests if comment list can be filtered by max rate
         """
         mock_comment = {
             "user": self.user,
@@ -207,7 +207,7 @@ class PublicCommentAPITest(TestCase):
 
     def test_comment_list_max_rate_filter_equal_value_successful(self):
         """
-        Tests if comment list can be filter by max rate with equal value
+        Tests if comment list can be filtered by max rate with equal value
         """
         mock_comment = {
             "user": self.user,
@@ -229,7 +229,7 @@ class PublicCommentAPITest(TestCase):
 
     def test_comment_list_offset_filter_successful(self):
         """
-        Tests if comment list can be filter by offset
+        Tests if comment list can be filtered by offset
         """
         first_mock_comment = {
             "user": self.user,

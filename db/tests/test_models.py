@@ -910,6 +910,32 @@ class CommentModelTest(TestCase):
 
         self.assertTrue(comment.created_at)
 
+    def test_create_comment_with_uuid_successful(self):
+        """
+        Tests if can create a comment with uuid
+        """
+
+        mock_comment = {
+            "id": uuid4(),
+            "user": self.user,
+            "product": self.product,
+            "subject": "Test comment subject",
+            "content": "Test comment content",
+            "rate": 4.3,
+        }
+
+        comment = Comment.objects.create(**mock_comment)
+
+        self.assertEqual(mock_comment["id"], comment.id)
+
+        self.assertEqual(self.user, comment.user)
+        self.assertEqual(self.product, comment.product)
+        self.assertEqual(mock_comment["subject"], comment.subject)
+
+        self.assertEqual(mock_comment["subject"], str(comment))
+
+        self.assertTrue(comment.created_at)
+
     def test_comment_manager_get_rate_avg_of_method_successful(self):
         """
         Tests if comment has a manager with get_rate_avg_of and return
