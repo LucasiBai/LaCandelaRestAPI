@@ -15,7 +15,8 @@ from db.models import (
     ShippingInfo,
     Cart,
     CartItem,
-    OrderProduct
+    OrderProduct,
+    FavouriteItem,
 )
 
 
@@ -253,6 +254,9 @@ class ProductModelTest(TestCase):
 
         with self.assertRaises(ValueError):
             product.create_comment(**comment_payload)
+
+    # TODO : test create_fav_to in product instance
+    # TODO : test create_fav_to don't repeat an created fav product to user
 
 
 class ShippingInfoModelTest(TestCase):
@@ -1567,3 +1571,90 @@ class CartItemModelTest(TestCase):
         cart_item.update_item_count()
 
         self.assertEqual(cart_item.count, 3)
+
+
+class FavouriteItemModelTests(TestCase):
+    """
+    Tests Favourite item model
+    """
+
+    def setUp(self):
+        # User creation
+        self.user = get_user_model().objects.create_user(
+            email="testemail@test.com", first_name="Test", last_name="Testi"
+        )
+
+        # Product creation
+        self.category = Category.objects.create(title="TestCategory")
+        self.mock_product = {
+            "title": "Test title",
+            "description": "Test description",
+            "price": 1111,
+            "images": [
+                "testimgurl.com/1",
+                "testimgurl.com/2",
+                "testimgurl.com/3",
+            ],
+            "stock": 11,
+            "category": self.category,
+            "sold": 11,
+        }
+        self.product = Product.objects.create(**self.mock_product)
+
+        # Mock favourite item
+        self.mock_fav_item = {
+            "user": self.user,
+            "product": self.product
+        }
+
+        self.model = FavouriteItem
+
+    def test_create_favourite_item_successful(self):
+        """
+        Tests if model can create a favourite item instance correctly
+        """
+        fav_item = self.model.objects.create(**self.mock_fav_item)
+
+        self.assertTrue(fav_item)
+
+        self.assertEqual(fav_item.user.id, self.user.id)
+        self.assertEqual(fav_item.product.id, self.product.id)
+
+    def test_favourite_item_has_str_method_updated_successful(self):
+        """
+        Tests if model has __str__ method updated for be readable for humans
+        """
+        fav_item = self.model.objects.create(**self.mock_fav_item)
+
+        self.assertEqual(str(fav_item), f"{fav_item.product} to {fav_item.user}")
+
+    def test_favourite_item_has_correct_singular_and_plural_verbose_name_successful(self):
+        """
+        Tests if favourite has the correct singular and plural verbose name
+        """
+        fav_model_meta = self.model._meta
+
+        self.assertEqual(fav_model_meta.verbose_name, "Favourite Item")
+        self.assertEqual(fav_model_meta.verbose_name_plural, "Favourite Items")
+
+    # TODO: Test verbose translation
+
+    def test_get_user_fav_method_from_manager_successful(self):
+        """
+        Tests if model manager has get_user_fav method and returns
+        user favourite items
+        """
+        # creation of user fav items
+        mock_fav_item = {**self.mock_fav_item}
+        first_item = self.model.objects.create(**mock_fav_item)
+
+        new_product = Product.objects.create(**{**self.mock_product, "title": "New test Product"})
+        mock_fav_item["product"] = new_product
+        second_item = self.model.objects.create(**mock_fav_item)
+
+        user_fav_items = self.model.objects.get_user_fav(mock_fav_item["user"])
+
+        self.assertEqual(len(user_fav_items), 2)
+
+        self.assertEqual(user_fav_items[0].id, first_item.id)
+        self.assertEqual(user_fav_items[1].id, second_item.id)

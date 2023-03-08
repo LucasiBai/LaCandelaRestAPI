@@ -625,3 +625,22 @@ class CartItem(models.Model):
             self.set_count(product.stock)
 
         return self
+
+
+class FavouriteItem(models.Model):
+    """
+    Favourite Item model
+    """
+    user = models.ForeignKey("UserAccount", on_delete=models.CASCADE)
+    product = models.ForeignKey("Product", on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = "Favourite Item"
+        verbose_name_plural = "Favourite Items"
+
+    def __str__(self):
+        """
+        Returns:
+            Model str representation
+        """
+        return f"{self.product} to {self.user}"
