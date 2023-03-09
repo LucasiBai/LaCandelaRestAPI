@@ -255,8 +255,38 @@ class ProductModelTest(TestCase):
         with self.assertRaises(ValueError):
             product.create_comment(**comment_payload)
 
-    # TODO : test create_fav_to in product instance
-    # TODO : test create_fav_to don't repeat an created fav product to user
+    def test_create_fav_to_user_in_product_instance_successful(self):
+        """
+        Tests if product instance has method create_fav_to and creates a fav item
+        for entered user
+        """
+        product = Product.objects.create(**self.mock_product)
+
+        user = get_user_model().objects.create_user(email="testemail@test.com")
+
+        fav_item = product.create_fav_to(user)
+
+        self.assertIsInstance(fav_item, FavouriteItem)
+
+        self.assertEqual(fav_item.user, user)
+        self.assertEqual(fav_item.product, product)
+
+    def test_create_fav_to_user_in_product_instance_return_created_fav_item_if_exists_one_successful(self):
+        """
+        Tests if product instance has method create_fav_to and returns existent fav item if
+        exists one
+        """
+        product = Product.objects.create(**self.mock_product)
+
+        user = get_user_model().objects.create_user(email="testemail@test.com")
+
+        existent_fav_item = FavouriteItem.objects.create(user=user, product=product)
+
+        fav_item = product.create_fav_to(user)
+
+        self.assertEqual(fav_item.id, existent_fav_item.id)
+
+    # TODO: test delete fav instance from user
 
 
 class ShippingInfoModelTest(TestCase):
@@ -1636,6 +1666,15 @@ class FavouriteItemModelTests(TestCase):
 
         self.assertEqual(fav_model_meta.verbose_name, "Favourite Item")
         self.assertEqual(fav_model_meta.verbose_name_plural, "Favourite Items")
+
+    def test_create_existent_favourite_item_reject(self):
+        """
+        Tests if model can't create an existent favourite item and raise an error
+        """
+        self.model.objects.create(**self.mock_fav_item)
+
+        with self.assertRaises(IntegrityError):
+            self.model.objects.create(**self.mock_fav_item)
 
     # TODO: Test verbose translation
 

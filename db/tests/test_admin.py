@@ -588,3 +588,5 @@ class CartModelAdminTest(TestCase):
         res = self.client.get(url)
 
         self.assertEqual(res.status_code, 200)  # Testing if status code is 200
+
+# TODO: Test Favourite Item admin

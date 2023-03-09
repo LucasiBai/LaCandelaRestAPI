@@ -1,7 +1,7 @@
 from uuid import uuid4
 
 from django.db import models
-from django.db.utils import DataError
+from django.db.utils import DataError, IntegrityError
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
@@ -9,6 +9,7 @@ from django.contrib.auth.models import (
 )
 from django.contrib.postgres.fields import ArrayField
 from django.utils.translation import gettext_lazy as _
+from django.contrib.auth import get_user_model
 
 from simple_history.models import HistoricalRecords
 from apps.shipping.utils.services.shipping_price_service import ShippingPriceService
@@ -119,7 +120,7 @@ class Comment(models.Model):
     Comment model
     """
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    user = models.ForeignKey("UserAccount", on_delete=models.CASCADE)
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     product = models.ForeignKey("Product", on_delete=models.CASCADE)
     subject = models.CharField(max_length=255)
     content = models.TextField()
@@ -172,6 +173,21 @@ class Product(models.Model):
         self.save()
 
         return comment
+
+    def create_fav_to(self, user: get_user_model()):
+        """
+        Creates a fav item to entered user
+
+        Args:
+            user(UserModel): user who want to create a fav
+
+        Returns:
+            Created fav item
+        """
+
+        user_fav_item, created = FavouriteItem.objects.get_or_create(user=user, product=self)
+
+        return user_fav_item
 
 
 class ShippingInfoManager(models.Manager):
@@ -265,7 +281,7 @@ class ShippingInfo(models.Model):
     ShippingInfo model
     """
 
-    user = models.ForeignKey("UserAccount", on_delete=models.CASCADE)
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     address = models.CharField(max_length=255)
     receiver = models.CharField(max_length=255)
     receiver_dni = models.IntegerField()
@@ -340,7 +356,7 @@ class Order(models.Model):
     """
 
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    buyer = models.ForeignKey("UserAccount", on_delete=models.CASCADE)
+    buyer = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     shipping_info = models.ForeignKey("ShippingInfo", on_delete=models.CASCADE)
     created_at = models.DateField(auto_now_add=True)
     total_price = models.DecimalField(default=0, max_digits=9, decimal_places=2)
@@ -627,12 +643,40 @@ class CartItem(models.Model):
         return self
 
 
+class FavouriteItemManager(models.Manager):
+    """
+    Custom Manager to Favourite Item model
+    """
+
+    def create(self, *args, **kwargs):
+        if self.filter(**kwargs).exists():
+            raise IntegrityError("Favourite Item must no exist to create a new.")
+
+        return super().create(*args, **kwargs)
+
+    def get_user_fav(self, user: get_user_model()):
+        """
+        Gets fav products from entered user
+
+        Args:
+            user(UserModel): User who is searching favs
+
+        Returns:
+            List of user product favs
+        """
+        user_fav_list = self.filter(user=user)
+
+        return user_fav_list
+
+
 class FavouriteItem(models.Model):
     """
     Favourite Item model
     """
-    user = models.ForeignKey("UserAccount", on_delete=models.CASCADE)
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     product = models.ForeignKey("Product", on_delete=models.CASCADE)
+
+    objects = FavouriteItemManager()  # custom manager
 
     class Meta:
         verbose_name = "Favourite Item"
