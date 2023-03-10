@@ -189,6 +189,23 @@ class Product(models.Model):
 
         return user_fav_item
 
+    def delete_fav_to(self, user: get_user_model()):
+        """
+        Deletes existent fav item
+
+        Args:
+            user(UserModel): user who want to delete a fav
+
+        Returns:
+            None
+        """
+        user_fav_item = FavouriteItem.objects.filter(product=self, user=user).first()
+
+        if not user_fav_item:
+            raise FavouriteItem.DoesNotExist("Favourite Item must exist to be deleted.")
+
+        user_fav_item.delete()
+
 
 class ShippingInfoManager(models.Manager):
     """

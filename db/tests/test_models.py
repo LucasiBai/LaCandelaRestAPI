@@ -286,7 +286,32 @@ class ProductModelTest(TestCase):
 
         self.assertEqual(fav_item.id, existent_fav_item.id)
 
-    # TODO: test delete fav instance from user
+    def test_delete_fav_to_method_in_product_instance_successful(self):
+        """
+        Tests if product instance has delete_fav_to method and deletes created fav item to user
+        """
+        product = Product.objects.create(**self.mock_product)
+
+        user = get_user_model().objects.create_user(email="testemail@test.com")
+
+        FavouriteItem.objects.create(user=user, product=product)
+
+        product.delete_fav_to(user)
+
+        user_fav = FavouriteItem.objects.filter(user=user, product=product)
+
+        self.assertFalse(user_fav.exists())
+
+    def test_delete_fav_to_method_in_product_instance_no_existent_fav_reject(self):
+        """
+        Tests if product instance has delete_fav_to method and raise and error if item doesn't exist
+        """
+        product = Product.objects.create(**self.mock_product)
+
+        user = get_user_model().objects.create_user(email="testemail@test.com")
+
+        with self.assertRaises(ObjectDoesNotExist):
+            product.delete_fav_to(user)
 
 
 class ShippingInfoModelTest(TestCase):
