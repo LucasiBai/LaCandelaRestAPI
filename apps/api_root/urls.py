@@ -5,7 +5,8 @@ from apps.categories.urls import urlpatterns as category_urls
 from apps.cart.urls import urlpatterns as cart_urls
 from apps.payment_methods.urls import urlpatterns as pay_urls
 from apps.shipping.urls import urlpatterns as ship_urls
+from apps.favourites.urls import urlpatterns as fav_urls
 
 app_name = "api"
 
-urlpatterns = products_urls + comment_urls + order_urls + category_urls + cart_urls + pay_urls + ship_urls
+urlpatterns = products_urls + comment_urls + order_urls + category_urls + cart_urls + pay_urls + ship_urls + fav_urls

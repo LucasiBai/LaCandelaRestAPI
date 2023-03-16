@@ -188,8 +188,11 @@ class PrivateUserFavouriteItemAPITests(TestCase):
         retrieve_url = get_fav_detail_url(self.fav_item)
         res = self.client.get(retrieve_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
-        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
 
+        self.assertContains(res, self.fav_item.id)
+
+    # TODO: Test instance format
     def test_from_other_fav_item_retrieve_view_normal_user_reject(self):
         """
         Tests if normal user can't access to from other fav item retrieve view
@@ -245,7 +248,7 @@ class PrivateUserFavouriteItemAPITests(TestCase):
         retrieve_url = get_fav_detail_url(self.fav_item)
         res = self.client.put(retrieve_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
-        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_from_other_fav_item_retrieve_update_normal_user_reject(self):
         """
@@ -266,7 +269,7 @@ class PrivateUserFavouriteItemAPITests(TestCase):
         retrieve_url = get_fav_detail_url(fav_item)
         res = self.client.put(retrieve_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
-        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_own_fav_item_retrieve_partially_update_normal_user_reject(self):
         """
@@ -281,7 +284,7 @@ class PrivateUserFavouriteItemAPITests(TestCase):
         retrieve_url = get_fav_detail_url(self.fav_item)
         res = self.client.put(retrieve_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
-        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_from_other_fav_item_retrieve_partially_update_normal_user_reject(self):
         """
@@ -300,7 +303,7 @@ class PrivateUserFavouriteItemAPITests(TestCase):
         retrieve_url = get_fav_detail_url(fav_item)
         res = self.client.put(retrieve_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
-        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_own_fav_item_retrieve_delete_normal_user_reject(self):
         """
@@ -348,4 +351,191 @@ class PrivateSuperuserFavouriteItemAPITests(TestCase):
         res_token = self.client.post(TOKEN_URL, user_data)  # get user token
         self.user_token = res_token.data["token"]
 
-    # TODO: create tests for superuser in Favourite Item
+        # Product Creation
+        category = Category.objects.create(
+            title="TestCategory"  # create category for product
+        )
+        self.mock_product = {
+            "title": "Test title",
+            "description": "Test description",
+            "price": 1111,
+            "images": [
+                "testimgurl.com/1",
+                "testimgurl.com/2",
+                "testimgurl.com/3",
+            ],
+            "stock": 11,
+            "category": category,
+            "sold": 11,
+        }
+        self.product = Product.objects.create(
+            **self.mock_product  # create product for order
+        )
+
+        # Fav Item Instance
+        self.fav_item = self.model.objects.create(user=self.user, product=self.product)
+
+    def test_fav_item_list_view_superuser_successful(self):
+        """
+        Tests if superuser can access to fav item list view
+        """
+        res = self.client.get(FAV_ITEM_LIST_URL, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        self.assertContains(res, self.fav_item.id)
+
+        self.assertIn("data", res.data)
+        self.assertIn("results", res.data)
+
+    def test_own_fav_item_retrieve_view_superuser_successful(self):
+        """
+        Tests if superuser can access to own fav item retrieve view
+        """
+        retrieve_url = get_fav_detail_url(self.fav_item)
+        res = self.client.get(retrieve_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        self.assertContains(res, self.fav_item.id)
+
+    def test_from_other_fav_item_retrieve_view_superuser_successful(self):
+        """
+        Tests if superuser can access to from other fav item retrieve view
+        """
+        new_user = get_user_model().objects.create_user(email="newusertest@test.com")
+
+        fav_item = self.model.objects.create(product=self.product, user=new_user)
+
+        retrieve_url = get_fav_detail_url(fav_item)
+        res = self.client.get(retrieve_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertContains(res, fav_item.id)
+
+    def test_own_fav_item_list_create_superuser_successful(self):
+        """
+        Tests if superuser can create an own fav item in fav item list view
+        """
+        payload = {
+            "user": self.user.id,
+            "product": self.product.id
+        }
+
+        res = self.client.post(FAV_ITEM_LIST_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        self.assertTrue(self.model.objects.filter(id=res.data["id"]).exists())
+
+    def test_to_other_fav_item_list_create_superuser_successful(self):
+        """
+        Tests if superuser can create a fav item to others in fav item list view
+        """
+        new_user = get_user_model().objects.create_user(email="newusertest@test.com")
+
+        payload = {
+            "user": new_user.id,
+            "product": self.product.id
+        }
+
+        res = self.client.post(FAV_ITEM_LIST_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        self.assertTrue(self.model.objects.filter(id=res.data["id"]).exists())
+
+    def test_own_fav_item_retrieve_update_superuser_reject(self):
+        """
+        Tests if superuser can't update an own fav item in fav item retrieve view
+        """
+        new_product = Product.objects.create(**{**self.mock_product, "title": "New Title Product"})
+
+        payload = {
+            "user": self.user.id,
+            "product": new_product.id  # param to update
+        }
+
+        retrieve_url = get_fav_detail_url(self.fav_item)
+        res = self.client.put(retrieve_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_from_other_fav_item_retrieve_update_superuser_reject(self):
+        """
+        Tests if superuser can't update a fav item from other in fav item retrieve view
+        """
+        # New user Fav item
+        new_user = get_user_model().objects.create_user(email="newusertest@test.com")
+        fav_item = self.model.objects.create(product=self.product, user=new_user)
+
+        # New Product creation
+        new_product = Product.objects.create(**{**self.mock_product, "title": "New Title Product"})
+
+        payload = {
+            "user": new_user.id,
+            "product": new_product.id  # param to update
+        }
+
+        retrieve_url = get_fav_detail_url(fav_item)
+        res = self.client.put(retrieve_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_own_fav_item_retrieve_partially_update_superuser_reject(self):
+        """
+        Tests if superuser can't partially update an own fav item in fav item retrieve view
+        """
+        new_product = Product.objects.create(**{**self.mock_product, "title": "New Title Product"})
+
+        payload = {
+            "product": new_product.id  # param to update
+        }
+
+        retrieve_url = get_fav_detail_url(self.fav_item)
+        res = self.client.put(retrieve_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_from_other_fav_item_retrieve_partially_update_superuser_reject(self):
+        """
+        Tests if superuser can't partially update a fav item from other in fav item retrieve view
+        """
+        # New user Fav item
+        new_user = get_user_model().objects.create_user(email="newusertest@test.com")
+        fav_item = self.model.objects.create(product=self.product, user=new_user)
+
+        new_product = Product.objects.create(**{**self.mock_product, "title": "New Title Product"})
+
+        payload = {
+            "product": new_product.id  # param to update
+        }
+
+        retrieve_url = get_fav_detail_url(fav_item)
+        res = self.client.put(retrieve_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_own_fav_item_retrieve_delete_superuser_successful(self):
+        """
+        Tests if superuser can delete an own fav item in fav item retrieve view
+        """
+        retrieve_url = get_fav_detail_url(self.fav_item)
+
+        res = self.client.delete(retrieve_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_from_other_fav_item_retrieve_delete_superuser_successful(self):
+        """
+        Tests if superuser can delete a fav item from other in fav item retrieve view
+        """
+        # New user Fav item
+        new_user = get_user_model().objects.create_user(email="newusertest@test.com")
+        fav_item = self.model.objects.create(product=self.product, user=new_user)
+
+        retrieve_url = get_fav_detail_url(fav_item)
+
+        res = self.client.delete(retrieve_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
