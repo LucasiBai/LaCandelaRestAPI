@@ -15,3 +15,21 @@ class FavouriteItemsSerializer(serializers.ModelSerializer):
             "user",
             "product"
         ]
+
+    def create(self, validated_data):
+        """
+        Create a Fav item instance
+
+        Args:
+            validated_data: data of instance
+
+        Returns:
+            Created instance
+        """
+        product = validated_data.get("product", None)
+
+        user = validated_data.get("user", None)
+
+        instance = product.create_fav_to(user)
+
+        return instance

@@ -1,8 +1,9 @@
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.response import Response
+from rest_framework import status
 
-from apps.api_root.permissions import IsOwnData
-
+from .permissions import IsOwnFavItemOrSuperuser
 from .serializers import FavouriteItemsSerializer
 
 
@@ -18,8 +19,41 @@ class FavouriteItemViewset(ModelViewSet):
         """
         Gets custom permission for the view
         """
-        if self.action == "retrieve":
-            permission_classes = [IsAuthenticated, IsOwnData]
+        if self.action == "retrieve" or self.action == "partial_update" or self.action == "update":
+            permission_classes = [IsAuthenticated, IsOwnFavItemOrSuperuser]
         else:
             permission_classes = [IsAuthenticated, IsAdminUser]
         return [permission() for permission in permission_classes]
+
+    def list(self, request, *args, **kwargs):
+        """
+        Gets fav items and result quantity response
+
+        Returns:
+            generated response
+        """
+        fav_list = self.filter_queryset(self.get_queryset())
+
+        if fav_list:
+            serializer = self.serializer_class(fav_list, many=True)
+
+            res_data = {
+                "results": len(fav_list),
+                "data": serializer.data,
+            }
+
+            return Response(res_data, status=status.HTTP_200_OK)
+
+        return Response({"message": "Not found fav items."}, status=status.HTTP_200_OK)
+
+    def update(self, request, *args, **kwargs):
+        """
+        Update method not allowed
+        """
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def partial_update(self, request, *args, **kwargs):
+        """
+        Partial update method not allowed
+        """
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)

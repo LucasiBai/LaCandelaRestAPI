@@ -18,7 +18,7 @@ def get_fav_detail_url(fav_item: get_app_model()):
     """
     Gets the fav detail url of entered fav item
     """
-    return reverse("api:order-detail", kwargs={"pk": fav_item.id})
+    return reverse("api:fav_item-detail", kwargs={"pk": fav_item.id})
 
 
 class PublicFavouriteItemAPITests(TestCase):
@@ -375,6 +375,19 @@ class PrivateSuperuserFavouriteItemAPITests(TestCase):
         # Fav Item Instance
         self.fav_item = self.model.objects.create(user=self.user, product=self.product)
 
+    def test_fav_item_list_view_superuser_no_items_successful(self):
+        """
+        Tests if view returns a not found fav items message
+        """
+        self.fav_item.delete()
+
+        res = self.client.get(FAV_ITEM_LIST_URL, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        self.assertIn("message", res.data)
+        self.assertEqual(res.data["message"], "Not found fav items.")
+
     def test_fav_item_list_view_superuser_successful(self):
         """
         Tests if superuser can access to fav item list view
@@ -388,6 +401,9 @@ class PrivateSuperuserFavouriteItemAPITests(TestCase):
         self.assertIn("data", res.data)
         self.assertIn("results", res.data)
 
+        self.assertEqual(res.data["results"], 1)
+
+    # TODO : Tests filters
     def test_own_fav_item_retrieve_view_superuser_successful(self):
         """
         Tests if superuser can access to own fav item retrieve view
@@ -417,6 +433,23 @@ class PrivateSuperuserFavouriteItemAPITests(TestCase):
         """
         Tests if superuser can create an own fav item in fav item list view
         """
+        new_product = Product.objects.create(**{**self.mock_product, "title": "New Title Product"})
+
+        payload = {
+            "user": self.user.id,
+            "product": new_product.id
+        }
+
+        res = self.client.post(FAV_ITEM_LIST_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        self.assertTrue(self.model.objects.filter(id=res.data["id"]).exists())
+
+    def test_own_fav_item_list_create_existing_item_superuser_successful(self):
+        """
+        Tests if superuser can create an own existing fav item in fav item list view
+        """
         payload = {
             "user": self.user.id,
             "product": self.product.id
@@ -433,10 +466,11 @@ class PrivateSuperuserFavouriteItemAPITests(TestCase):
         Tests if superuser can create a fav item to others in fav item list view
         """
         new_user = get_user_model().objects.create_user(email="newusertest@test.com")
+        new_product = Product.objects.create(**{**self.mock_product, "title": "New Title Product"})
 
         payload = {
             "user": new_user.id,
-            "product": self.product.id
+            "product": new_product.id
         }
 
         res = self.client.post(FAV_ITEM_LIST_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
