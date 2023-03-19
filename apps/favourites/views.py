@@ -2,6 +2,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.decorators import action
 
 from .permissions import IsOwnFavItemOrSuperuser
 from .serializers import FavouriteItemsSerializer
@@ -19,7 +20,7 @@ class FavouriteItemViewset(ModelViewSet):
         """
         Gets custom permission for the view
         """
-        if self.action == "retrieve" or self.action == "partial_update" or self.action == "update":
+        if self.action == "retrieve" or self.action == "partial_update" or self.action == "update" or self.action == "get_my_list":
             permission_classes = [IsAuthenticated, IsOwnFavItemOrSuperuser]
         else:
             permission_classes = [IsAuthenticated, IsAdminUser]
@@ -57,3 +58,25 @@ class FavouriteItemViewset(ModelViewSet):
         Partial update method not allowed
         """
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="my-list",
+    )
+    def get_my_list(self, request, *args, **kwargs):
+        """
+        Gets current user list and return response
+        """
+        user = request.user
+
+        if request.method == "GET":
+            user_fav_list = self.filter_queryset(self.get_queryset().filter(user=user))
+            serializer = self.serializer_class(user_fav_list, many=True)
+
+            response_data = {
+                "results": len(user_fav_list),
+                "data": serializer.data
+            }
+
+            return Response(response_data, status=status.HTTP_200_OK)

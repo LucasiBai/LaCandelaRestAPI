@@ -10,6 +10,7 @@ from apps.favourites.meta import get_app_model
 from db.models import Category, Product
 
 FAV_ITEM_LIST_URL = reverse("api:fav_item-list")  # fav item list url
+MY_LIST_URL = reverse("api:fav_item-get-my-list")  # fav item my-list action url
 
 TOKEN_URL = reverse("users:user_token_obtain")  # user token API url
 
@@ -128,6 +129,14 @@ class PublicFavouriteItemAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
+    def test_my_list_action_list_public_user_reject(self):
+        """
+        Tests if public user can't access to my-list api action
+        """
+        res = self.client.get(MY_LIST_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
 
 class PrivateUserFavouriteItemAPITests(TestCase):
     """
@@ -192,7 +201,29 @@ class PrivateUserFavouriteItemAPITests(TestCase):
 
         self.assertContains(res, self.fav_item.id)
 
-    # TODO: Test instance format
+    def test_own_fav_item_retrieve_view_format_normal_user_successful(self):
+        """
+        Tests if normal user can access to own fav item with correct format
+        """
+        retrieve_url = get_fav_detail_url(self.fav_item)
+        res = self.client.get(retrieve_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        self.assertContains(res, self.fav_item.id)
+
+        self.assertTrue(res.data["id"])
+
+        # User format data
+        self.assertTrue(res.data["user"])
+        self.assertTrue(res.data["user"]["id"])
+        self.assertTrue(res.data["user"]["email"])
+
+        # Product format data
+        self.assertTrue(res.data["product"])
+        self.assertTrue(res.data["product"]["id"])
+        self.assertTrue(res.data["product"]["title"])
+
     def test_from_other_fav_item_retrieve_view_normal_user_reject(self):
         """
         Tests if normal user can't access to from other fav item retrieve view
@@ -329,7 +360,25 @@ class PrivateUserFavouriteItemAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
-    # TODO: Test my-list api action
+    def test_my_list_action_list_normal_user_successful(self):
+        """
+        Tests if normal user can access to my-list api action and list fav items
+        """
+        # New user Fav item
+        new_user = get_user_model().objects.create_user(email="newusertest@test.com")
+        fav_item = self.model.objects.create(product=self.product, user=new_user)
+
+        res = self.client.get(MY_LIST_URL, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        fav_list = [item["id"] for item in res.data["data"]]
+
+        self.assertEqual(res.data["results"], 1)
+
+        self.assertTrue(self.fav_item.id in fav_list)
+        self.assertFalse(fav_item.id in fav_list)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+    # TODO : Test user no fav items
 
 
 class PrivateSuperuserFavouriteItemAPITests(TestCase):
@@ -404,6 +453,30 @@ class PrivateSuperuserFavouriteItemAPITests(TestCase):
         self.assertEqual(res.data["results"], 1)
 
     # TODO : Tests filters
+
+    def test_fav_item_retrieve_view_format_superuser_successful(self):
+        """
+        Tests if superuser can access to fav item with correct format
+        """
+        retrieve_url = get_fav_detail_url(self.fav_item)
+        res = self.client.get(retrieve_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        self.assertContains(res, self.fav_item.id)
+
+        self.assertTrue(res.data["id"])
+
+        # User format data
+        self.assertTrue(res.data["user"])
+        self.assertTrue(res.data["user"]["id"])
+        self.assertTrue(res.data["user"]["email"])
+
+        # Product format data
+        self.assertTrue(res.data["product"])
+        self.assertTrue(res.data["product"]["id"])
+        self.assertTrue(res.data["product"]["title"])
+
     def test_own_fav_item_retrieve_view_superuser_successful(self):
         """
         Tests if superuser can access to own fav item retrieve view
