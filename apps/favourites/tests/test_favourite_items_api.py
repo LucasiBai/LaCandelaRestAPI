@@ -378,7 +378,85 @@ class PrivateUserFavouriteItemAPITests(TestCase):
         self.assertFalse(fav_item.id in fav_list)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-    # TODO : Test user no fav items
+
+    def test_my_list_action_list_normal_user_no_items_successful(self):
+        """
+        Tests if normal user can access to my-list api action
+        """
+        self.fav_item.delete()
+
+        res = self.client.get(MY_LIST_URL, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        self.assertIn("message", res.data)
+        self.assertEqual(res.data["message"], "Not found fav items.")
+
+    def test_my_list_action_create_normal_user_successful(self):
+        """
+        Tests if normal user can create item to my-list api action
+        """
+        mock_product = {**self.mock_product, "title": "New Product Test"}
+        new_product = Product.objects.create(**mock_product)
+
+        payload = {
+            "product": new_product.id
+        }
+
+        res = self.client.post(MY_LIST_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        self.assertEqual(res.data["product"]["id"], payload["product"])
+
+        fav_item = self.model.objects.filter(user=self.user, product=new_product)
+        self.assertTrue(fav_item.exists())
+
+    def test_my_list_action_create_normal_user_existent_item_successful(self):
+        """
+        Tests if normal user can create post created item to my-list api action
+        """
+        payload = {
+            "product": self.product.id
+        }
+
+        res = self.client.post(MY_LIST_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        self.assertEqual(res.data["product"]["id"], payload["product"])
+
+        fav_item = self.model.objects.filter(user=self.user, product=self.product)
+        self.assertTrue(fav_item.exists())
+
+    def test_my_list_action_create_normal_user_no_product_reject(self):
+        """
+        Tests if normal user can't create post no existent product to my-list api action
+        """
+        payload = {
+            "product": self.product.id
+        }
+
+        self.product.delete()
+
+        res = self.client.post(MY_LIST_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_my_list_action_create_normal_user_no_product_reject(self):
+        """
+        Tests if normal user can't create post no existent product to my-list api action
+        """
+        payload = {
+            "user": self.user
+        }
+
+        res = self.client.post(MY_LIST_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    # TODO : Test my-list delete item
+    # TODO : Test my-list filters
 
 
 class PrivateSuperuserFavouriteItemAPITests(TestCase):

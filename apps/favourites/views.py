@@ -61,7 +61,7 @@ class FavouriteItemViewset(ModelViewSet):
 
     @action(
         detail=False,
-        methods=["get"],
+        methods=["get", "post"],
         url_path="my-list",
     )
     def get_my_list(self, request, *args, **kwargs):
@@ -72,11 +72,32 @@ class FavouriteItemViewset(ModelViewSet):
 
         if request.method == "GET":
             user_fav_list = self.filter_queryset(self.get_queryset().filter(user=user))
-            serializer = self.serializer_class(user_fav_list, many=True)
 
-            response_data = {
-                "results": len(user_fav_list),
-                "data": serializer.data
+            if user_fav_list:
+                serializer = self.serializer_class(user_fav_list, many=True)
+
+                response_data = {
+                    "results": len(user_fav_list),
+                    "data": serializer.data
+                }
+
+                return Response(response_data, status=status.HTTP_200_OK)
+            return Response({"message": "Not found fav items."}, status=status.HTTP_200_OK)
+
+        elif request.method == "POST":
+            product = request.data.get("product", None)
+
+            if not product:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+
+            data = {
+                "user": user.id,
+                "product": product
             }
 
-            return Response(response_data, status=status.HTTP_200_OK)
+            serializer = self.serializer_class(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+            return Response(serializer.errors, status=status.HTTP_404_NOT_FOUND)
