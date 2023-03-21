@@ -443,9 +443,9 @@ class PrivateUserFavouriteItemAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_my_list_action_create_normal_user_no_product_reject(self):
+    def test_my_list_action_create_normal_user_no_product_param_reject(self):
         """
-        Tests if normal user can't create post no existent product to my-list api action
+        Tests if normal user can't create post don't pass product to my-list api action
         """
         payload = {
             "user": self.user
@@ -455,7 +455,40 @@ class PrivateUserFavouriteItemAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-    # TODO : Test my-list delete item
+    def test_my_list_detail_action_delete_normal_user_successful(self):
+        """
+        Tests if my list detail can delete item
+        """
+        fav_item_url = reverse("api:fav_item-get-my-list-detail", kwargs={"pk": self.fav_item.id})
+
+        res = self.client.delete(fav_item_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+
+        fav_list = self.model.objects.filter(user=self.user)
+
+        self.assertFalse(fav_list)
+
+    def test_my_list_detail_action_delete_normal_user_other_user_reject(self):
+        """
+        Tests if my list detail can't delete item from other user
+        """
+        # New user Fav item
+        new_user = get_user_model().objects.create_user(email="newusertest@test.com")
+        fav_item = self.model.objects.create(product=self.product, user=new_user)
+
+        fav_item_url = reverse("api:fav_item-get-my-list-detail", kwargs={"pk": fav_item.id})
+
+        res = self.client.delete(fav_item_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
+
+        fav_list = self.model.objects.filter(user=new_user)
+
+        self.assertTrue(fav_list)
+
+    # TODO: Test my list detail other user
+
     # TODO : Test my-list filters
 
 

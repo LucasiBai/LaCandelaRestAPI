@@ -1,3 +1,5 @@
+from django.shortcuts import get_object_or_404
+
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
@@ -20,7 +22,7 @@ class FavouriteItemViewset(ModelViewSet):
         """
         Gets custom permission for the view
         """
-        if self.action == "retrieve" or self.action == "partial_update" or self.action == "update" or self.action == "get_my_list":
+        if self.action == "retrieve" or self.action == "partial_update" or self.action == "update" or self.action == "get_my_list" or self.action == "get_my_list_detail":
             permission_classes = [IsAuthenticated, IsOwnFavItemOrSuperuser]
         else:
             permission_classes = [IsAuthenticated, IsAdminUser]
@@ -71,7 +73,7 @@ class FavouriteItemViewset(ModelViewSet):
         user = request.user
 
         if request.method == "GET":
-            user_fav_list = self.filter_queryset(self.get_queryset().filter(user=user))
+            user_fav_list = self.filter_queryset(self.model.objects.get_user_fav(user))
 
             if user_fav_list:
                 serializer = self.serializer_class(user_fav_list, many=True)
@@ -101,3 +103,21 @@ class FavouriteItemViewset(ModelViewSet):
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
 
             return Response(serializer.errors, status=status.HTTP_404_NOT_FOUND)
+
+    @action(
+        detail=True,
+        methods=["delete"],
+        url_path="my-list",
+    )
+    def get_my_list_detail(self, request, pk, *args, **kwargs):
+        """
+        Gets only current user detail fav item
+        """
+        user = request.user
+
+        if request.method == "DELETE":
+            fav_item = get_object_or_404(self.model, user=user, pk=pk)
+
+            fav_item.delete()
+
+            return Response(status=status.HTTP_204_NO_CONTENT)
