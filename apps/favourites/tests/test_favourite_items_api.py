@@ -22,6 +22,13 @@ def get_fav_detail_url(fav_item: get_app_model()):
     return reverse("api:fav_item-detail", kwargs={"pk": fav_item.id})
 
 
+def get_filter_url(filter_name, value):
+    """
+    Gets the filter url
+    """
+    return MY_LIST_URL + f"?{filter_name}={value}"
+
+
 class PublicFavouriteItemAPITests(TestCase):
     """
     Tests cases of public user in Favourite Item Api
@@ -487,8 +494,6 @@ class PrivateUserFavouriteItemAPITests(TestCase):
 
         self.assertTrue(fav_list)
 
-    # TODO: Test my list detail other user
-
     # TODO : Test my-list filters
 
 
@@ -563,7 +568,89 @@ class PrivateSuperuserFavouriteItemAPITests(TestCase):
 
         self.assertEqual(res.data["results"], 1)
 
-    # TODO : Tests filters
+    def test_fav_item_list_view_offset_filter_superuser_successful(self):
+        """
+        Tests if superuser can filter with offset fav item list view
+        """
+        # New Product creation
+        new_product = Product.objects.create(**{**self.mock_product, "title": "New Title Product"})
+
+        # New User creation
+        new_user = get_user_model().objects.create_user(email="Testnewuser@email.com")
+
+        # Fav Item Creation
+        user_second_fav_item = self.model.objects.create(user=self.user, product=new_product)
+        new_user_first_fav_item = self.model.objects.create(user=new_user, product=self.product)
+        new_user_second_fav_item = self.model.objects.create(user=new_user, product=new_product)
+
+        filter_url = get_filter_url("offset", 2)
+
+        res = self.client.get(filter_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(res.data["results"], 4)
+
+        self.assertNotContains(res, self.fav_item)
+        self.assertContains(res, user_second_fav_item)
+        self.assertContains(res, new_user_first_fav_item)
+        self.assertContains(res, new_user_second_fav_item)
+
+    def test_fav_item_list_view_limit_filter_superuser_successful(self):
+        """
+        Tests if superuser can filter with limit fav item list view
+        """
+        # New Product creation
+        new_product = Product.objects.create(**{**self.mock_product, "title": "New Title Product"})
+
+        # New User creation
+        new_user = get_user_model().objects.create_user(email="Testnewuser@email.com")
+
+        # Fav Item Creation
+        user_second_fav_item = self.model.objects.create(user=self.user, product=new_product)
+        new_user_first_fav_item = self.model.objects.create(user=new_user, product=self.product)
+        new_user_second_fav_item = self.model.objects.create(user=new_user, product=new_product)
+
+        filter_url = get_filter_url("limit", 2)
+
+        res = self.client.get(filter_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(res.data["results"], 4)
+
+        self.assertContains(res, self.fav_item)
+        self.assertContains(res, user_second_fav_item)
+        self.assertNotContains(res, new_user_first_fav_item)
+        self.assertNotContains(res, new_user_second_fav_item)
+
+    def test_fav_item_list_view_customer_id_filter_superuser_successful(self):
+        """
+        Tests if superuser can filter with customer_id fav item list view
+        """
+        # New Product creation
+        new_product = Product.objects.create(**{**self.mock_product, "title": "New Title Product"})
+
+        # New User creation
+        new_user = get_user_model().objects.create_user(email="Testnewuser@email.com")
+
+        # Fav Item Creation
+        user_second_fav_item = self.model.objects.create(user=self.user, product=new_product)
+        new_user_first_fav_item = self.model.objects.create(user=new_user, product=self.product)
+        new_user_second_fav_item = self.model.objects.create(user=new_user, product=new_product)
+
+        filter_url = get_filter_url("customer_id", self.user)
+
+        res = self.client.get(filter_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(res.data["results"], 4)
+
+        self.assertContains(res, self.fav_item)
+        self.assertContains(res, user_second_fav_item)
+        self.assertNotContains(res, new_user_first_fav_item)
+        self.assertNotContains(res, new_user_second_fav_item)
 
     def test_fav_item_retrieve_view_format_superuser_successful(self):
         """
