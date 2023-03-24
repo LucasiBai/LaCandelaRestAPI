@@ -1,22 +1,25 @@
 from django.shortcuts import get_object_or_404
 
-from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import action
 
+from apps.api_root.utils import FilterMethodsViewset
+
 from .permissions import IsOwnFavItemOrSuperuser
 from .serializers import FavouriteItemsSerializer
+from .filters import FavouriteItemsFilterset
 
 
-class FavouriteItemViewset(ModelViewSet):
+class FavouriteItemViewset(FilterMethodsViewset):
     """
     Favourite Items API
     """
     serializer_class = FavouriteItemsSerializer
     model = serializer_class.Meta.model
     queryset = model.objects.all()
+    filterset_class = FavouriteItemsFilterset
 
     def get_permissions(self):
         """
@@ -41,7 +44,7 @@ class FavouriteItemViewset(ModelViewSet):
             serializer = self.serializer_class(fav_list, many=True)
 
             res_data = {
-                "results": len(fav_list),
+                "results": self.results,
                 "data": serializer.data,
             }
 
