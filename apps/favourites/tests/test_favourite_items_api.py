@@ -386,6 +386,54 @@ class PrivateUserFavouriteItemAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
+    def test_my_list_action_list_offset_filter_normal_user_successful(self):
+        """
+        Tests if normal user can access to my-list api action and filter list with offset
+        """
+        # New Product creation
+        first_product = Product.objects.create(**{**self.mock_product, "title": "New First Title Product"})
+        second_product = Product.objects.create(**{**self.mock_product, "title": "New Second Title Product"})
+
+        # Fav item user creation
+        first_fav = self.model.objects.create(user=self.user, product=first_product)
+        second_fav = self.model.objects.create(user=self.user, product=second_product)
+
+        filter_url = MY_LIST_URL + "?offset=2"
+
+        res = self.client.get(filter_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        fav_list = [item["id"] for item in res.data["data"]]
+
+        self.assertEqual(res.data["results"], 3)
+
+        self.assertFalse(self.fav_item.id in fav_list)
+        self.assertTrue(first_fav.id in fav_list)
+        self.assertTrue(second_fav.id in fav_list)
+
+    def test_my_list_action_list_limit_filter_normal_user_successful(self):
+        """
+        Tests if normal user can access to my-list api action and filter list with limit
+        """
+        # New Product creation
+        first_product = Product.objects.create(**{**self.mock_product, "title": "New First Title Product"})
+        second_product = Product.objects.create(**{**self.mock_product, "title": "New Second Title Product"})
+
+        # Fav item user creation
+        first_fav = self.model.objects.create(user=self.user, product=first_product)
+        second_fav = self.model.objects.create(user=self.user, product=second_product)
+
+        filter_url = MY_LIST_URL + "?limit=2"
+
+        res = self.client.get(filter_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        fav_list = [item["id"] for item in res.data["data"]]
+
+        self.assertEqual(res.data["results"], 3)
+
+        self.assertTrue(self.fav_item.id in fav_list)
+        self.assertTrue(first_fav.id in fav_list)
+        self.assertFalse(second_fav.id in fav_list)
+
     def test_my_list_action_list_normal_user_no_items_successful(self):
         """
         Tests if normal user can access to my-list api action
@@ -493,8 +541,6 @@ class PrivateUserFavouriteItemAPITests(TestCase):
         fav_list = self.model.objects.filter(user=new_user)
 
         self.assertTrue(fav_list)
-
-    # TODO : Test my-list filters
 
 
 class PrivateSuperuserFavouriteItemAPITests(TestCase):
@@ -645,11 +691,39 @@ class PrivateSuperuserFavouriteItemAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-        self.assertEqual(res.data["results"], 4)
+        self.assertEqual(res.data["results"], 2)
 
         self.assertContains(res, self.fav_item.id)
         self.assertContains(res, user_second_fav_item.id)
         self.assertNotContains(res, new_user_first_fav_item.id)
+        self.assertNotContains(res, new_user_second_fav_item.id)
+
+    def test_fav_item_list_view_product_id_filter_superuser_successful(self):
+        """
+        Tests if superuser can filter with product_id fav item list view
+        """
+        # New Product creation
+        new_product = Product.objects.create(**{**self.mock_product, "title": "New Title Product"})
+
+        # New User creation
+        new_user = get_user_model().objects.create_user(email="Testnewuser@email.com")
+
+        # Fav Item Creation
+        user_second_fav_item = self.model.objects.create(user=self.user, product=new_product)
+        new_user_first_fav_item = self.model.objects.create(user=new_user, product=self.product)
+        new_user_second_fav_item = self.model.objects.create(user=new_user, product=new_product)
+
+        filter_url = get_filter_url("product_id", self.product.id)
+
+        res = self.client.get(filter_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(res.data["results"], 2)
+
+        self.assertContains(res, self.fav_item.id)
+        self.assertNotContains(res, user_second_fav_item.id)
+        self.assertContains(res, new_user_first_fav_item.id)
         self.assertNotContains(res, new_user_second_fav_item.id)
 
     def test_fav_item_retrieve_view_format_superuser_successful(self):

@@ -9,7 +9,7 @@ from apps.api_root.utils import FilterMethodsViewset
 
 from .permissions import IsOwnFavItemOrSuperuser
 from .serializers import FavouriteItemsSerializer
-from .filters import FavouriteItemsFilterset
+from .filters import FavouriteItemsFilterset, FavouriteItemsMyListFilterset
 
 
 class FavouriteItemViewset(FilterMethodsViewset):
@@ -68,6 +68,7 @@ class FavouriteItemViewset(FilterMethodsViewset):
         detail=False,
         methods=["get", "post"],
         url_path="my-list",
+        filterset_class=FavouriteItemsMyListFilterset
     )
     def get_my_list(self, request, *args, **kwargs):
         """
@@ -82,7 +83,7 @@ class FavouriteItemViewset(FilterMethodsViewset):
                 serializer = self.serializer_class(user_fav_list, many=True)
 
                 response_data = {
-                    "results": len(user_fav_list),
+                    "results": self.results,
                     "data": serializer.data
                 }
 
@@ -111,6 +112,7 @@ class FavouriteItemViewset(FilterMethodsViewset):
         detail=True,
         methods=["delete"],
         url_path="my-list",
+
     )
     def get_my_list_detail(self, request, pk, *args, **kwargs):
         """
