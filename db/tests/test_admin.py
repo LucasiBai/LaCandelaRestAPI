@@ -4,7 +4,7 @@ from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
-from db.models import Comment, Category, Product, ShippingInfo, Order, Cart, CartItem, OrderProduct
+from db.models import Comment, Category, Product, ShippingInfo, Order, Cart, CartItem, OrderProduct, FavouriteItem
 
 
 class UserModelAdminTest(TestCase):
@@ -582,11 +582,75 @@ class CartModelAdminTest(TestCase):
 
     def test_create_cart_page(self):
         """
-        Tests if can add cart
+        Tests if admin can add cart
         """
         url = reverse("admin:db_cart_add")
         res = self.client.get(url)
 
         self.assertEqual(res.status_code, 200)  # Testing if status code is 200
 
-# TODO: Test Favourite Item admin
+
+class FavouriteItemModelAdminTest(TestCase):
+    """
+    Tests Favourite items admin
+    """
+
+    def setUp(self):
+        """
+        Set up method
+        """
+        self.client = Client()
+
+        self.super_user = get_user_model().objects.create_superuser(
+            email="testadmin@mitest.com", password="pass1234"  # Creating super user
+        )
+        self.client.force_login(self.super_user)
+
+        self.user = get_user_model().objects.create_user(email="test@test.com")
+
+        category = Category.objects.create(title="Test Admin Category")
+        mock_product = {
+            "title": "Test title",
+            "description": "Test description",
+            "price": 1111,
+            "images": [
+                "testimgurl/1.com",
+                "testimgurl/2.com",
+                "testimgurl/3.com",
+            ],
+            "stock": 11,
+            "category": category,
+            "sold": 11,
+        }
+        self.product = Product.objects.create(**mock_product)
+
+        self.fav_item = FavouriteItem.objects.create(user=self.user, product=self.product)
+
+    def test_fav_items_listed(self):
+        """
+        Tests if fav item added is listed
+        """
+        url = reverse("admin:db_fav_items_changelist")
+        res = self.client.get(url)
+
+        self.assertContains(res, self.fav_item.id)
+        self.assertContains(res, self.product.title)
+        self.assertContains(res, self.user.email)
+
+    def test_fav_items_change_page(self):
+        """
+        Tests if fav item added can be edited
+        """
+        url = reverse("admin:db_fav_items_change", args=[self.fav_item.id])
+        res = self.client.get(url)
+
+        self.assertEqual(res.status_code, 200)  # Testing if status code is 200
+
+    def test_create_fav_item_page(self):
+        """
+        Tests if admin can add cart
+        """
+        url = reverse("admin:db_fav_items_add")
+        res = self.client.get(url)
+
+        self.assertEqual(res.status_code, 200)  # Testing if status code is 200
