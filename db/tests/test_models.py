@@ -1,3 +1,4 @@
+import datetime
 from uuid import uuid4
 
 from django.test import TestCase
@@ -17,6 +18,7 @@ from db.models import (
     CartItem,
     OrderProduct,
     FavouriteItem,
+    Promo
 )
 
 
@@ -1722,3 +1724,34 @@ class FavouriteItemModelTests(TestCase):
 
         self.assertEqual(user_fav_items[0].id, first_item.id)
         self.assertEqual(user_fav_items[1].id, second_item.id)
+
+
+class PromoModelTests(TestCase):
+    """
+    Tests Promo model
+    """
+
+    def setUp(self):
+        self.model = Promo
+
+    def test_promo_creation_successful(self):
+        """
+        Tests if model can create a promo instance
+        """
+        mock_promo = {
+            "title": "Test Promo Title",
+            "subtitle": "Test Promo Subtitle",
+            "expiration": datetime.date,
+            "images": ["www.testurl.com/image/1"],
+            "href": "www.testurl.com/test-promo"
+        }
+
+        promo = Promo.objects.create(**mock_promo)
+
+        self.assertEqual(promo.title, mock_promo["title"])
+        self.assertEqual(promo.subtitle, mock_promo["subtitle"])
+        self.assertEqual(promo.expiration, mock_promo["expiration"])
+        self.assertEqual(promo.images, mock_promo["images"])
+        self.assertEqual(promo.href, mock_promo["href"])
+
+        self.assertEqual(str(promo), promo.title)
