@@ -280,6 +280,38 @@ class CartItemAdmin(admin.ModelAdmin):
     list_per_page = 10
 
 
+class FavouriteItemAdmin(admin.ModelAdmin):
+    """
+    Favourite Item admin configuration
+    """
+
+    ordering = ["id"]
+    list_display = ["id", "user", "product"]
+    list_display_links = ["user", "product"]
+
+    search_fields = ["user__id", "user__email", "product__title"]
+
+    fieldsets = (
+        (_("Favourite Item References"), {"fields": ["user", "product"]}),
+
+    )
+
+    add_fieldsets = (
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": [
+                    "user",
+                    "product"
+                ],
+            },
+        ),
+    )
+
+    list_per_page = 10
+
+
 admin.site.register(models.UserAccount, UserAdmin)  # user admin register
 admin.site.register(models.Category, CategoryAdmin)  # category admin register
 admin.site.register(models.Product, ProductAdmin)  # product admin register
@@ -291,3 +323,4 @@ admin.site.register(
 )
 admin.site.register(models.Cart, CartAdmin)  # cart admin register
 admin.site.register(models.CartItem, CartItemAdmin)  # cart item admin register
+admin.site.register(models.FavouriteItem, FavouriteItemAdmin)  # fav item admin register

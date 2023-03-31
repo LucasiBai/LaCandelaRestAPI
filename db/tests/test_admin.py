@@ -630,7 +630,7 @@ class FavouriteItemModelAdminTest(TestCase):
         """
         Tests if fav item added is listed
         """
-        url = reverse("admin:db_fav_items_changelist")
+        url = reverse("admin:db_favouriteitem_changelist")
         res = self.client.get(url)
 
         self.assertContains(res, self.fav_item.id)
@@ -641,7 +641,7 @@ class FavouriteItemModelAdminTest(TestCase):
         """
         Tests if fav item added can be edited
         """
-        url = reverse("admin:db_fav_items_change", args=[self.fav_item.id])
+        url = reverse("admin:db_favouriteitem_change", args=[self.fav_item.id])
         res = self.client.get(url)
 
         self.assertEqual(res.status_code, 200)  # Testing if status code is 200
@@ -650,7 +650,7 @@ class FavouriteItemModelAdminTest(TestCase):
         """
         Tests if admin can add cart
         """
-        url = reverse("admin:db_fav_items_add")
+        url = reverse("admin:db_favouriteitem_add")
         res = self.client.get(url)
 
         self.assertEqual(res.status_code, 200)  # Testing if status code is 200
