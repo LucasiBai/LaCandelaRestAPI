@@ -1,10 +1,12 @@
 from uuid import uuid4
+import datetime
 
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
-from db.models import Comment, Category, Product, ShippingInfo, Order, Cart, CartItem, OrderProduct, FavouriteItem
+from db.models import Comment, Category, Product, ShippingInfo, Order, Cart, CartItem, OrderProduct, FavouriteItem, \
+    Promo
 
 
 class UserModelAdminTest(TestCase):
@@ -648,9 +650,69 @@ class FavouriteItemModelAdminTest(TestCase):
 
     def test_create_fav_item_page(self):
         """
-        Tests if admin can add cart
+        Tests if admin can add fav item
         """
         url = reverse("admin:db_favouriteitem_add")
         res = self.client.get(url)
 
         self.assertEqual(res.status_code, 200)  # Testing if status code is 200
+
+
+class PromoModelAdminTest(TestCase):
+    """
+    Tests Promo model admin
+    """
+
+    def setUp(self):
+        """
+        Set up method
+        """
+        self.client = Client()
+
+        self.super_user = get_user_model().objects.create_superuser(
+            email="testadmin@mitest.com", password="pass1234"  # Creating superuser
+        )
+        self.client.force_login(self.super_user)
+
+        self.model = Promo
+
+        self.mock_promo = {
+            "title": "Test Promo Title",
+            "subtitle": "Test Promo Subtitle",
+            "expiration": datetime.date(1997, 10, 19),
+            "images": ["www.testurl.com/image/1"],
+            "href": "www.testurl.com/test-promo"
+        }
+
+        self.promo = self.model.objects.create(**self.mock_promo)
+
+    def test_promos_listed(self):
+        """
+        Tests if promo added is listed
+        """
+        url = reverse("admin:db_promo_changelist")
+        res = self.client.get(url)
+
+        self.assertContains(res, self.promo.id)
+        self.assertContains(res, self.promo.title)
+        self.assertContains(res, self.promo.expiration)
+
+    def test_promos_change_page(self):
+        """
+        Tests if promo added can be edited
+        """
+        url = reverse("admin:db_promo_change", args=[self.promo.id])
+        res = self.client.get(url)
+
+        self.assertEqual(res.status_code, 200)  # Testing if status code is 200
+
+    def test_create_a_promo_page(self):
+        """
+        Tests if admin can add a promo
+        """
+        url = reverse("admin:db_promo_add")
+        res = self.client.get(url)
+
+        self.assertEqual(res.status_code, 200)  # Testing if status code is 200
+
+# TODO : Test promo model admin

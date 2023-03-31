@@ -1734,24 +1734,42 @@ class PromoModelTests(TestCase):
     def setUp(self):
         self.model = Promo
 
-    def test_promo_creation_successful(self):
-        """
-        Tests if model can create a promo instance
-        """
-        mock_promo = {
+        self.mock_promo = {
             "title": "Test Promo Title",
             "subtitle": "Test Promo Subtitle",
-            "expiration": datetime.date,
+            "expiration": datetime.date(1997, 10, 19),
             "images": ["www.testurl.com/image/1"],
             "href": "www.testurl.com/test-promo"
         }
 
-        promo = Promo.objects.create(**mock_promo)
+    def test_promo_creation_successful(self):
+        """
+        Tests if model can create a promo instance
+        """
 
-        self.assertEqual(promo.title, mock_promo["title"])
-        self.assertEqual(promo.subtitle, mock_promo["subtitle"])
-        self.assertEqual(promo.expiration, mock_promo["expiration"])
-        self.assertEqual(promo.images, mock_promo["images"])
-        self.assertEqual(promo.href, mock_promo["href"])
+        promo = Promo.objects.create(**self.mock_promo)
+
+        self.assertEqual(promo.title, self.mock_promo["title"])
+        self.assertEqual(promo.subtitle, self.mock_promo["subtitle"])
+        self.assertEqual(promo.expiration, self.mock_promo["expiration"])
+        self.assertEqual(promo.images, self.mock_promo["images"])
+        self.assertEqual(promo.href, self.mock_promo["href"])
+
+    def test_promo_has_str_method_updated_successful(self):
+        """
+        Tests if model has str method updated
+        """
+        promo = Promo.objects.create(**self.mock_promo)
 
         self.assertEqual(str(promo), promo.title)
+
+    def test_promo_has_correct_singular_and_plural_verbose_name_successful(self):
+        """
+        Tests if promo model has the correct singular and plural verbose name
+        """
+        promo_meta = self.model._meta
+
+        self.assertEqual(promo_meta.verbose_name, "Promo")
+        self.assertEqual(promo_meta.verbose_name_plural, "Promos")
+
+    # TODO: Test verbose name translation

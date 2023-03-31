@@ -17,7 +17,7 @@ from apps.shipping.utils.services.shipping_price_service import ShippingPriceSer
 
 class UserAccountManager(BaseUserManager):
     def create_user(self, email, password=None, **kwargs):
-        """Creates an user with email"""
+        """Creates a user with email"""
         if not email:
             raise ValueError("Users must have an email address")
 
@@ -705,3 +705,27 @@ class FavouriteItem(models.Model):
             Model str representation
         """
         return f"{self.product} to {self.user}"
+
+
+class Promo(models.Model):
+    """
+    Promo model
+    """
+    title = models.CharField(max_length=255)
+    subtitle = models.CharField(max_length=255)
+    expiration = models.DateField()
+    images = ArrayField(
+        models.URLField()
+    )
+    href = models.URLField()
+
+    class Meta:
+        verbose_name = "Promo"
+        verbose_name_plural = "Promos"
+
+    def __str__(self):
+        """
+        Returns:
+            Model str representation
+        """
+        return self.title
