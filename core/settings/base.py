@@ -33,7 +33,8 @@ ECOMMERCE_APPS = [
     "apps.cart",
     "apps.payment_methods",
     "apps.shipping",
-    "apps.favourites"
+    "apps.favourites",
+    "apps.promos"
 ]
 
 THIRD_PARTY_APPS = [
