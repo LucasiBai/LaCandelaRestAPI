@@ -312,6 +312,41 @@ class FavouriteItemAdmin(admin.ModelAdmin):
     list_per_page = 10
 
 
+class PromoAdmin(admin.ModelAdmin):
+    """
+    Promo model admin configuration
+    """
+
+    ordering = ["id"]
+    list_display = ["id", "title", "expiration"]
+    list_display_links = ["title"]
+
+    search_fields = ["title"]
+
+    fieldsets = (
+        (_("Promo Data"), {"fields": ["title", "subtitle", "expiration"]}),
+        (_("Promo Links"), {"fields": ["images", "href"]})
+    )
+
+    add_fieldsets = (
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": [
+                    "title",
+                    "subtitle",
+                    "expiration",
+                    "images",
+                    "href"
+                ],
+            },
+        ),
+    )
+
+    list_per_page = 10
+
+
 admin.site.register(models.UserAccount, UserAdmin)  # user admin register
 admin.site.register(models.Category, CategoryAdmin)  # category admin register
 admin.site.register(models.Product, ProductAdmin)  # product admin register
@@ -324,3 +359,4 @@ admin.site.register(
 admin.site.register(models.Cart, CartAdmin)  # cart admin register
 admin.site.register(models.CartItem, CartItemAdmin)  # cart item admin register
 admin.site.register(models.FavouriteItem, FavouriteItemAdmin)  # fav item admin register
+admin.site.register(models.Promo, PromoAdmin)  # promo admin register

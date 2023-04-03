@@ -695,7 +695,8 @@ class PromoModelAdminTest(TestCase):
 
         self.assertContains(res, self.promo.id)
         self.assertContains(res, self.promo.title)
-        self.assertContains(res, self.promo.expiration)
+        self.assertContains(res, self.promo.expiration.year)
+        self.assertContains(res, self.promo.expiration.day)
 
     def test_promos_change_page(self):
         """
@@ -714,5 +715,3 @@ class PromoModelAdminTest(TestCase):
         res = self.client.get(url)
 
         self.assertEqual(res.status_code, 200)  # Testing if status code is 200
-
-# TODO : Test promo model admin
