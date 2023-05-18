@@ -24,7 +24,7 @@ def get_promo_detail_url(promo_instance: get_app_model()):
     Returns:
         promo instance url
     """
-    return reverse("api:promo-detail", kwargs={"id": promo_instance.id})
+    return reverse("api:promo-detail", kwargs={"pk": promo_instance.id})
 
 
 class PublicPromoAPITests(TestCase):
@@ -41,8 +41,8 @@ class PublicPromoAPITests(TestCase):
             "title": "Test Promo Title",
             "subtitle": "Test Promo Subtitle",
             "expiration": datetime.date(1997, 10, 19),
-            "images": ["www.testurl.com/image/1"],
-            "href": "www.testurl.com/test-promo"
+            "images": ["testurl.com/image/1"],
+            "href": "testurl.com/test-promo"
         }
 
         self.promo = self.model.objects.create(**self.mock_promo)
@@ -78,7 +78,7 @@ class PublicPromoAPITests(TestCase):
         """
         Tests if promo retrieve view can be accessed by public user
         """
-        promo_url = get_promo_detail_url(self.promo.id)
+        promo_url = get_promo_detail_url(self.promo)
         res = self.client.get(promo_url)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
@@ -94,7 +94,7 @@ class PublicPromoAPITests(TestCase):
         """
         Tests if promo retrieve view can't render no existent promo by public user
         """
-        promo_url = get_promo_detail_url(self.promo.id)
+        promo_url = get_promo_detail_url(self.promo)
 
         self.promo.delete()
 
@@ -127,7 +127,7 @@ class PublicPromoAPITests(TestCase):
             "title": "Test Update Promo"
         }
 
-        promo_url = get_promo_detail_url(self.promo.id)
+        promo_url = get_promo_detail_url(self.promo)
 
         res = self.client.put(promo_url, payload)
 
@@ -145,7 +145,7 @@ class PublicPromoAPITests(TestCase):
             "title": "Test Update Promo"
         }
 
-        promo_url = get_promo_detail_url(self.promo.id)
+        promo_url = get_promo_detail_url(self.promo)
 
         res = self.client.patch(promo_url, payload)
 
@@ -159,7 +159,7 @@ class PublicPromoAPITests(TestCase):
         """
         Tests if public user can't delete promo instance
         """
-        promo_url = get_promo_detail_url(self.promo.id)
+        promo_url = get_promo_detail_url(self.promo)
 
         res = self.client.delete(promo_url)
 
@@ -194,8 +194,8 @@ class PrivateUserPromoAPITests(TestCase):
             "title": "Test Promo Title",
             "subtitle": "Test Promo Subtitle",
             "expiration": datetime.date(1997, 10, 19),
-            "images": ["www.testurl.com/image/1"],
-            "href": "www.testurl.com/test-promo"
+            "images": ["testurl.com/image/1"],
+            "href": "testurl.com/test-promo"
         }
 
         self.promo = self.model.objects.create(**self.mock_promo)
@@ -231,7 +231,7 @@ class PrivateUserPromoAPITests(TestCase):
         """
         Tests if promo retrieve view can be accessed by normal user
         """
-        promo_url = get_promo_detail_url(self.promo.id)
+        promo_url = get_promo_detail_url(self.promo)
         res = self.client.get(promo_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
@@ -247,7 +247,7 @@ class PrivateUserPromoAPITests(TestCase):
         """
         Tests if promo retrieve view can't render no existent promo by normal user
         """
-        promo_url = get_promo_detail_url(self.promo.id)
+        promo_url = get_promo_detail_url(self.promo)
 
         self.promo.delete()
 
@@ -280,7 +280,7 @@ class PrivateUserPromoAPITests(TestCase):
             "title": "Test Update Promo"
         }
 
-        promo_url = get_promo_detail_url(self.promo.id)
+        promo_url = get_promo_detail_url(self.promo)
 
         res = self.client.put(promo_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
@@ -298,7 +298,7 @@ class PrivateUserPromoAPITests(TestCase):
             "title": "Test Update Promo"
         }
 
-        promo_url = get_promo_detail_url(self.promo.id)
+        promo_url = get_promo_detail_url(self.promo)
 
         res = self.client.patch(promo_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
@@ -312,11 +312,11 @@ class PrivateUserPromoAPITests(TestCase):
         """
         Tests if normal user can't delete promo instance
         """
-        promo_url = get_promo_detail_url(self.promo.id)
+        promo_url = get_promo_detail_url(self.promo)
 
         res = self.client.delete(promo_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
-        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
         self.promo.refresh_from_db()
 
@@ -347,8 +347,8 @@ class PrivateSuperuserPromoAPITests(TestCase):
             "title": "Test Promo Title",
             "subtitle": "Test Promo Subtitle",
             "expiration": datetime.date(1997, 10, 19),
-            "images": ["www.testurl.com/image/1"],
-            "href": "www.testurl.com/test-promo"
+            "images": ["testurl.com/image/1"],
+            "href": "testurl.com/test-promo"
         }
 
         self.promo = self.model.objects.create(**self.mock_promo)
@@ -384,7 +384,7 @@ class PrivateSuperuserPromoAPITests(TestCase):
         """
         Tests if promo retrieve view can be accessed by superuser
         """
-        promo_url = get_promo_detail_url(self.promo.id)
+        promo_url = get_promo_detail_url(self.promo)
         res = self.client.get(promo_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
@@ -400,7 +400,7 @@ class PrivateSuperuserPromoAPITests(TestCase):
         """
         Tests if promo retrieve view can't render no existent promo by superuser
         """
-        promo_url = get_promo_detail_url(self.promo.id)
+        promo_url = get_promo_detail_url(self.promo)
 
         self.promo.delete()
 
@@ -420,6 +420,7 @@ class PrivateSuperuserPromoAPITests(TestCase):
 
         res = self.client.post(PROMO_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
+        print(res.data)
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
         self.assertEqual(res.data["id"], payload["id"])
@@ -440,7 +441,7 @@ class PrivateSuperuserPromoAPITests(TestCase):
             "title": "Test Update Promo"
         }
 
-        promo_url = get_promo_detail_url(self.promo.id)
+        promo_url = get_promo_detail_url(self.promo)
 
         res = self.client.put(promo_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
@@ -458,7 +459,7 @@ class PrivateSuperuserPromoAPITests(TestCase):
             "title": "Test Update Promo"
         }
 
-        promo_url = get_promo_detail_url(self.promo.id)
+        promo_url = get_promo_detail_url(self.promo)
 
         res = self.client.patch(promo_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
@@ -472,12 +473,13 @@ class PrivateSuperuserPromoAPITests(TestCase):
         """
         Tests if superuser can't delete promo instance
         """
-        promo_url = get_promo_detail_url(self.promo.id)
+        promo_id = self.promo.id
+
+        promo_url = get_promo_detail_url(self.promo)
 
         res = self.client.delete(promo_url, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
         self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
 
-        self.promo.refresh_from_db()
-
-        self.assertFalse(self.promo)
+        with self.assertRaises(self.model.DoesNotExist):
+            self.model.objects.get(pk=promo_id)
