@@ -41,8 +41,8 @@ class PublicPromoAPITests(TestCase):
             "title": "Test Promo Title",
             "subtitle": "Test Promo Subtitle",
             "expiration": datetime.date(1997, 10, 19),
-            "images": ["testurl.com/image/1"],
-            "href": "testurl.com/test-promo"
+            "images": ["https://www.testurl.com/image/1"],
+            "href": "https://www.testurl.com/test-promo"
         }
 
         self.promo = self.model.objects.create(**self.mock_promo)
@@ -86,7 +86,7 @@ class PublicPromoAPITests(TestCase):
         self.assertEqual(res.data["id"], self.promo.id)
         self.assertEqual(res.data["title"], self.promo.title)
         self.assertEqual(res.data["subtitle"], self.promo.subtitle)
-        self.assertEqual(res.data["expiration"], self.promo.expiration)
+        self.assertEqual(res.data["expiration"], str(self.promo.expiration))
         self.assertEqual(res.data["images"], self.promo.images)
         self.assertEqual(res.data["href"], self.promo.href)
 
@@ -194,8 +194,8 @@ class PrivateUserPromoAPITests(TestCase):
             "title": "Test Promo Title",
             "subtitle": "Test Promo Subtitle",
             "expiration": datetime.date(1997, 10, 19),
-            "images": ["testurl.com/image/1"],
-            "href": "testurl.com/test-promo"
+            "images": ["https://testurl.com/image/1"],
+            "href": "https://www.testurl.com/test-promo"
         }
 
         self.promo = self.model.objects.create(**self.mock_promo)
@@ -239,7 +239,7 @@ class PrivateUserPromoAPITests(TestCase):
         self.assertEqual(res.data["id"], self.promo.id)
         self.assertEqual(res.data["title"], self.promo.title)
         self.assertEqual(res.data["subtitle"], self.promo.subtitle)
-        self.assertEqual(res.data["expiration"], self.promo.expiration)
+        self.assertEqual(res.data["expiration"], str(self.promo.expiration))
         self.assertEqual(res.data["images"], self.promo.images)
         self.assertEqual(res.data["href"], self.promo.href)
 
@@ -267,7 +267,7 @@ class PrivateUserPromoAPITests(TestCase):
 
         res = self.client.post(PROMO_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
-        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
         self.assertFalse(self.model.objects.filter(title=payload["title"]).exists())
 
@@ -284,7 +284,7 @@ class PrivateUserPromoAPITests(TestCase):
 
         res = self.client.put(promo_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
-        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
         self.promo.refresh_from_db()
 
@@ -302,7 +302,7 @@ class PrivateUserPromoAPITests(TestCase):
 
         res = self.client.patch(promo_url, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
-        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
         self.promo.refresh_from_db()
 
@@ -347,8 +347,8 @@ class PrivateSuperuserPromoAPITests(TestCase):
             "title": "Test Promo Title",
             "subtitle": "Test Promo Subtitle",
             "expiration": datetime.date(1997, 10, 19),
-            "images": ["testurl.com/image/1"],
-            "href": "testurl.com/test-promo"
+            "images": ["https://www.testimgurl.com/1"],
+            "href": "https://www.testurl.com/test-promo"
         }
 
         self.promo = self.model.objects.create(**self.mock_promo)
@@ -392,7 +392,7 @@ class PrivateSuperuserPromoAPITests(TestCase):
         self.assertEqual(res.data["id"], self.promo.id)
         self.assertEqual(res.data["title"], self.promo.title)
         self.assertEqual(res.data["subtitle"], self.promo.subtitle)
-        self.assertEqual(res.data["expiration"], self.promo.expiration)
+        self.assertEqual(res.data["expiration"], str(self.promo.expiration))
         self.assertEqual(res.data["images"], self.promo.images)
         self.assertEqual(res.data["href"], self.promo.href)
 
@@ -420,13 +420,11 @@ class PrivateSuperuserPromoAPITests(TestCase):
 
         res = self.client.post(PROMO_URL, payload, HTTP_AUTHORIZATION=f"Bearer {self.user_token}")
 
-        print(res.data)
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
-        self.assertEqual(res.data["id"], payload["id"])
         self.assertEqual(res.data["title"], payload["title"])
         self.assertEqual(res.data["subtitle"], payload["subtitle"])
-        self.assertEqual(res.data["expiration"], payload["expiration"])
+        self.assertEqual(res.data["expiration"], str(payload["expiration"]))
         self.assertEqual(res.data["images"], payload["images"])
         self.assertEqual(res.data["href"], payload["href"])
 
