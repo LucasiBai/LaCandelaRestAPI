@@ -27,6 +27,13 @@ def get_promo_detail_url(promo_instance: get_app_model()):
     return reverse("api:promo-detail", kwargs={"pk": promo_instance.id})
 
 
+def get_filter_url(filter_name, value):
+    """
+    Gets the filter url
+    """
+    return PROMO_URL + f"?{filter_name}={value}"
+
+
 class PublicPromoAPITests(TestCase):
     """
     Tests promo with public client
@@ -168,6 +175,36 @@ class PublicPromoAPITests(TestCase):
         self.promo.refresh_from_db()
 
         self.assertTrue(self.promo)
+
+    def test_promo_list_view_filter_offset_successful(self):
+        """
+        Tests if promo list view has offset filter
+        """
+
+        first_promo = self.model.objects.create(**self.mock_promo)
+        second_promo = self.model.objects.create(**self.mock_promo)
+
+        filter_data_url = get_filter_url("offset", "2")
+        res = self.client.get(filter_data_url)
+
+        self.assertNotContains(res.data, self.promo.id)
+        self.assertContains(res.data, first_promo.id)
+        self.assertContains(res.data, second_promo.id)
+
+    def test_promo_list_view_filter_limit_successful(self):
+        """
+        Tests if promo list view has limit filter
+        """
+
+        first_promo = self.model.objects.create(**self.mock_promo)
+        second_promo = self.model.objects.create(**self.mock_promo)
+
+        filter_data_url = get_filter_url("limit", "2")
+        res = self.client.get(filter_data_url)
+
+        self.assertContains(res.data, self.promo.id)
+        self.assertContains(res.data, first_promo.id)
+        self.assertNotContains(res.data, second_promo.id)
 
 
 class PrivateUserPromoAPITests(TestCase):
