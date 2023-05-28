@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from .serializers import PromoSerializer
+from .filters import PromoFilterSet
 
 
 class PromoAPIViewset(ModelViewSet):
@@ -13,6 +14,8 @@ class PromoAPIViewset(ModelViewSet):
     model = PromoSerializer.Meta.model
     queryset = model.objects.all()
     serializer_class = PromoSerializer
+
+    filterset_class = PromoFilterSet
 
     def get_permissions(self):
         """
@@ -28,7 +31,7 @@ class PromoAPIViewset(ModelViewSet):
         """
         Returns Api list view
         """
-        promos = self.get_queryset()
+        promos = self.filter_queryset(self.get_queryset())
         if promos:
             serializer = self.serializer_class(promos, many=promos)
 

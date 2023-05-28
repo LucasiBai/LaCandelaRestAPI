@@ -187,9 +187,9 @@ class PublicPromoAPITests(TestCase):
         filter_data_url = get_filter_url("offset", "2")
         res = self.client.get(filter_data_url)
 
-        self.assertNotContains(res.data, self.promo.id)
-        self.assertContains(res.data, first_promo.id)
-        self.assertContains(res.data, second_promo.id)
+        self.assertNotContains(res, self.promo.id)
+        self.assertContains(res, first_promo.id)
+        self.assertContains(res, second_promo.id)
 
     def test_promo_list_view_filter_limit_successful(self):
         """
@@ -202,9 +202,9 @@ class PublicPromoAPITests(TestCase):
         filter_data_url = get_filter_url("limit", "2")
         res = self.client.get(filter_data_url)
 
-        self.assertContains(res.data, self.promo.id)
-        self.assertContains(res.data, first_promo.id)
-        self.assertNotContains(res.data, second_promo.id)
+        self.assertContains(res, self.promo.id)
+        self.assertContains(res, first_promo.id)
+        self.assertNotContains(res, second_promo.id)
 
 
 class PrivateUserPromoAPITests(TestCase):
