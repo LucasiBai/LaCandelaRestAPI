@@ -2,12 +2,12 @@ from django.utils.translation import gettext_lazy as _
 
 from django_filters import rest_framework as filters
 
-from apps.api_root.utils import FilterMixins
+from apps.api_root.utils import FilterMixins, FilterResultsFilterset
 
 from .meta import get_app_model
 
 
-class PromoFilterSet(filters.FilterSet, FilterMixins):
+class PromoFilterSet(FilterResultsFilterset, FilterMixins):
     """
     Promo Model Filterset
     """

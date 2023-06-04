@@ -191,6 +191,8 @@ class PublicPromoAPITests(TestCase):
         self.assertContains(res, first_promo.id)
         self.assertContains(res, second_promo.id)
 
+        self.assertEqual(3, res.data["results"])
+
     def test_promo_list_view_filter_limit_successful(self):
         """
         Tests if promo list view has limit filter
@@ -205,6 +207,8 @@ class PublicPromoAPITests(TestCase):
         self.assertContains(res, self.promo.id)
         self.assertContains(res, first_promo.id)
         self.assertNotContains(res, second_promo.id)
+
+        self.assertEqual(3, res.data["results"])
 
 
 class PrivateUserPromoAPITests(TestCase):

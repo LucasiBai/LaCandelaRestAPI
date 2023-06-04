@@ -1,13 +1,14 @@
-from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
+
+from apps.api_root.utils import FilterMethodsViewset
 
 from .serializers import PromoSerializer
 from .filters import PromoFilterSet
 
 
-class PromoAPIViewset(ModelViewSet):
+class PromoAPIViewset(FilterMethodsViewset):
     """
     Promos API
     """
@@ -36,7 +37,7 @@ class PromoAPIViewset(ModelViewSet):
             serializer = self.serializer_class(promos, many=promos)
 
             format_response = {
-                "results": len(promos),
+                "results": self.get_query_results(),
                 "data": serializer.data
             }
             return Response(format_response, status=status.HTTP_200_OK)
