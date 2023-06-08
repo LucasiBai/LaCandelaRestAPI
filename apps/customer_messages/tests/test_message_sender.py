@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from apps.messages.utils.message_sender import MessageSender, EmailSenderStrategy
+from apps.customer_messages.utils.message_sender import MessageSender, EmailSenderStrategy
 
 
 class MessageSenderTests(TestCase):
