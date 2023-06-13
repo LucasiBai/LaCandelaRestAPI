@@ -12,7 +12,8 @@ class MockSenderStrategy(SenderStrategyInterface):
     def __str__(self):
         return "Mock Sender"
 
-    def send_message(self, message):
+    def send_message(self, subject=None, message=None, email_from=None, recipient_email=None):
+        print(subject, message, email_from, recipient_email)
         return self.get_message_template(message)
 
     @staticmethod
@@ -44,4 +45,4 @@ class MessageSenderTests(TestCase):
         context = self.context(self.mock_sender)
 
         self.assertEqual(self.mock_sender.get_message_template("Test Message"),
-                         context.send_message("Test Message"))
+                         context.send_message(message="Test Message"))

@@ -14,11 +14,11 @@ class MessageSender:
         """
         return self.__sender
 
-    def send_message(self, message: str):
+    def send_message(self, message: str, **kwargs):
         """
         Sends message in current sender
         """
-        return self.__sender.send_message(message)
+        return self.__sender.send_message(message=message, **kwargs)
 
 
 class EmailSenderStrategy(SenderStrategyInterface):
@@ -29,5 +29,6 @@ class EmailSenderStrategy(SenderStrategyInterface):
     def __str__(self):
         return "Email Sender Strategy"
 
-    def send_message(self, message):
+    def send_message(self, subject: str = None, message: str = None, email_from: str = None,
+                     recipient_email: str = None):
         return message
