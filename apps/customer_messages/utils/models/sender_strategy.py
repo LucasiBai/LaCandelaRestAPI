@@ -7,5 +7,5 @@ class SenderStrategyInterface(ABC):
     """
 
     @abstractmethod
-    def send_message(self, subject: str, message: str, email_from: str, recipient_email: str):
+    def send_message(self, subject: str, message: str, full_name_from: str, email_from: str, recipient_email: str):
         """Sends message in current sender"""

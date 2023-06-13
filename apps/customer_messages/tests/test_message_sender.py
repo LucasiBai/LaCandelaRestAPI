@@ -12,7 +12,8 @@ class MockSenderStrategy(SenderStrategyInterface):
     def __str__(self):
         return "Mock Sender"
 
-    def send_message(self, subject=None, message=None, email_from=None, recipient_email=None):
+    def send_message(self, subject=None, message=None, full_name_from: str = None, email_from=None,
+                     recipient_email=None):
         print(subject, message, email_from, recipient_email)
         return self.get_message_template(message)
 

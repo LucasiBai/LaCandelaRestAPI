@@ -29,6 +29,6 @@ class EmailSenderStrategy(SenderStrategyInterface):
     def __str__(self):
         return "Email Sender Strategy"
 
-    def send_message(self, subject: str = None, message: str = None, email_from: str = None,
+    def send_message(self, subject: str = None, message: str = None, full_name_from: str = None, email_from: str = None,
                      recipient_email: str = None):
         return message
