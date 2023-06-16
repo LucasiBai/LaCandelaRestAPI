@@ -28,6 +28,16 @@ class MessageAPIViewsetTests(TestCase):
             "email": "email"
         }
 
+    def test_message_api_email_get_method_not_allowed_reject(self):
+        """
+        Tests if api do not allowed get method
+        """
+        email_sender_url = get_message_sender_url(self.senders_tag["email"])
+
+        res = self.client.get(email_sender_url)
+
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
     def test_message_api_email_post_customer_message_successful(self):
         """
         Tests if message api send an email with post data
