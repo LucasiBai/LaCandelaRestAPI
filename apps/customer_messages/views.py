@@ -3,6 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework import status
 
+from apps.customer_messages.serializers import MessageSerializer
 from apps.customer_messages.utils.message_sender import MessageSender, EmailSenderStrategy
 
 MESSAGE_SENDERS = {
@@ -11,11 +12,25 @@ MESSAGE_SENDERS = {
 
 
 class MessageAPIView(APIView):
+    """
+    Message APIView
+    """
+    serializer_class = MessageSerializer
+
     permission_classes = [AllowAny]
 
     def post(self, request, sender, *args, **kwargs):
         """
         Sends message in selected sender
         """
-        if sender not in MESSAGE_SENDERS:
+        sender_method = sender.lower()
+        
+        if sender_method not in MESSAGE_SENDERS:
             return Response({"message": "Sender does not exist."}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Message sent successful."}, status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
