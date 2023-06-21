@@ -11,4 +11,5 @@ class MessageSerializer(serializers.Serializer):
     email_from = serializers.EmailField()
 
     def save(self, **kwargs):
-        pass
+        sender = kwargs.get("sender", None)
+        sender.send_message(self.validated_data)
