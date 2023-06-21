@@ -31,6 +31,7 @@ class MessageSenderTests(TestCase):
 
         self.mock_sender = MockSenderStrategy
 
+    # Context Tests
     def test_context_auto_instance_email_sender_strategy_successful(self):
         """
         Tests if context instance starts with email sender strategy
@@ -48,6 +49,7 @@ class MessageSenderTests(TestCase):
         self.assertEqual(self.mock_sender.get_message_template("Test Message"),
                          context.send_message(message="Test Message"))
 
+    # Email Sender Tests
     def test_email_sender_send_message_params_successful(self):
         """
         Tests if email sender runs correctly when pass correct data type in send_message method

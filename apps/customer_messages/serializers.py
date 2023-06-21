@@ -12,4 +12,11 @@ class MessageSerializer(serializers.Serializer):
 
     def save(self, **kwargs):
         sender = kwargs.get("sender", None)
-        sender.send_message(self.validated_data)
+
+        subject = self.validated_data.get("subject")
+        message = self.validated_data.get("message")
+        full_name_from = self.validated_data.get("full_name_from")
+        email_from = self.validated_data.get("email_from")
+
+        sender.send_message(subject=subject, message=message, full_name_from=full_name_from, email_from=email_from,
+                            recipient_email="")

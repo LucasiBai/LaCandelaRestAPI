@@ -31,7 +31,7 @@ class EmailSenderStrategy(SenderStrategyInterface):
 
     def send_message(self, subject: str = None, message: str = None, full_name_from: str = None, email_from: str = None,
                      recipient_email: str = None):
-        if not isinstance((subject, message, full_name_from, email_from, recipient_email), str):
+        if not all(isinstance(param, str) for param in (subject, message, full_name_from, email_from, recipient_email)):
             raise ValueError("Entered params must be strings.")
 
         return message
