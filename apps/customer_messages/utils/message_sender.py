@@ -1,5 +1,7 @@
 from .models.sender_strategy import SenderStrategyInterface
 
+from .services.email_service import EmailService
+
 
 class MessageSender:
     def __init__(self, sender: SenderStrategyInterface = None):
@@ -34,4 +36,9 @@ class EmailSenderStrategy(SenderStrategyInterface):
         if not all(isinstance(param, str) for param in (subject, message, full_name_from, email_from, recipient_email)):
             raise ValueError("Entered params must be strings.")
 
-        return message
+        return EmailService.send_email_to(**{
+            "subject": subject,
+            "message": message,
+            "full_name_from": full_name_from,
+            "email_from": email_from,
+            "recipient_email": recipient_email})

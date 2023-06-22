@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from core.settings.base import EMAIL_HOST_USER
+
 
 class MessageSerializer(serializers.Serializer):
     """
@@ -19,4 +21,4 @@ class MessageSerializer(serializers.Serializer):
         email_from = self.validated_data.get("email_from")
 
         sender.send_message(subject=subject, message=message, full_name_from=full_name_from, email_from=email_from,
-                            recipient_email="")
+                            recipient_email=EMAIL_HOST_USER)
