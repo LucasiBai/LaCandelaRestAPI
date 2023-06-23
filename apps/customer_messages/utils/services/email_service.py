@@ -16,8 +16,10 @@ class EmailService:
         email_from = kwargs.get("email_from", None)
         recipient_email = kwargs.get("recipient_email", None)
 
-        if not (subject and message and full_name_from and email_from and recipient_email):
+        if not (subject and message and email_from and recipient_email):
             raise ValueError(
                 "send_email method must contain subject, message, full_name_from, email_from and recipient_email.")
+
+        send_mail(subject, message, email_from, [recipient_email])
 
         return True

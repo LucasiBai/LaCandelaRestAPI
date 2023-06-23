@@ -18,7 +18,6 @@ class EmailServiceTests(TestCase):
         payload = {
             "subject": "Test Subject",
             "message": "Test Message",
-            "full_name_from": "Test Name",
             "email_from": "testemail@test.com",
             "recipient_email": "recipientemail@test.com"
         }
@@ -31,7 +30,6 @@ class EmailServiceTests(TestCase):
         """
         payload = {
             "message": "Test Message",
-            "full_name_from": "Test Name",
             "email_from": "testemail@test.com",
             "recipient_email": "recipientemail@test.com"
         }
@@ -41,17 +39,6 @@ class EmailServiceTests(TestCase):
 
         payload = {
             "subject": "Test Subject",
-            "full_name_from": "Test Name",
-            "email_from": "testemail@test.com",
-            "recipient_email": "recipientemail@test.com"
-        }
-
-        with self.assertRaises(ValueError):
-            self.service.send_email_to(**payload)
-
-        payload = {
-            "subject": "Test Subject",
-            "message": "Test Message",
             "email_from": "testemail@test.com",
             "recipient_email": "recipientemail@test.com"
         }
@@ -62,7 +49,6 @@ class EmailServiceTests(TestCase):
         payload = {
             "subject": "Test Subject",
             "message": "Test Message",
-            "full_name_from": "Test Name",
             "recipient_email": "recipientemail@test.com"
         }
 
@@ -72,7 +58,6 @@ class EmailServiceTests(TestCase):
         payload = {
             "subject": "Test Subject",
             "message": "Test Message",
-            "full_name_from": "Test Name",
             "email_from": "testemail@test.com",
         }
 

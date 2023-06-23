@@ -37,8 +37,7 @@ class EmailSenderStrategy(SenderStrategyInterface):
             raise ValueError("Entered params must be strings.")
 
         return EmailService.send_email_to(**{
-            "subject": subject,
-            "message": message,
-            "full_name_from": full_name_from,
-            "email_from": email_from,
+            "subject": f"{subject} from {email_from}",
+            "message": f"{full_name_from} says:\n {message}",
+            "email_from": recipient_email,
             "recipient_email": recipient_email})
