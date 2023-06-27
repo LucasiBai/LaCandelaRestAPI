@@ -5,6 +5,7 @@ from rest_framework import status
 
 from apps.payment_methods.utils.services.mp_service import MPService
 from apps.payment_methods.utils.order_creation import OrderCreation, MercadoPagoMethod
+
 from db.models import ShippingInfo, Category, Product, Order, Cart
 
 
@@ -121,4 +122,4 @@ class OrderMercadoPagoMethodTests(TestCase):
 
         self.assertEqual(float(order.total_price), response["transaction_details"]["total_paid_amount"])
 
-    # TODO: Create test of change_order_method
+# TODO: Create test of change_payment_method

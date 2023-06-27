@@ -4,8 +4,21 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 
 from apps.payment_methods.utils.payment_methods import PaymentMethod, MercadoPagoMethod
+from apps.payment_methods.utils.models.payment_strategy import PaymentStrategyInterface
 
 from db.models import Cart, Product, Category, ShippingInfo
+
+
+class MockPayMethod(PaymentStrategyInterface):
+    """
+    Mock Pay Method
+    """
+
+    def __init__(self, cart: Cart):
+        self.__cart = cart
+
+    def get_preference(self):
+        return "Test Mock Reference"
 
 
 class PaymentMethodsTests(TestCase):
@@ -42,6 +55,19 @@ class PaymentMethodsTests(TestCase):
         self.product = Product.objects.create(**mock_product)
 
         self.cart_item = self.cart.add_product(self.product, 5)
+
+    def test_context_change_payment_method_succesful(self):
+        """
+        Tests if method change to entered payment method
+        """
+
+        context = self.payment_model(self.cart, MercadoPagoMethod)
+
+        self.assertEquals(str(context.get_payment_method()), str(MercadoPagoMethod()))
+
+        context.change_payment_method(MockPayMethod)
+
+        self.assertEqual("Test Mock Reference", context.get_preference())
 
     def test_auto_mercado_pago_payment_method_successful(self):
         """
