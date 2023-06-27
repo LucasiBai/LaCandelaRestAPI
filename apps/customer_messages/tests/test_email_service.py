@@ -63,3 +63,47 @@ class EmailServiceTests(TestCase):
 
         with self.assertRaises(ValueError):
             self.service.send_email_to(**payload)
+
+    def test_service_send_email_param_type_reject(self):
+        """
+        Tests if service method raise an error with an incorrect param type
+        """
+        payload = {
+            "subject": 0,
+            "message": "Test Message",
+            "email_from": "testemail@test.com",
+            "recipient_email": "recipientemail@test.com"
+        }
+
+        with self.assertRaises(ValueError):
+            self.service.send_email_to(**payload)
+
+        payload = {
+            "subject": "Test Subject",
+            "message": 0,
+            "email_from": "testemail@test.com",
+            "recipient_email": "recipientemail@test.com"
+        }
+
+        with self.assertRaises(ValueError):
+            self.service.send_email_to(**payload)
+
+        payload = {
+            "subject": "Test Subject",
+            "message": "Test Message",
+            "email_from": 0,
+            "recipient_email": "recipientemail@test.com"
+        }
+
+        with self.assertRaises(ValueError):
+            self.service.send_email_to(**payload)
+
+        payload = {
+            "subject": "Test Subject",
+            "message": "Test Message",
+            "email_from": "testemail@test.com",
+            "recipient_email": 0
+        }
+
+        with self.assertRaises(ValueError):
+            self.service.send_email_to(**payload)

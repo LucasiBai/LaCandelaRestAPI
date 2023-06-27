@@ -12,7 +12,6 @@ class EmailService:
         """
         subject = kwargs.get("subject", None)
         message = kwargs.get("message", None)
-        full_name_from = kwargs.get("full_name_from", None)
         email_from = kwargs.get("email_from", None)
         recipient_email = kwargs.get("recipient_email", None)
 
