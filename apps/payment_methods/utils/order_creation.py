@@ -25,10 +25,13 @@ class OrderCreation:
     def get_order_method(self):
         return self.__method
 
-    def change_order_method(self, method: order_strategy.OrderStrategyInterface):
+    def change_order_method(self, method: order_strategy.OrderStrategyInterface = None):
         """
         Changes current method
         """
+
+        if not method:
+            raise ValueError("Function is missing 'method' required argument.")
 
         self.__method = method()
 

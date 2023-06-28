@@ -2,11 +2,29 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 
 from rest_framework import status
+from rest_framework.response import Response
 
 from apps.payment_methods.utils.services.mp_service import MPService
 from apps.payment_methods.utils.order_creation import OrderCreation, MercadoPagoMethod
+from apps.payment_methods.utils.models.order_strategy import OrderStrategyInterface
 
 from db.models import ShippingInfo, Category, Product, Order, Cart
+
+
+class MockOrderMethod(OrderStrategyInterface):
+    """
+    Mock Order Method
+    """
+
+    def __str__(self):
+        return "Mock Order Method"
+
+    @staticmethod
+    def get_static_response():
+        return Response({"message": "Test Response"}, status=status.HTTP_200_OK)
+
+    def get_response(self, data):
+        return self.get_static_response()
 
 
 class OrderMercadoPagoMethodTests(TestCase):
@@ -44,6 +62,30 @@ class OrderMercadoPagoMethodTests(TestCase):
             "receiver_dni": 12345678,
         }
         ShippingInfo.objects.create(**mock_user_shipping_info)
+
+    def test_change_order_method_successful(self):
+        """
+        Tests if function can change to entered method in class
+        """
+
+        order_creation = self.order_creation_model(MercadoPagoMethod)
+
+        self.assertEquals(str(order_creation.get_order_method()), str(MercadoPagoMethod()))
+
+        order_creation.change_order_method(MockOrderMethod)
+
+        self.assertEquals(str(order_creation.get_order_method()), str(MockOrderMethod()))
+        self.assertEqual(order_creation.get_response({}).data, MockOrderMethod.get_static_response().data)
+        self.assertEqual(order_creation.get_response({}).status_code, MockOrderMethod.get_static_response().status_code)
+
+    def test_change_order_method_no_param_reject(self):
+        """
+        Tests if method raise an error with no param entered
+        """
+        order_creation = self.order_creation_model(MercadoPagoMethod)
+
+        with self.assertRaises(ValueError):
+            order_creation.change_order_method()
 
     def test_auto_mercado_pago_order_creation_successful(self):
         """
@@ -121,5 +163,3 @@ class OrderMercadoPagoMethodTests(TestCase):
         payed, response = service.check_payment(1312962371)
 
         self.assertEqual(float(order.total_price), response["transaction_details"]["total_paid_amount"])
-
-# TODO: Create test of change_payment_method
