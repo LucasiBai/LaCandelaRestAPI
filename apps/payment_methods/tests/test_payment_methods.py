@@ -56,18 +56,27 @@ class PaymentMethodsTests(TestCase):
 
         self.cart_item = self.cart.add_product(self.product, 5)
 
-    def test_context_change_payment_method_succesful(self):
+    def test_context_change_payment_method_succesfull(self):
         """
         Tests if method change to entered payment method
         """
 
         context = self.payment_model(self.cart, MercadoPagoMethod)
 
-        self.assertEquals(str(context.get_payment_method()), str(MercadoPagoMethod()))
+        self.assertEquals(str(context.get_payment_method()), str(MercadoPagoMethod(self.cart)))
 
         context.change_payment_method(MockPayMethod)
 
         self.assertEqual("Test Mock Reference", context.get_preference())
+
+    def test_context_change_payment_method_no_param_reject(self):
+        """
+        Tests if method raise an error with no param
+        """
+        context = self.payment_model(self.cart, MercadoPagoMethod)
+
+        with self.assertRaises(ValueError):
+            context.change_payment_method()
 
     def test_auto_mercado_pago_payment_method_successful(self):
         """
@@ -163,5 +172,3 @@ class PaymentMethodsTests(TestCase):
             "%Y-%m-%d")
 
         self.assertEquals(preference["date_of_expiration"][:10], estimated_date)
-
-    # TODO: Create test of change_payment_method

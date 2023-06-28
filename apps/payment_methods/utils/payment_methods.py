@@ -32,12 +32,14 @@ class PaymentMethod:
     def get_payment_method(self):
         return self.__method
 
-    def change_payment_method(self, method: payment_strategy.PaymentStrategyInterface):
+    def change_payment_method(self, method: payment_strategy.PaymentStrategyInterface = None):
         """
         Changes current method
         """
+        if not method:
+            raise ValueError("Function is missing 'method' required argument.")
 
-        self._method = method(self.__cart)
+        self.__method = method(self.__cart)
 
 
 class MercadoPagoMethod(payment_strategy.PaymentStrategyInterface):
