@@ -637,7 +637,9 @@ class PrivateSuperuserFavouriteItemAPITests(TestCase):
 
         self.assertEqual(res.data["results"], 4)
 
-        self.assertNotContains(res, self.fav_item.id)
+        for fav_item in res.data["data"]:
+            self.assertNotEqual(self.fav_item.id, fav_item["id"])
+
         self.assertContains(res, user_second_fav_item.id)
         self.assertContains(res, new_user_first_fav_item.id)
         self.assertContains(res, new_user_second_fav_item.id)
@@ -667,8 +669,10 @@ class PrivateSuperuserFavouriteItemAPITests(TestCase):
 
         self.assertContains(res, self.fav_item.id)
         self.assertContains(res, user_second_fav_item.id)
-        self.assertNotContains(res, new_user_first_fav_item.id)
-        self.assertNotContains(res, new_user_second_fav_item.id)
+
+        for fav_item in res.data["data"]:
+            self.assertNotEqual(new_user_first_fav_item.id, fav_item["id"])
+            self.assertNotEqual(new_user_second_fav_item.id, fav_item["id"])
 
     def test_fav_item_list_view_customer_id_filter_superuser_successful(self):
         """

@@ -49,6 +49,8 @@ class MessageSenderTests(TestCase):
         self.assertEqual(self.mock_sender.get_message_template("Test Message"),
                          context.send_message(message="Test Message"))
 
+    # TODO: Test change_sender method
+
     # Email Sender Tests
     def test_email_sender_send_message_params_successful(self):
         """

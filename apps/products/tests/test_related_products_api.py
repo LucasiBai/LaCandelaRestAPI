@@ -43,7 +43,7 @@ def create_products(quantity: int, category: Category):
     product_list = []
 
     for pd in range(1, quantity + 1):
-        mock_product["title"] = f"Test title {pd * randint(1000,10000)}"
+        mock_product["title"] = f"Test title {pd * randint(1000, 10000)}"
         product = get_app_model().objects.create(**mock_product)
         product.save()
 
@@ -188,6 +188,7 @@ class PublicRelatedProductsTests(TestCase):
 
         self.assertEqual(len(res.data), 5)
 
-        self.assertNotContains(res, self.product.id)
+        for product in res.data:
+            self.assertNotEqual(self.product.id, product["id"])
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
