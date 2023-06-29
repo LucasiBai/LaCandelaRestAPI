@@ -22,6 +22,18 @@ class MessageSender:
         """
         return self.__sender.send_message(message=message, **kwargs)
 
+    def change_sender(self, sender: SenderStrategyInterface = None):
+        """
+        Changes current sender to the entered
+
+        Args:
+            sender(SenderStrategyInterface): New sender
+        """
+        if not sender:
+            raise ValueError("Method is missing 'sender' param.")
+
+        self.__sender = sender()
+
 
 class EmailSenderStrategy(SenderStrategyInterface):
     """

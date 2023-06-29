@@ -49,7 +49,24 @@ class MessageSenderTests(TestCase):
         self.assertEqual(self.mock_sender.get_message_template("Test Message"),
                          context.send_message(message="Test Message"))
 
-    # TODO: Test change_sender method
+    def test_context_change_sender_method_successful(self):
+        """
+        Tests if context method can update current sender
+        """
+        context = self.context(EmailSenderStrategy)
+        self.assertEqual(str(context.get_sender()), str(EmailSenderStrategy()))
+
+        context.change_sender(MockSenderStrategy)
+        self.assertEqual(str(context.get_sender()), str(MockSenderStrategy()))
+
+    def test_context_change_sender_method_no_param_reject(self):
+        """
+        Tests if method raise an error with no param entered
+        """
+        context = self.context(EmailSenderStrategy)
+
+        with self.assertRaises(ValueError):
+            context.change_sender()
 
     # Email Sender Tests
     def test_email_sender_send_message_params_successful(self):
