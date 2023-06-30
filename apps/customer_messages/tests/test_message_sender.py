@@ -25,6 +25,12 @@ class MockSenderStrategy(SenderStrategyInterface):
         return f"'{message}' sent with mock sender"
 
 
+class MockBadTypeSender:
+    """
+    Mock Bad Type of Sender Strategy
+    """
+
+
 class MessageSenderTests(TestCase):
     def setUp(self):
         self.context = MessageSender

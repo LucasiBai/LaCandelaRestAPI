@@ -12,7 +12,7 @@ class MessageSender:
 
     def get_sender(self):
         """
-        Returns send method
+        Returns sender method
         """
         return self.__sender
 
