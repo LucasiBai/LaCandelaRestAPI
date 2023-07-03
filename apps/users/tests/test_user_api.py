@@ -89,6 +89,24 @@ class PublicUsersAPITests(TestCase):
         res = self.client.post(USER_LIST_URL, payload)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_user_api_post_email_normalize_successful(self):
+        """
+        Tests if api normalize email in payload
+        """
+        payload = {
+            "email": "   tesT@miTest.com ",
+            "password": "testpassword",  # Mock user create data
+            "first_name": "Test",
+            "last_name": "Testi",
+        }
+
+        res = self.client.post(USER_LIST_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        user = self.model.objects.get(**res.data)
+        self.assertEqual(user.email, "test@mitest.com")
+
     def test_user_invalid_email(self):
         """
         Tests if catch exception of invalid email adress
